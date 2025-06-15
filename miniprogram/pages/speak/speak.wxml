@@ -1,0 +1,258 @@
+<!-- 说一说页面 -->
+<view class="container">
+  <!-- 花园模式顶部导航栏 -->
+  <view class="garden-navbar">
+    <view class="garden-mode">
+      <text class="mode-icon">🌸</text>
+      <text class="mode-text">花园模式</text>
+    </view>
+    <view class="flowers-display">
+      <text class="flowers-icon">🌷</text>
+      <view class="flowers-info">
+        <text class="flowers-label">今日花朵</text>
+        <text class="flowers-value">{{todayFlowers || 0}}</text>
+      </view>
+      <view class="flowers-info">
+        <text class="flowers-label">总花朵</text>
+        <text class="flowers-value">{{totalFlowers || 0}}</text>
+      </view>
+      <view class="view-rules" bindtap="showGardenRules">
+        <text class="rules-text">查看规则</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 书签式抽拉按钮和设置 -->
+  <view class="bookmark-settings-section">
+    <!-- 热点主持行 -->
+    <view class="bookmark-row">
+      <!-- 热点主持书签按钮 -->
+      <view class="bookmark-tab {{hotspotExpanded ? 'expanded' : ''}}" bindtap="toggleHotspot">
+        <text class="bookmark-icon">📢</text>
+        <text class="bookmark-text">萌芽主持</text>
+      </view>
+
+      <!-- 选择语言（随热点主持一起移动） -->
+      <view class="settings-item {{hotspotExpanded ? 'shifted' : ''}}">
+        <text class="settings-label">对照学习语言:</text>
+        <view class="settings-value selector-common">
+          <picker bindchange="onLanguageChange" value="{{languageIndex}}" range="{{languages}}" range-key="name">
+            <view class="selector-text">{{selectedLanguage.name}}</view>
+          </picker>
+        </view>
+      </view>
+    </view>
+
+    <!-- 森林朗读行 -->
+    <view class="bookmark-row">
+      <!-- 森林朗读书签按钮 -->
+      <view class="bookmark-tab {{classicExpanded ? 'expanded' : ''}}" bindtap="toggleClassic">
+        <text class="bookmark-icon">📖</text>
+        <text class="bookmark-text">森林朗读</text>
+      </view>
+
+      <!-- 选择字幕（随森林朗读一起移动） -->
+      <view class="settings-item {{classicExpanded ? 'shifted' : ''}}">
+        <text class="settings-label">选择学习日期:</text>
+        <view class="settings-value selector-common">
+          <picker mode="date" bindchange="bindForestDateChange" value="{{forestSelectedDate}}">
+            <view class="selector-text">{{forestSelectedDate}}</view>
+          </picker>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 主要内容区域 -->
+  <view class="content-section">
+    <!-- 热点主持内容区域 -->
+    <view class="hotspot-content" wx:if="{{hotspotExpanded}}">
+      <view class="section-title">
+        <text class="title-main">萌芽岛难度主持训练</text>
+        <text class="title-sub">提升表达能力</text>
+      </view>
+      
+      <!-- 电影屏幕形状的播放画面 -->
+      <view class="video-screen">
+        <view class="screen-header">
+          <text class="video-title">{{currentHotspot.title || '热点主持内容'}}</text>
+        </view>
+        <view class="screen-content" bindtap="playHotspotAudio">
+          <!-- 封面图片，当没有播放时显示 -->
+          <block wx:if="{{!isHotspotPlaying && !isHotspotMutedPlaying}}">
+            <image class="content-image" src="{{currentHotspot.coverImage || currentHotspot.cover || '/images/default-hotspot.jpg'}}" mode="aspectFill"></image>
+          </block>
+          <!-- 播放时显示对应字幕的图片 -->
+          <block wx:else>
+            <image class="content-image" src="{{currentHotspot.currentSubtitleImage || currentHotspot.coverImage || currentHotspot.cover || '/images/default-hotspot.jpg'}}" mode="aspectFill"></image>
+          </block>
+          
+          <!-- 字幕条，仅在播放时显示 -->
+          <view class="subtitle-bar" wx:if="{{isHotspotPlaying || isHotspotMutedPlaying}}">
+            <text class="subtitle-text">{{currentHotspot.currentSubtitle || currentHotspot.subtitle || '这里是热点新闻的字幕内容示例'}}</text>
+          </view>
+          <view class="play-overlay" wx:if="{{!isHotspotPlaying && !isHotspotMutedPlaying}}">
+            <view class="play-icon"></view>
+          </view>
+        </view>
+      </view>
+      
+      <!-- 控制区域 -->
+      <view class="control-area">
+        <view class="record-control {{isHotspotRecording ? 'recording' : ''}}" bindtap="toggleHotspotRecording">
+          <text class="control-icon">🎙</text>
+          <text class="control-text">{{isHotspotRecording ? '停止录音' : '开始录音'}}</text>
+        </view>
+        
+        <view class="playback-control" bindtap="playHotspotRecording">
+          <text class="control-icon">{{isPlayingHotspotRecording ? '⏸' : '▶'}}</text>
+          <text class="control-text">试听一下</text>
+        </view>
+        
+        <view class="save-button" bindtap="saveHotspotRecording">
+          <text class="control-icon">💾</text>
+          <text class="control-text">存至仓库</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 森林朗读内容区域 -->
+    <view class="classic-content" wx:if="{{classicExpanded}}">
+      <view class="section-title">
+        <text class="title-main">森林谷难度朗读挑战</text>
+        <text class="title-sub">提升文学素养</text>
+      </view>
+      
+      <!-- 电影屏幕形状的播放画面 -->
+      <view class="video-screen">
+        <view class="screen-header">
+          <text class="video-title">{{currentClassic.title || '热点朗读内容'}}</text>
+        </view>
+        <view class="screen-content" bindtap="playClassicAudio">
+          <!-- 封面图片，当没有播放时显示 -->
+          <block wx:if="{{!isClassicPlaying && !isClassicMutedPlaying}}">
+            <image class="content-image" src="{{currentClassic.coverImage || currentClassic.cover || '/images/default-classic.jpg'}}" mode="aspectFill"></image>
+          </block>
+          <!-- 播放时显示对应字幕的图片 -->
+          <block wx:else>
+            <image class="content-image" src="{{currentClassic.currentSubtitleImage || currentClassic.coverImage || currentClassic.cover || '/images/default-classic.jpg'}}" mode="aspectFill"></image>
+          </block>
+          
+          <!-- 字幕条，仅在播放时显示 -->
+          <view class="subtitle-bar" wx:if="{{isClassicPlaying || isClassicMutedPlaying}}">
+            <text class="subtitle-text">{{currentClassic.currentSubtitle || currentClassic.subtitle || '这里是经典名著片段的字幕内容示例'}}</text>
+          </view>
+          <view class="play-overlay" wx:if="{{!isClassicPlaying && !isClassicMutedPlaying}}">
+            <view class="play-icon"></view>
+          </view>
+        </view>
+      </view>
+      
+      <!-- 控制区域 -->
+      <view class="control-area">
+        <view class="record-control {{isClassicRecording ? 'recording' : ''}}" bindtap="toggleClassicRecording">
+          <text class="control-icon">🎙</text>
+          <text class="control-text">{{isClassicRecording ? '停止录音' : '开始录音'}}</text>
+        </view>
+        
+        <view class="playback-control" bindtap="playClassicRecording">
+          <text class="control-icon">{{isPlayingClassicRecording ? '⏸' : '▶'}}</text>
+          <text class="control-text">试听一下</text>
+        </view>
+        
+        <view class="save-button" bindtap="saveClassicRecording">
+          <text class="control-icon">💾</text>
+          <text class="control-text">存至仓库</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 未选择任何模式时显示 -->
+    <view class="no-selection" wx:if="{{!hotspotExpanded && !classicExpanded}}">
+      <text class="prompt-text">请先点击「萌芽主持」或「森林朗读」选择练习模式</text>
+    </view>
+
+    <!-- 花园墙展示区域 -->
+    <view class="garden-wall" wx:if="{{!hotspotExpanded && !classicExpanded}}">
+      <view class="garden-wall-pattern"></view>
+      <view class="garden-wall-header">
+        <text class="garden-title">我的花园</text>
+        <text class="garden-subtitle">每一朵花都是声音的赞礼</text>
+      </view>
+      
+      <!-- 无花朵时显示提示 -->
+      <view class="empty-garden" wx:if="{{!flowers || flowers.length === 0}}">
+        <block wx:if="{{!emptyGardenFallback}}">
+          <image class="empty-garden-image" src="/images/empty-garden.png" mode="aspectFit" bindload="onEmptyGardenImageLoad" binderror="onEmptyGardenImageError"></image>
+        </block>
+        <block wx:else>
+          <view class="empty-garden-fallback">
+            <text class="fallback-icon">🌱</text>
+          </view>
+        </block>
+        <text class="empty-garden-text">用您的声音装点这片花园</text>
+        <text class="empty-garden-tip">每完成一次45秒以上的录音会获得一朵惊喜花束</text>
+      </view>
+      
+      <!-- 花朵展示区域 -->
+      <view class="flowers-wall" wx:else>
+        <swiper class="flowers-swiper" indicator-dots="{{true}}" autoplay="{{true}}" interval="3000" duration="500" circular="{{true}}" previous-margin="40rpx" next-margin="40rpx" bindchange="onFlowerSwiperChange">
+          <block wx:for="{{flowers}}" wx:key="id">
+            <swiper-item>
+              <view class="flower-item {{newFlowerAdded && index === 0 ? 'new-flower' : ''}}">
+                <view class="flower-icon">{{item.icon}}</view>
+                <view class="flower-details">
+                  <text class="flower-name">{{item.name}}</text>
+                  <text class="flower-meaning">{{item.meaning}}</text>
+                </view>
+              </view>
+            </swiper-item>
+          </block>
+        </swiper>
+      </view>
+    </view>
+  </view>
+</view>
+
+<!-- 音频类型选择 -->
+<view class="audio-type-section">
+  <view class="audio-type-btn {{currentAudioType === 'podcast' ? 'active' : ''}}" 
+        bindtap="selectAudioType" 
+        data-type="podcast">
+    <text class="type-icon">📢</text>
+    <text class="type-text">萌芽主持</text>
+  </view>
+  <view class="audio-type-btn {{currentAudioType === 'book' ? 'active' : ''}}" 
+        bindtap="selectAudioType" 
+        data-type="book">
+    <text class="type-icon">📖</text>
+    <text class="type-text">森林朗读</text>
+  </view>
+</view>
+
+<!-- 花园规则弹窗 -->
+<view class="garden-rules-popup" wx:if="{{showGardenRulesPopup}}">
+  <view class="rules-content">
+    <view class="rules-header">
+      <text class="rules-title">花园规则</text>
+      <text class="close-button" bindtap="hideGardenRules">×</text>
+    </view>
+    <view class="rules-body">
+      <view class="rule-item">
+        <text class="rule-title">📢 用声音滋育花朵，装点生活</text>
+      </view>
+      <view class="rule-item">
+        <text class="rule-title">🎙️ 每完成一次45秒以上的录音会获得一朵惊喜花束</text>
+      </view>
+      <view class="rule-item">
+        <text class="rule-title">🌸 这些惊喜花束会绽放在我的花园中</text>
+      </view>
+      <!-- 花朵状态展示 -->
+      <view class="rule-item garden-status">
+        <block wx:if="{{hasReachedGoal}}">
+          <text class="garden-text">🎉 恭喜您！今日花园已达成目标</text>
+        </block>
+      </view>
+    </view>
+  </view>
+</view> 

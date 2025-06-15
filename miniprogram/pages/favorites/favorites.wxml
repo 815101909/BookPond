@@ -1,0 +1,45 @@
+<!-- 我的收藏页面 -->
+<view class="container">
+  <!-- 头部 -->
+  <view class="header">
+    <view class="title">我的收藏</view>
+    <view class="sub-title">您收藏的文章会保存在这里</view>
+  </view>
+
+  <!-- 加载状态 -->
+  <view wx:if="{{isLoading}}" class="loading">
+    <view class="loading-spinner"></view>
+    <view class="loading-text">加载中...</view>
+  </view>
+
+  <!-- 文章列表 -->
+  <view wx:elif="{{favoriteArticles.length > 0}}" class="favorite-list">
+    <view wx:for="{{favoriteArticles}}" wx:key="id" class="article-item" bindtap="viewArticleDetail" data-id="{{item.id}}">
+      <view class="article-content">
+        <view class="article-title">{{item.title}}</view>
+        <view class="article-desc">{{item.description}}</view>
+        <view class="article-meta">
+          <view class="article-date">{{item.date}}</view>
+          <view class="article-category">{{item.category}}</view>
+        </view>
+        <!-- 取消收藏按钮 -->
+        <view class="action-buttons">
+          <view class="remove-btn" catchtap="removeFromFavorites" data-id="{{item.id}}">
+            取消收藏
+          </view>
+        </view>
+      </view>
+      <view class="article-image" wx:if="{{item.imageUrl}}">
+        <image src="{{item.imageUrl}}" mode="aspectFill"></image>
+      </view>
+    </view>
+  </view>
+
+  <!-- 空状态 -->
+  <view wx:else class="empty-favorite">
+    <view class="empty-icon">📚</view>
+    <view class="empty-text">暂无收藏内容</view>
+    <view class="empty-desc">您可以在"读一读"中收藏感兴趣的文章，它们将会显示在这里</view>
+    <view class="goto-read" bindtap="navigateToRead">前往阅读</view>
+  </view>
+</view> 

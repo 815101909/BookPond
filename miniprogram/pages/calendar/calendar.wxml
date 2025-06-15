@@ -1,0 +1,65 @@
+<!-- 学习打卡日历页面 -->
+<view class="calendar-container">
+  <!-- 页面标题和统计信息 -->
+  <view class="header">
+    <view class="title-row">
+      <view class="title">学习打卡日历</view>
+      <view class="view-btn" bindtap="viewCalendarDetails">点击查看</view>
+    </view>
+    <view class="stats">
+      <view class="stat-item">
+        <text class="stat-label">连续打卡</text>
+        <text class="stat-value">{{checkinDays}}天</text>
+      </view>
+      <view class="stat-divider">|</view>
+      <view class="stat-item">
+        <text class="stat-label">总计打卡</text>
+        <text class="stat-value">{{totalCheckinDays}}天</text>
+      </view>
+    </view>
+  </view>
+  
+  <!-- 日历控制 -->
+  <view class="calendar-header">
+    <view class="month-selector">
+      <view class="arrow" bindtap="prevMonth">◀</view>
+      <view class="current-month">{{year}}年{{month}}月</view>
+      <view class="arrow" bindtap="nextMonth">▶</view>
+    </view>
+  </view>
+  
+  <!-- 星期标题 -->
+  <view class="weekday-header">
+    <view class="weekday weekend">日</view>
+    <view class="weekday">一</view>
+    <view class="weekday">二</view>
+    <view class="weekday">三</view>
+    <view class="weekday">四</view>
+    <view class="weekday">五</view>
+    <view class="weekday weekend">六</view>
+  </view>
+  
+  <!-- 日历主体 -->
+  <view class="calendar-body">
+    <view class="calendar-row" wx:for="{{calendarRows}}" wx:for-item="row" wx:key="index">
+      <block wx:for="{{row}}" wx:key="day">
+        <view 
+          class="calendar-cell {{item.isCurrentMonth ? '' : 'other-month'}} {{item.isToday ? 'today' : ''}} {{item.isChecked ? 'checked' : ''}}"
+          bindtap="onDateTap"
+          data-day="{{item.day}}"
+          data-is-current-month="{{item.isCurrentMonth}}"
+        >
+          <text class="day-number">{{item.day > 0 ? item.day : ''}}</text>
+          <view wx:if="{{item.isChecked}}" class="check-mark">✓</view>
+        </view>
+      </block>
+    </view>
+  </view>
+  
+  <!-- 底部按钮区域 -->
+  <view class="footer">
+    <view class="today-btn {{canCheckInToday ? '' : 'disabled'}}" bindtap="checkInToday">
+      今日打卡
+    </view>
+  </view>
+</view> 

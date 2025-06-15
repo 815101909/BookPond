@@ -1,0 +1,19 @@
+{
+  "name": "miniprogram-ts-less-quickstart",
+  "version": "1.0.0",
+  "description": "九域小程序是一个集阅读、写作、听力和口语于一体的语言学习应用。本文档主要描述应用与后端API的交互要求。",
+  "scripts": {},
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^2.2.0",
+    "canvas": "^3.1.0",
+    "express": "^5.1.0",
+    "mongoose": "^8.13.2"
+  },
+  "devDependencies": {
+    "miniprogram-api-typings": "^2.8.3-1"
+  },
+  "main": "app.js"
+}

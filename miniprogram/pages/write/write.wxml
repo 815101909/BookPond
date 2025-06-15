@@ -1,0 +1,374 @@
+<!-- 写一写页面 -->
+<view class="container" bindtap="onTapPage">
+  <!-- 整个模式版块 -->
+  <view class="mode-section">
+    <!-- 信件模式标题 -->
+    <view class="mode-title-wrapper">
+      <view class="mailbox-mode-title" bindtap="toggleDebugMode"><text class="mailbox-icon">📮</text><text>信箱模式</text></view>
+    </view>
+    
+    <!-- 信封区域用scroll-view包裹，确保可滚动 -->
+    <scroll-view class="envelope-scroll" scroll-y="true">
+      <view class="envelope-area">
+        <view class="envelope">
+          <!-- 顶部控制区域 -->
+          <view class="top-controls">
+            <!-- 来信内容标题 -->
+            <text class="materials-title">来信内容</text>
+            
+            <!-- 日期选择器 -->
+            <view class="date-picker-container">
+              <picker mode="date" value="{{selectedDate}}" bindchange="onDateChange">
+                <view class="date-picker">
+                  <text class="date-label">选择来信日期</text>
+                  <text class="date-value">{{formattedDate}}</text>
+                  <text class="date-arrow">▼</text>
+                </view>
+              </picker>
+            </view>
+          </view>
+
+          <!-- 轮播文章列表区域 -->
+          <view class="news-carousel-section">
+            <swiper class="news-swiper" autoplay="{{true}}" interval="3000" circular="{{true}}" indicator-dots="{{true}}" indicator-color="rgba(0, 0, 0, 0.2)" indicator-active-color="#4CAF50">
+              <!-- 萌芽岛文章 (只显示第一篇) -->
+              <swiper-item wx:if="{{sproutNews.length > 0}}" bindtap="onNewsSelect" data-id="{{sproutNews[0].id}}" data-level="sprout">
+                <view class="news-card">
+                  <view class="difficulty-badge">
+                    <text class="badge-icon">🌱</text>
+                    <text class="badge-text">萌芽岛</text>
+                  </view>
+                  <image class="news-image" src="{{sproutNews[0].cover}}" mode="aspectFill"></image>
+                  <view class="news-info">
+                    <text class="news-title">{{sproutNews[0].title}}</text>
+                  </view>
+                </view>
+              </swiper-item>
+              
+              <!-- 森林谷文章 (只显示第一篇) -->
+              <swiper-item wx:if="{{forestNews.length > 0}}" bindtap="onNewsSelect" data-id="{{forestNews[0].id}}" data-level="forest">
+                <view class="news-card">
+                  <view class="difficulty-badge">
+                    <text class="badge-icon">🌳</text>
+                    <text class="badge-text">森林谷</text>
+                  </view>
+                  <image class="news-image" src="{{forestNews[0].cover}}" mode="aspectFill"></image>
+                  <view class="news-info">
+                    <text class="news-title">{{forestNews[0].title}}</text>
+                  </view>
+                </view>
+              </swiper-item>
+              
+              <!-- 空状态展示 -->
+              <swiper-item wx:if="{{sproutNews.length === 0 && forestNews.length === 0}}">
+                <view class="news-card empty-card">
+                  <text class="empty-message">今日暂无内容</text>
+                </view>
+              </swiper-item>
+            </swiper>
+          </view>
+
+          <!-- 写作区域 -->
+          <view class="writing-area">
+            <!-- 写信卡片区 -->
+            <view class="cards-section">
+              <view class="cards-header">
+                <text class="cards-title">写信卡片</text>
+                <!-- 语言选择器区域 -->
+                <view class="language-selectors">
+                  <text class="language-select-label">选择写信语言</text>
+                  <view class="language-picker">
+                    <picker bindchange="onCompareChange1" value="{{compareIndex1}}" range="{{languageOptions}}" range-key="name">
+                      <view class="picker">
+                        <text wx:if="{{selectedLanguage1}}" class="language-text">{{selectedLanguage1.flag}} {{selectedLanguage1.shortName}}</text>
+                        <text wx:else class="language-text">选择语言</text>
+                      </view>
+                    </picker>
+                  </view>
+                </view>
+              </view>
+              
+              <!-- 新的简化布局：只保留写信提示按钮和写作内容 -->
+              <view class="writing-layout">
+                <!-- 写信提示按钮和工具按钮 -->
+                <view style="display: flex; align-items: center; margin-bottom: 12rpx; position: relative; justify-content: space-between;">
+                  <view class="prompt-button {{showPromptPanel ? 'active' : ''}}" catchtap="togglePromptPanel" data-is-panel-button="true">
+                    <text class="prompt-button-icon">💡</text>
+                    <text class="prompt-button-text">写信提示</text>
+                  </view>
+                  
+                  <view class="prompt-button save-prompt-button" bindtap="submitWriting">
+                    <text class="prompt-button-icon">📥</text>
+                    <text class="prompt-button-text">保存至主页</text>
+                  </view>
+                  
+                  <view class="prompt-button time-capsule-button" bindtap="showTimeCapsuleModal">
+                    <text class="prompt-button-icon">⏳</text>
+                    <text class="prompt-button-text">时间胶囊</text>
+                  </view>
+                </view>
+                
+                <!-- 浮动提示词汇面板 -->
+                <view id="prompt-panel" class="prompt-panel" wx:if="{{showPromptPanel}}">
+                  <view class="panel-close" catchtap="togglePromptPanel">✕</view>
+                  
+                  <!-- 未选择文章时的提示 -->
+                  <view class="panel-content" wx:if="{{!currentArticle}}">
+                    <text class="panel-title">写信提示</text>
+                    <view class="panel-tip">
+                      请先<text class="bold">点击上方来信内容的一篇文章</text>，这里会<text class="bold">生成对应的提示词</text>，有助于您写一封信给亲朋好友。
+                    </view>
+                  </view>
+                  
+                  <!-- 已选择文章后的提示内容 (词汇列表) -->
+                  <view class="panel-content" wx:else>
+                    <text class="panel-title">《{{currentArticle.title}}》相关词汇</text>
+                    
+                    <!-- 词汇提示部分 -->
+                    <view class="prompt-section">
+                      <view class="prompt-items">
+                        <!-- 使用vocabularyList数组动态生成词汇项 -->
+                        <view class="prompt-item" wx:for="{{vocabularyList}}" wx:key="index" catchtap="showTranslation" data-index="{{index}}">
+                          {{item.text}}
+                          <!-- 翻译面板 -->
+                          <view class="translation-panel" wx:if="{{currentTranslationIndex === index}}" catchtap="stopPropagation">
+                            <!-- 只在选择了非中文语言时显示翻译 -->
+                            <view class="translation-item" wx:if="{{selectedLanguage1 && selectedLanguage1.code !== 'zh'}}">
+                              <text class="translation-lang">{{selectedLanguage1.name}}:</text>
+                              <text class="translation-text">{{item.translations[selectedLanguage1.code] || '暂无翻译'}}</text>
+                            </view>
+                            <!-- 如果没有选择语言或选择了中文，则显示英语翻译作为默认 -->
+                            <view class="translation-item" wx:if="{{!selectedLanguage1 || selectedLanguage1.code === 'zh'}}">
+                              <text class="translation-lang">英语:</text>
+                              <text class="translation-text">{{item.translations.en}}</text>
+                            </view>
+                          </view>
+                        </view>
+                      </view>
+                    </view>
+                    
+                    <view class="panel-tip">
+                      点击词汇查看翻译，将这些词汇融入您的写作中，给亲朋好友分享您对《{{currentArticle.title}}》的感想。
+                    </view>
+                  </view>
+                </view>
+                
+                <!-- 写作内容区 -->
+                <view class="writing-section" style="flex: 1; min-height: 0; margin-top: 15rpx;">
+                  <scroll-view class="writing-scroll" scroll-y="true" style="height: 100%;">
+                    <view class="writing-container" style="height: 100%;">
+                      <textarea class="writing-input" 
+                        placeholder="请在此输入您的写作内容..." 
+                        value="{{writingContent}}" 
+                        bindinput="onWritingInput" 
+                        show-confirm-bar="{{false}}" 
+                        adjust-keyboard-to="{{false}}" 
+                        style="height: 100%; width: 100%; box-sizing: border-box;"
+                        auto-height="true">
+                      </textarea>
+                    </view>
+                  </scroll-view>
+                </view>
+              </view>
+            </view>
+          </view>
+        </view>
+      </view>
+    </scroll-view>
+  </view>
+</view>
+
+<!-- 添加在页面最后，其他内容之后 -->
+<view class="debug-section" wx:if="{{isDebugMode}}">
+  <view class="section-title">调试工具</view>
+  <view class="debug-info">
+    <text>BASE_URL: {{apiBaseUrl}}</text>
+    <text>网络状态: {{networkStatus}}</text>
+    <text>数据来源: {{dataSource}}</text>
+  </view>
+  <view class="debug-buttons">
+    <button class="debug-button" bindtap="testApiConnection">测试API连接</button>
+    <button class="debug-button" bindtap="toggleMockData">{{useMockData ? '切换到实际API' : '切换到模拟数据'}}</button>
+  </view>
+</view>
+
+<!-- 隐藏的画布，用于生成图片 -->
+<canvas class="hidden-canvas" canvas-id="share-canvas" style="width: 750rpx; height: 1000rpx;"></canvas>
+
+<!-- 时光宝盒模态框 -->
+<view class="time-capsule-modal" wx:if="{{showTimeCapsuleModal}}">
+  <view class="time-capsule-container">
+    <view class="time-capsule-header">
+      <text class="time-capsule-title">创建时间胶囊</text>
+      <view class="time-capsule-close" bindtap="hideTimeCapsuleModal">✕</view>
+    </view>
+    
+    <view class="time-capsule-body">
+      <view class="time-capsule-description">
+        <text>将您的写作封存在时间胶囊中，在未来的某一天重新打开，见证自己的成长与进步。</text>
+      </view>
+      
+      <view class="time-capsule-animation">
+        <view class="time-capsule-icon">⏳</view>
+        <view class="time-capsule-stars">
+          <text class="star">✨</text>
+          <text class="star">✨</text>
+          <text class="star">✨</text>
+        </view>
+      </view>
+      
+      <view class="time-capsule-options">
+        <view class="option {{selectedTimeOption === 'week' ? 'selected' : ''}}" bindtap="selectTimeOption" data-option="week">
+          <text class="option-icon">🔜</text>
+          <text class="option-title">一周后</text>
+          <text class="option-date">{{weekLaterDate}}</text>
+        </view>
+        
+        <view class="option {{selectedTimeOption === 'month' ? 'selected' : ''}}" bindtap="selectTimeOption" data-option="month">
+          <text class="option-icon">📅</text>
+          <text class="option-title">一个月后</text>
+          <text class="option-date">{{monthLaterDate}}</text>
+        </view>
+        
+        <view class="option {{selectedTimeOption === 'halfYear' ? 'selected' : ''}}" bindtap="selectTimeOption" data-option="halfYear">
+          <text class="option-icon">🗓️</text>
+          <text class="option-title">半年后</text>
+          <text class="option-date">{{halfYearLaterDate}}</text>
+        </view>
+      </view>
+      
+      <view class="time-capsule-custom">
+        <text class="custom-label">自定义日期：</text>
+        <picker mode="date" value="{{customDate}}" start="{{minDate}}" bindchange="onCustomDateChange">
+          <view class="custom-date-picker">
+            <text>{{customDate || '点击选择日期'}}</text>
+            <text class="picker-arrow">▼</text>
+          </view>
+        </picker>
+      </view>
+      
+      <view class="time-capsule-message">
+        <text class="message-label">给未来的你：</text>
+        <input class="message-input" placeholder="写下你想对未来自己说的话..." value="{{futureSelfMessage}}" bindinput="onFutureMessageInput" />
+      </view>
+    </view>
+    
+    <view class="time-capsule-footer">
+      <view class="time-capsule-btn cancel" bindtap="hideTimeCapsuleModal">取消</view>
+      <view class="time-capsule-btn create" bindtap="createTimeCapsule">创建宝盒</view>
+    </view>
+  </view>
+</view>
+
+<!-- 时光宝盒内容弹窗 -->
+<view class="capsule-content-modal" wx:if="{{showCapsuleContentModal}}">
+  <view class="capsule-content-container">
+    <view class="capsule-content-header">
+      <text class="capsule-content-title">时光回溯</text>
+      <view class="capsule-content-close" bindtap="closeCapsuleContent">✕</view>
+    </view>
+    
+    <view class="capsule-content-body">
+      <view class="capsule-date">
+        <text class="capsule-date-label">封存于</text>
+        <text class="capsule-date-value">{{currentCapsule.createdAt ? currentCapsule._formattedCreatedDate : '未知日期'}}</text>
+        <text class="capsule-days-ago">这是{{currentCapsule.diffDays}}天前的你写下的内容</text>
+      </view>
+      
+      <view class="capsule-message" wx:if="{{currentCapsule.message}}">
+        <text class="capsule-message-label">给未来的你：</text>
+        <text class="capsule-message-content">{{currentCapsule.message}}</text>
+      </view>
+      
+      <view class="capsule-writing">
+        <text class="capsule-writing-label">你的写作：</text>
+        <view class="capsule-writing-content">{{currentCapsule.content}}</view>
+      </view>
+      
+      <view class="capsule-article" wx:if="{{currentCapsule.article}}">
+        <text class="capsule-article-label">基于文章：</text>
+        <text class="capsule-article-title">《{{currentCapsule.article.title}}》</text>
+      </view>
+      
+      <view class="capsule-vocabulary" wx:if="{{currentCapsule.vocabularyUsed && currentCapsule.vocabularyUsed.length > 0}}">
+        <text class="capsule-vocabulary-label">使用词汇：</text>
+        <view class="capsule-vocabulary-list">
+          <text class="capsule-vocabulary-item" wx:for="{{currentCapsule.vocabularyUsed}}" wx:key="index">{{item}}</text>
+        </view>
+      </view>
+    </view>
+    
+    <view class="capsule-content-footer">
+      <view class="capsule-reflection">
+        <text class="reflection-label">思考与成长：</text>
+        <text class="reflection-content">重读过去的文字，感受自己的进步，思考自己的成长。</text>
+      </view>
+      
+      <view class="capsule-actions">
+        <view class="capsule-action-btn compare" bindtap="startNewWriting">开始新写作</view>
+        <view class="capsule-action-btn close" bindtap="closeCapsuleContent">关闭</view>
+      </view>
+    </view>
+  </view>
+</view>
+
+<!-- 信箱模式 -->
+<view class="mailbox-mode" wx:if="{{currentMode === 'mailbox'}}">
+  <view class="mailbox-header">
+    <view class="mailbox-title">信箱模式</view>
+    <view class="mailbox-subtitle">选择一封信件开始写作</view>
+  </view>
+  
+  <!-- 今日信件 -->
+  <view class="today-letters">
+    <view class="section-title">今日信件</view>
+    <view class="letter-list">
+      <view class="letter-item" wx:for="{{todayLetters}}" wx:key="id" bindtap="selectLetter" data-letter="{{item}}">
+        <view class="letter-icon">✉️</view>
+        <view class="letter-info">
+          <view class="letter-title">{{item.title}}</view>
+          <view class="letter-brief">{{item.brief}}</view>
+        </view>
+        <view class="letter-arrow">></view>
+      </view>
+    </view>
+  </view>
+</view>
+
+<!-- 自由模式 -->
+<view class="free-mode" wx:if="{{currentMode === 'free'}}">
+  <view class="free-header">
+    <view class="free-title">自由模式</view>
+    <view class="free-subtitle">自由创作，发挥想象</view>
+  </view>
+  
+  <view class="writing-area">
+    <textarea 
+      class="writing-input" 
+      placeholder="在这里写下你的想法..." 
+      bindinput="onInput"
+      value="{{content}}"
+      maxlength="{{maxLength}}"
+      show-confirm-bar="{{false}}"
+      cursor-spacing="20"
+    ></textarea>
+    <view class="word-count">{{content.length}}/{{maxLength}}</view>
+  </view>
+  
+  <view class="action-buttons">
+    <button class="action-button save" bindtap="saveDraft">保存草稿</button>
+    <button class="action-button publish" bindtap="publishContent">发布</button>
+  </view>
+</view>
+
+<!-- 底部导航栏 -->
+<view class="bottom-nav">
+  <view class="nav-item {{currentMode === 'mailbox' ? 'active' : ''}}" bindtap="switchMode" data-mode="mailbox">
+    <view class="nav-icon">📬</view>
+    <view class="nav-text">信箱模式</view>
+  </view>
+  <view class="nav-item {{currentMode === 'free' ? 'active' : ''}}" bindtap="switchMode" data-mode="free">
+    <view class="nav-icon">✏️</view>
+    <view class="nav-text">自由模式</view>
+  </view>
+</view> 

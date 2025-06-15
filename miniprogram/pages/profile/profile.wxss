@@ -1,0 +1,348 @@
+/* 我的主页页面样式 */
+page {
+  background: #e8f5e9;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* 容器 */
+.container {
+  padding: 10rpx;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 15rpx;
+}
+
+/* 用户信息区 */
+.user-section {
+  background: white;
+  padding: 20rpx;
+  border-radius: 15rpx;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  box-sizing: border-box;
+  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
+}
+
+.user-left {
+  display: flex;
+  align-items: center;
+  flex: 1;
+}
+
+.avatar-box {
+  width: 130rpx;
+  height: 130rpx;
+  background: #e0f2f1;
+  border-radius: 65rpx;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-right: 25rpx;
+  flex-shrink: 0;
+  box-shadow: 0 2rpx 10rpx rgba(0, 150, 136, 0.2);
+  overflow: hidden;
+  position: relative;
+}
+
+.avatar-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.default-avatar {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.avatar-text {
+  color: white;
+  font-weight: bold;
+  font-size: 60rpx;
+}
+
+.user-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.user-name {
+  font-size: 38rpx;
+  font-weight: bold;
+  margin-bottom: 12rpx;
+  display: block;
+}
+
+.user-signature {
+  color: #888;
+  font-size: 26rpx;
+  display: block;
+  width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 400rpx;
+}
+
+.edit-profile {
+  padding: 12rpx 25rpx;
+  background: #e0f2f1;
+  border-radius: 30rpx;
+  font-size: 26rpx;
+  color: #009688;
+  box-shadow: 0 2rpx 8rpx rgba(0, 150, 136, 0.1);
+}
+
+.edit-text {
+  font-size: 26rpx;
+}
+
+/* 虚线分隔符 */
+.divider {
+  width: 100%;
+  height: 2rpx;
+  background: repeating-linear-gradient(
+    to right,
+    #e0e0e0 0,
+    #e0e0e0 8rpx,
+    transparent 8rpx,
+    transparent 16rpx
+  );
+  margin: 10rpx 0;
+}
+
+/* 功能菜单区 */
+.menu-section {
+  background: white;
+  padding: 20rpx;
+  border-radius: 15rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 15rpx;
+  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.menu-row {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.menu-item {
+  width: 25%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 10rpx;
+  position: relative;
+}
+
+.menu-icon {
+  width: 80rpx;
+  height: 80rpx;
+  background: #f0f7f5;
+  border-radius: 40rpx;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 8rpx;
+  font-size: 36rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.1);
+}
+
+.menu-text {
+  font-size: 24rpx;
+  color: #666;
+  margin-top: 4rpx;
+}
+
+/* 添加特殊样式给录音仓库和文章收藏按钮 */
+.menu-item.article-favorites .menu-icon,
+.menu-item.recording-repository .menu-icon {
+  background: #f0f7f5; /* 统一背景色，与其他菜单项保持一致 */
+  color: #666; /* 统一颜色 */
+  font-size: 36rpx; /* 统一图标大小 */
+  transition: all 0.3s ease;
+}
+
+.menu-item.article-favorites .menu-text,
+.menu-item.recording-repository .menu-text {
+  color: #666; /* 统一文字颜色 */
+  font-weight: normal; /* 统一字重 */
+}
+
+.menu-item.article-favorites:active .menu-icon,
+.menu-item.recording-repository:active .menu-icon {
+  transform: scale(0.95);
+  background: #b2ebf2;
+}
+
+/* 消息提示红点 */
+.message-badge {
+  position: absolute;
+  top: -5rpx;
+  right: 15rpx;
+  background-color: #ff5252;
+  color: white;
+  font-size: 20rpx;
+  font-weight: bold;
+  min-width: 36rpx;
+  height: 36rpx;
+  border-radius: 18rpx;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0 8rpx;
+  box-shadow: 0 2rpx 5rpx rgba(255, 82, 82, 0.3);
+}
+
+/* 模块区域 */
+.modules-section {
+  width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 15rpx;
+}
+
+.module {
+  background: white;
+  padding: 25rpx;
+  border-radius: 15rpx;
+  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
+}
+
+.module-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12rpx;
+}
+
+.module-title {
+  font-size: 34rpx;
+  font-weight: bold;
+}
+
+.view-btn {
+  font-size: 24rpx;
+  color: #009688;
+  padding: 6rpx 15rpx;
+  border: 1px solid #009688;
+  border-radius: 25rpx;
+  background-color: rgba(0, 150, 136, 0.05);
+}
+
+.module-desc {
+  font-size: 26rpx;
+  color: #999;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 学习内容区 */
+.study-section {
+  position: relative;
+  width: 100%;
+  box-sizing: border-box;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.study-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: 15rpx;
+  flex: 1;
+}
+
+.study-item {
+  background: white;
+  height: 150rpx;
+  padding: 20rpx;
+  border-radius: 15rpx;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
+}
+
+.item-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  margin-bottom: 8rpx;
+  text-align: center;
+}
+
+.item-stats {
+  font-size: 22rpx;
+  color: #999;
+  text-align: center;
+}
+
+/* 四个区块不同颜色 */
+.read {
+  background: #e3f2fd;
+}
+
+.write {
+  background: #fce4ec;
+}
+
+.listen {
+  background: #fff3e0;
+}
+
+.speak {
+  background: #f3e5f5;
+}
+
+/* 心灵抽签按钮 */
+.fortune-btn {
+  position: absolute;
+  width: 120rpx;
+  height: 120rpx;
+  background: linear-gradient(135deg, #ff758c, #ff7eb3);
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 4rpx 15rpx rgba(255, 118, 140, 0.5);
+  z-index: 2;
+  overflow: hidden;
+}
+
+.fortune-text {
+  color: white;
+  font-size: 22rpx;
+  font-weight: bold;
+  text-align: center;
+  z-index: 3;
+}
+
+.fortune-btn-hover {
+  background: linear-gradient(135deg, #ff6377, #ff6a9a);
+  box-shadow: 0 2rpx 10rpx rgba(255, 118, 140, 0.4);
+  transform: translate(-50%, -50%) scale(0.98);
+} 

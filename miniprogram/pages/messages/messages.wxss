@@ -1,0 +1,151 @@
+/* 系统消息页面样式 */
+page {
+  background-color: #e8f5e9; /* Verde claro */
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.container {
+  padding: 30rpx;
+}
+
+/* 头部样式 */
+.header {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 30rpx;
+  padding-bottom: 20rpx;
+  border-bottom: 1rpx solid #eee;
+}
+
+.header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15rpx;
+  width: 100%;
+}
+
+.title {
+  font-size: 44rpx;
+  font-weight: bold;
+  color: #333;
+  flex-shrink: 0;
+  margin-right: 20rpx;
+}
+
+.sub-title {
+  font-size: 28rpx;
+  color: #666;
+  margin-top: 5rpx;
+  margin-bottom: 5rpx;
+  text-align: center;
+  width: 100%;
+}
+
+.unread-message {
+  color: #ff5252;
+  font-weight: 500;
+  padding: 8rpx 0;
+  font-size: 30rpx;
+}
+
+.read-all {
+  color: #009688;
+  font-size: 28rpx;
+  padding: 10rpx 20rpx;
+  border-radius: 30rpx;
+  background-color: rgba(0, 150, 136, 0.1);
+  text-align: center;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.read-all:active {
+  background-color: rgba(0, 150, 136, 0.2);
+}
+
+/* 消息列表 */
+.message-list {
+  width: 100%;
+}
+
+.message-item {
+  position: relative;
+  background: white;
+  padding: 30rpx;
+  margin-bottom: 20rpx;
+  border-radius: 10rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
+}
+
+.message-item.unread {
+  background: rgba(0, 150, 136, 0.05);
+  border-left: 8rpx solid #009688;
+}
+
+.message-status {
+  position: absolute;
+  top: 30rpx;
+  right: 30rpx;
+  width: 16rpx;
+  height: 16rpx;
+  border-radius: 50%;
+  background-color: #ff5252;
+}
+
+.message-content {
+  width: 100%;
+}
+
+.message-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  margin-bottom: 15rpx;
+  color: #333;
+  padding-right: 40rpx;
+}
+
+.message-preview {
+  font-size: 28rpx;
+  color: #666;
+  margin-bottom: 20rpx;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.message-date {
+  font-size: 24rpx;
+  color: #999;
+}
+
+/* 空状态 */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 100rpx 0;
+  margin-top: 40rpx;
+}
+
+.empty-icon {
+  font-size: 80rpx;
+  margin-bottom: 30rpx;
+  color: #b0bec5;
+}
+
+.empty-text {
+  font-size: 34rpx;
+  font-weight: bold;
+  color: #546e7a;
+  margin-bottom: 15rpx;
+}
+
+.empty-desc {
+  font-size: 28rpx;
+  color: #90a4ae;
+  text-align: center;
+} 

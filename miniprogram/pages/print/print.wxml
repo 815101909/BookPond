@@ -1,0 +1,27 @@
+<!-- 打印页面 -->
+<view class="container">
+  <!-- 语言选择栏 -->
+  <view class="language-bar">
+    <picker bindchange="onLanguageChange" value="{{languageIndex}}" range="{{languages}}">
+      <view class="language-picker">
+        <text class="language-text">{{languages[languageIndex]}}</text>
+        <text class="picker-arrow">▼</text>
+      </view>
+    </picker>
+  </view>
+
+  <!-- 主要内容区域 -->
+  <view class="main-content">
+    <!-- A4预览区域 -->
+    <view class="preview-container">
+      <view class="a4-page">
+        <image class="print-image" src="{{printImage}}" mode="aspectFit"></image>
+      </view>
+    </view>
+
+    <!-- 底部文字 -->
+    <view class="footer">
+      <text class="footer-text main">读万卷书，行万里路，观万千象。</text>
+    </view>
+  </view>
+</view> 

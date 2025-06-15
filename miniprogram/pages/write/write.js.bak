@@ -1,0 +1,1067 @@
+// 写一写页面逻辑
+const api = require('../../utils/api.js');
+
+Page({
+  data: {
+    selectedType: 'news', // 默认选中热点信件
+    selectedDate: '', // 当前选择的日期
+    formattedDate: '', // 格式化后的日期显示
+    sproutNews: [], // 萌芽岛新闻
+    cocoonNews: [], // 破茧谷新闻
+    soarNews: [], // 翱翔峰新闻
+    currentLevel: 'sprout', // 当前选中的难度等级
+    currentLevelIndex: 0, // 当前显示的轮播页面索引
+    levels: {
+      sprout: { name: '萌芽岛', index: 0 },
+      cocoon: { name: '破茧谷', index: 1 },
+      soar: { name: '翱翔峰', index: 2 }
+    },
+    compareIndex1: null, // 第一对照语言索引
+    compareIndex2: null, // 第二对照语言索引
+    selectedLanguage1: null, // 已选择的第一对照语言
+    selectedLanguage2: null, // 已选择的第二对照语言
+    languageMap: {
+      'zh-TW': { code: 'zh-TW', name: '中文（繁体）', shortName: '繁体', flag: '🇨🇳' },
+      'en': { code: 'en', name: '英语', shortName: '英语', flag: '🇬🇧' },
+      'fr': { code: 'fr', name: '法语', shortName: '法语', flag: '🇫🇷' },
+      'es': { code: 'es', name: '西班牙语', shortName: '西语', flag: '🇪🇸' },
+      'de': { code: 'de', name: '德语', shortName: '德语', flag: '🇩🇪' },
+      'it': { code: 'it', name: '意大利语', shortName: '意语', flag: '🇮🇹' },
+      'ar': { code: 'ar', name: '阿拉伯语', shortName: '阿语', flag: '🇸🇦' },
+      'ja': { code: 'ja', name: '日语', shortName: '日语', flag: '🇯🇵' },
+      'pt-PT': { code: 'pt-PT', name: '葡萄牙语（葡萄牙）', shortName: '葡语', flag: '🇵🇹' },
+      'pt-BR': { code: 'pt-BR', name: '葡萄牙语（巴西）', shortName: '巴葡', flag: '🇧🇷' },
+      'th': { code: 'th', name: '泰语', shortName: '泰语', flag: '🇹🇭' },
+      'ru': { code: 'ru', name: '俄语', shortName: '俄语', flag: '🇷🇺' },
+      'ms': { code: 'ms', name: '马来语', shortName: '马语', flag: '🇲🇾' },
+      'ko': { code: 'ko', name: '韩语', shortName: '韩语', flag: '🇰🇷' }
+    },
+    languageOptions: [],
+    wordCards: [], // 词语卡片数据
+    sentenceCards: [], // 句子卡片数据
+    writingContent: '', // 用户输入的写作内容
+    textareaHeight: 180, // 文本区域高度
+    isDebugMode: false, // 默认不显示调试模式
+    apiBaseUrl: api.BASE_URL || '未配置',
+    debugClickCount: 0,
+    networkStatus: '',
+    dataSource: '',
+    showExampleWordTranslation: false,
+    showExamplePhraseTranslation: false,
+    showExampleSentenceTranslation: false,
+  },
+
+  onLoad: function() {
+    // 初始化当前日期
+    this.initCurrentDate();
+    
+    // 初始化语言选项
+    this.initLanguageOptions();
+    
+    // 确保函数名称正确
+    if (typeof this.getClassicsFromReadPage !== 'function' && typeof this.classicsFromReadPage === 'function') {
+      // 如果函数名称错误，创建一个正确名称的函数引用
+      this.getClassicsFromReadPage = this.classicsFromReadPage;
+      console.log('已修复函数名称: classicsFromReadPage -> getClassicsFromReadPage');
+    } else if (typeof this.getClassicsFromReadPage !== 'function' && typeof this.classicsFromReadPage !== 'function') {
+      // 如果两个函数都不存在，创建一个默认实现
+      this.getClassicsFromReadPage = function(date) {
+        console.log('使用默认的 getClassicsFromReadPage 实现');
+        return this.getMockClassicsData(date);
+      };
+      console.log('已创建默认的 getClassicsFromReadPage 函数');
+    }
+    
+    // 获取各等级新闻数据
+    this.getNewsData();
+    
+    // 初始化调试模式
+    this.setData({
+      isDebugMode: false, // 默认不显示调试模式
+      apiBaseUrl: api.BASE_URL || '未配置'
+    });
+    
+    // 检测是否要启用调试模式（连续点击标题5次可开启）
+    this.debugClickCount = 0;
+  },
+  
+  // 轮播内容切换时更新当前难度等级
+  onLevelSwiperChange: function(e) {
+    const index = e.detail.current;
+    let level = 'sprout';
+    
+    if (index === 1) {
+      level = 'cocoon';
+    } else if (index === 2) {
+      level = 'soar';
+    }
+    
+    this.setData({
+      currentLevelIndex: index,
+      currentLevel: level
+    });
+    
+    // 可选：显示当前难度级别的提示
+    wx.showToast({
+      title: '当前难度：' + this.data.levels[level].name,
+      icon: 'none',
+      duration: 1000
+    });
+  },
+  
+  // 初始化当前日期
+  initCurrentDate: function() {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    
+    const formattedDate = `${year}-${month}-${day}`;
+    const displayDate = `${year}.${month}.${day}`;
+    
+    this.setData({
+      selectedDate: formattedDate,
+      formattedDate: displayDate
+    });
+  },
+  
+  // 日期变化处理
+  onDateChange: function(e) {
+    const date = e.detail.value; // 格式为 YYYY-MM-DD
+    
+    // 提取年份、月份和日期
+    const parts = date.split('-');
+    const year = parts[0];
+    const month = parts[1];
+    const day = parts[2];
+    
+    // 格式化为显示格式
+    const formattedDate = `${year}.${month}.${day}`;
+    
+    this.setData({
+      selectedDate: date,
+      formattedDate: formattedDate
+    });
+    
+    // 根据新日期重新加载新闻数据
+    this.getNewsData();
+  },
+  
+  // 选择信件类型
+  selectLetterType: function(e) {
+    const type = e.currentTarget.dataset.type;
+    this.setData({
+      selectedType: type,
+      // 重置学习卡片数据
+      wordCards: [],
+      sentenceCards: []
+    });
+    
+    // 根据类型加载不同的内容
+    if (type === 'news') {
+      // 加载热点新闻
+      this.getNewsData();
+    } else if (type === 'classics') {
+      // 加载名著内容
+      this.getNewsData(); // 现在使用相同的函数获取数据，但会根据selectedType区分内容
+    }
+  },
+  
+  // 在WXML中使用的函数，修复函数不一致的问题
+  switchLetterType: function(e) {
+    // 调用已有的函数实现逻辑
+    console.log('切换信件类型', e.currentTarget.dataset.type);
+    this.selectLetterType(e);
+  },
+  
+  // 获取各等级的新闻数据
+  getNewsData: function() {
+    wx.showLoading({
+      title: '加载中...',
+      mask: true
+    });
+    
+    let newsDataPromises = [];
+    const levels = ['sprout', 'cocoon', 'soar'];
+    
+    try {
+      // 如果是热点信件，从后台获取新闻数据
+      if (this.data.selectedType === 'news') {
+        // 为每个难度级别创建Promise
+        newsDataPromises = levels.map(level => 
+          api.getNewsList(level, this.data.selectedDate)
+            .catch(error => {
+              console.error(`获取${level}难度新闻失败:`, error);
+              // 失败时使用本地模拟数据
+              return api.getMockNewsData(level, this.data.selectedDate);
+            })
+        );
+      } else {
+        // 如果是名著信件，从后台获取名著数据
+        newsDataPromises = levels.map(level => 
+          api.getClassicsList(level, this.data.selectedDate)
+            .catch(error => {
+              console.error(`获取${level}难度名著失败:`, error);
+              // 失败时使用本地模拟数据或读取"读一读"页面存储的数据
+              return this.getClassicsFromReadPage(this.data.selectedDate)[level] || 
+                     api.getMockClassicsData(level, this.data.selectedDate);
+            })
+        );
+      }
+      
+      // 等待所有请求完成
+      Promise.all(newsDataPromises)
+        .then(results => {
+          this.setData({
+            sproutNews: results[0] || [],
+            cocoonNews: results[1] || [],
+            soarNews: results[2] || []
+          });
+          
+          // 默认选择第一个新闻项
+          this.selectDefaultNewsItem();
+          
+          wx.hideLoading();
+        })
+        .catch(error => {
+          console.error('获取数据失败:', error);
+          wx.showToast({
+            title: '加载数据失败',
+            icon: 'none',
+            duration: 2000
+          });
+          wx.hideLoading();
+        });
+    } catch (error) {
+      console.error('获取新闻数据失败:', error);
+      wx.showToast({
+        title: '加载数据失败',
+        icon: 'none',
+        duration: 2000
+      });
+      wx.hideLoading();
+    }
+  },
+  
+  // 模拟获取名著经典数据 - 当API请求失败或没有存储数据时的后备方案
+  getMockClassicsData: function(date) {
+    console.log('使用模拟经典名著数据:', date);
+    return {
+      sprout: api.getMockClassicsData('sprout', date),
+      cocoon: api.getMockClassicsData('cocoon', date),
+      soar: api.getMockClassicsData('soar', date)
+    };
+  },
+  
+  // 从"读一读"页面获取经典名著数据
+  getClassicsFromReadPage: function(date) {
+    // 尝试从存储中获取由"读一读"页面设置的数据
+    const readPageData = wx.getStorageSync('readPageClassics') || {};
+    
+    // 检查是否有当前日期的数据
+    if (readPageData[date]) {
+      return readPageData[date];
+    }
+    
+    // 如果没有存储数据，尝试从API获取
+    return this.getMockClassicsData(date);
+  },
+  
+  // 文章选择
+  onNewsSelect: function(e) {
+    const articleId = e.currentTarget.dataset.id;
+    const level = e.currentTarget.dataset.level;
+    
+    console.log('选择文章', '类型:', this.data.selectedType, '文章ID:', articleId, '难度:', level);
+    
+    // 查找选中的文章数据
+    let selectedNews = null;
+    let levelName = '';
+    
+    if (level === 'sprout') {
+      selectedNews = this.data.sproutNews.find(item => item.id === articleId);
+      levelName = '萌芽岛';
+    } else if (level === 'cocoon') {
+      selectedNews = this.data.cocoonNews.find(item => item.id === articleId);
+      levelName = '破茧谷';
+    } else if (level === 'soar') {
+      selectedNews = this.data.soarNews.find(item => item.id === articleId);
+      levelName = '翱翔峰';
+    }
+    
+    if (selectedNews) {
+      // 提示用户已选中文章
+      wx.showToast({
+        title: `已选择${levelName}文章`,
+        icon: 'none',
+        duration: 1500
+      });
+      
+      // 保存当前选中的文章
+      this.setData({
+        currentArticle: selectedNews
+      });
+      
+      // 根据选中的文章生成学习卡片内容
+      this.getCardDataForArticle(articleId, level);
+    }
+  },
+  
+  // 模拟获取学习卡片数据 - 当API请求失败时的后备方案
+  getCardDataForArticle: function(articleId, level) {
+    wx.showLoading({
+      title: '加载中...',
+      mask: true
+    });
+    
+    // 确定文章类型
+    const type = this.data.selectedType; // 'news' 或 'classics'
+    
+    // 从API获取学习卡片数据
+    api.getCardData(articleId, type)
+      .then(data => {
+        this.setData({
+          wordCards: data.words || [],
+          sentenceCards: data.phrases || []
+        });
+        wx.hideLoading();
+      })
+      .catch(error => {
+        console.error('获取学习卡片数据失败:', error);
+        
+        // 使用本地模拟数据作为后备
+        const mockData = api.getMockCardData(articleId, type);
+        this.setData({
+          wordCards: mockData.words || [],
+          sentenceCards: mockData.phrases || []
+        });
+        
+        wx.hideLoading();
+        wx.showToast({
+          title: '使用离线学习卡片',
+          icon: 'none',
+          duration: 2000
+        });
+      });
+  },
+  
+  // 初始化语言选项
+  initLanguageOptions: function() {
+    const languageOptions = Object.values(this.data.languageMap);
+    
+    // 从本地存储获取读一读页面选择的语言
+    const savedLanguages = wx.getStorageSync('selectedLanguages') || [];
+    console.log('写一写页面获取到的语言选择:', savedLanguages);
+    
+    // 如果有保存的语言选择，使用它们
+    let language1 = this.data.languageMap['zh-TW']; // 默认第一语言
+    let language2 = this.data.languageMap['en'];    // 默认第二语言
+    let index1 = 0;
+    let index2 = 1;
+    
+    if (savedLanguages.length > 0) {
+      // 找到第一个语言的索引
+      const lang1Code = savedLanguages[0];
+      language1 = this.data.languageMap[lang1Code] || language1;
+      index1 = languageOptions.findIndex(item => item.code === lang1Code);
+      if (index1 === -1) index1 = 0;
+    }
+    
+    if (savedLanguages.length > 1) {
+      // 找到第二个语言的索引
+      const lang2Code = savedLanguages[1];
+      language2 = this.data.languageMap[lang2Code] || language2;
+      index2 = languageOptions.findIndex(item => item.code === lang2Code);
+      if (index2 === -1) index2 = 1;
+    }
+    
+    this.setData({ 
+      languageOptions: languageOptions,
+      selectedLanguage1: language1,
+      selectedLanguage2: language2,
+      compareIndex1: index1,
+      compareIndex2: index2
+    });
+  },
+  
+  // 切换难度等级
+  switchLevel: function(e) {
+    const level = e.currentTarget.dataset.level;
+    this.setData({ currentLevel: level });
+    
+    // 可以根据难度级别调整显示的词汇和句子复杂度
+    // 这里先简单实现，实际应用中可根据难度筛选不同的词汇和句子
+  },
+  
+  // 第一语言选择器变化
+  onCompareChange1: function(e) {
+    const index = e.detail.value;
+    const selectedLanguage = this.data.languageOptions[index];
+    this.setData({
+      compareIndex1: index,
+      selectedLanguage1: selectedLanguage
+    });
+    
+    // 保存语言选择到本地存储
+    this.saveLanguageSelections();
+    
+    // 更新已展开卡片的翻译
+    this.updateTranslationsForOpenCards();
+  },
+  
+  // 第二语言选择器变化
+  onCompareChange2: function(e) {
+    const index = e.detail.value;
+    const selectedLanguage = this.data.languageOptions[index];
+    this.setData({
+      compareIndex2: index,
+      selectedLanguage2: selectedLanguage
+    });
+    
+    // 保存语言选择到本地存储
+    this.saveLanguageSelections();
+    
+    // 更新已展开卡片的翻译
+    this.updateTranslationsForOpenCards();
+  },
+  
+  // 更新所有已展开卡片的翻译
+  updateTranslationsForOpenCards: function() {
+    // 更新已展开的词语卡片
+    const wordCards = this.data.wordCards;
+    wordCards.forEach((card, index) => {
+      if (card.showTranslation) {
+        this.translateCardContent(card.text, index, 'word');
+      }
+    });
+    
+    // 更新已展开的短语卡片
+    const sentenceCards = this.data.sentenceCards;
+    sentenceCards.forEach((card, index) => {
+      if (card.showTranslation) {
+        this.translateCardContent(card.text, index, 'sentence');
+      }
+    });
+  },
+  
+  // 示例提示词翻译切换
+  toggleExampleTranslation: function(e) {
+    const type = e.currentTarget.dataset.type;
+    const index = e.currentTarget.dataset.index;
+    
+    // 关闭所有其他翻译
+    this.setData({
+      showExampleWordTranslation: type === 'word' && index === 0 ? !this.data.showExampleWordTranslation : false,
+      showExamplePhraseTranslation: type === 'phrase' && index === 0 ? !this.data.showExamplePhraseTranslation : false,
+      showExampleSentenceTranslation: type === 'sentence' && index === 0 ? !this.data.showExampleSentenceTranslation : false,
+    });
+  },
+  
+  // 切换词语卡片翻译展示
+  toggleWordTranslation: function(e) {
+    const index = e.currentTarget.dataset.index;
+    const word = e.currentTarget.dataset.word;
+    const wordCards = this.data.wordCards;
+    
+    // 关闭其他所有已展开的翻译面板
+    wordCards.forEach((card, i) => {
+      if (i !== index && card.showTranslation) {
+        card.showTranslation = false;
+      }
+    });
+    
+    // 切换当前卡片的显示状态
+    wordCards[index].showTranslation = !wordCards[index].showTranslation;
+    
+    // 如果是展开状态，获取翻译
+    if (wordCards[index].showTranslation) {
+      this.translateCardContent(word, index, 'word');
+    }
+    
+    this.setData({
+      wordCards: wordCards
+    });
+  },
+  
+  // 切换短语卡片翻译展示
+  toggleSentenceTranslation: function(e) {
+    const index = e.currentTarget.dataset.index;
+    const sentence = e.currentTarget.dataset.sentence;
+    const sentenceCards = this.data.sentenceCards;
+    
+    // 关闭其他所有已展开的翻译面板
+    sentenceCards.forEach((card, i) => {
+      if (i !== index && card.showTranslation) {
+        card.showTranslation = false;
+      }
+    });
+    
+    // 切换显示状态
+    sentenceCards[index].showTranslation = !sentenceCards[index].showTranslation;
+    
+    // 如果是展开状态，获取翻译
+    if (sentenceCards[index].showTranslation) {
+      this.translateCardContent(sentence, index, 'sentence');
+    }
+    
+    this.setData({
+      sentenceCards: sentenceCards
+    });
+  },
+  
+  // 翻译卡片内容
+  translateCardContent: function(text, index, type) {
+    // 获取当前选择的语言
+    const lang1 = this.data.selectedLanguage1;
+    const lang2 = this.data.selectedLanguage2;
+    
+    if (!lang1 && !lang2) {
+      return; // 如果没有选择语言，直接返回
+    }
+    
+    const isWord = type === 'word';
+    const cards = isWord ? this.data.wordCards : this.data.sentenceCards;
+    
+    // 设置初始加载状态
+    if (lang1) {
+      cards[index].translation1 = '翻译中...';
+    }
+    if (lang2) {
+      cards[index].translation2 = '翻译中...';
+    }
+    
+    // 立即更新UI，显示"翻译中..."
+    if (isWord) {
+      this.setData({
+        wordCards: cards
+      });
+    } else {
+      this.setData({
+        sentenceCards: cards
+      });
+    }
+    
+    // 模拟翻译过程，在实际应用中，应调用翻译API
+    setTimeout(() => {
+      try {
+        // 定义翻译数据
+        const translations = {
+          'zh-TW': {
+            '科技': '科技',
+            '创新': '創新',
+            // ... 其他翻译内容
+          },
+          'en': {
+            '科技': 'Technology',
+            '创新': 'Innovation',
+            // ... 其他翻译内容
+          },
+          'fr': {
+            '科技': 'Technologie',
+            '创新': 'Innovation',
+            // ... 其他翻译内容
+          }
+        };
+        
+        // 为第一语言翻译
+        if (lang1) {
+          const targetLang = lang1.code;
+          
+          if (translations[targetLang] && translations[targetLang][text]) {
+            cards[index].translation1 = translations[targetLang][text];
+          } else {
+            cards[index].translation1 = `${text} (${lang1.shortName})`;
+          }
+        }
+        
+        // 为第二语言翻译
+        if (lang2) {
+          const targetLang = lang2.code;
+          
+          if (translations[targetLang] && translations[targetLang][text]) {
+            cards[index].translation2 = translations[targetLang][text];
+          } else {
+            cards[index].translation2 = `${text} (${lang2.shortName})`;
+          }
+        }
+      } catch (error) {
+        console.error('翻译出错:', error);
+        // 如果翻译出错，设置默认值
+        if (lang1) {
+          cards[index].translation1 = `${text} (${lang1.shortName})`;
+        }
+        if (lang2) {
+          cards[index].translation2 = `${text} (${lang2.shortName})`;
+        }
+      } finally {
+        // 无论成功或失败，都更新UI
+        if (isWord) {
+          this.setData({
+            wordCards: cards
+          });
+        } else {
+          this.setData({
+            sentenceCards: cards
+          });
+        }
+      }
+    }, 300);
+  },
+  
+  // 保存语言选择到本地存储，以便与读一读页面同步
+  saveLanguageSelections: function() {
+    const selectedLanguages = [];
+    
+    if (this.data.selectedLanguage1) {
+      selectedLanguages.push(this.data.selectedLanguage1.code);
+    }
+    
+    if (this.data.selectedLanguage2) {
+      selectedLanguages.push(this.data.selectedLanguage2.code);
+    }
+    
+    console.log('写一写页面保存语言选择:', selectedLanguages);
+    wx.setStorageSync('selectedLanguages', selectedLanguages);
+  },
+  
+  // 处理用户写作输入
+  onWritingInput: function(e) {
+    this.setData({
+      writingContent: e.detail.value
+    });
+  },
+  
+  // 提交写作内容 - 保存至我的主页
+  submitWriting: function() {
+    const content = this.data.writingContent;
+    
+    if (!content.trim()) {
+      wx.showToast({
+        title: '请先输入写作内容',
+        icon: 'none',
+        duration: 2000
+      });
+      return;
+    }
+    
+    // 显示加载中提示
+    wx.showLoading({
+      title: '正在保存...',
+      mask: true
+    });
+    
+    // 构建要保存的写作内容数据
+    const writingData = {
+      content: content,
+      date: this.data.formattedDate,
+      type: this.data.selectedType,
+      title: this.data.currentArticle ? this.data.currentArticle.title : '我的写作',
+      language: this.data.selectedLanguage1 ? this.data.selectedLanguage1.code : 'zh'
+    };
+    
+    // 保存到本地存储
+    try {
+      // 获取已有的写作列表
+      const existingWritings = wx.getStorageSync('myWritings') || [];
+      
+      // 添加新的写作内容，并添加唯一ID和时间戳
+      writingData.id = Date.now().toString();
+      writingData.timestamp = new Date().getTime();
+      
+      // 将新写作添加到列表开头
+      existingWritings.unshift(writingData);
+      
+      // 保存更新后的列表
+      wx.setStorageSync('myWritings', existingWritings);
+      
+      wx.hideLoading();
+      wx.showToast({
+        title: '已保存至我的主页',
+        icon: 'success',
+        duration: 2000
+      });
+    } catch (error) {
+      console.error('保存写作内容失败:', error);
+      wx.hideLoading();
+      wx.showModal({
+        title: '保存失败',
+        content: '无法保存到我的主页，请稍后再试',
+        showCancel: false
+      });
+    }
+  },
+  
+  // 分享写作内容
+  shareWriting: function() {
+    const content = this.data.writingContent;
+    
+    if (!content.trim()) {
+      wx.showToast({
+        title: '请先输入写作内容',
+        icon: 'none',
+        duration: 2000
+      });
+      return;
+    }
+    
+    // 调用微信的分享功能
+    wx.showShareMenu({
+      withShareTicket: true,
+      menus: ['shareAppMessage', 'shareTimeline']
+    });
+    
+    // 显示分享提示
+    wx.showModal({
+      title: '分享提示',
+      content: '点击右上角"..."按钮，将您的写作分享给好友',
+      showCancel: false
+    });
+  },
+  
+  // 用于分享的小程序自定义事件处理器
+  onShareAppMessage: function() {
+    const title = this.data.currentArticle ? 
+      `我基于"${this.data.currentArticle.title}"的写作` : 
+      '我在九域写的文章';
+    
+    return {
+      title: title,
+      path: '/pages/write/write',
+      imageUrl: '/images/share-default.png' // 请确保有此图片，或者使用其他合适的图片
+    };
+  },
+  
+  // 用于分享到朋友圈的小程序自定义事件处理器
+  onShareTimeline: function() {
+    const title = this.data.currentArticle ? 
+      `我基于"${this.data.currentArticle.title}"的写作` : 
+      '我在九域写的文章';
+    
+    return {
+      title: title,
+      query: '',
+      imageUrl: '/images/share-timeline.png' // 请确保有此图片，或者使用其他合适的图片
+    };
+  },
+  
+  // 创建并保存图片到相册
+  saveImageToAlbum: function() {
+    wx.showLoading({
+      title: '正在生成图片...',
+      mask: true
+    });
+    
+    try {
+      const query = wx.createSelectorQuery();
+      query.select('#contentCanvas')
+        .fields({ node: true, size: true })
+        .exec((res) => {
+          if (!res[0] || !res[0].node) {
+            wx.hideLoading();
+            wx.showToast({
+              title: '画布创建失败',
+              icon: 'none'
+            });
+            return;
+          }
+          
+          const canvas = res[0].node;
+          const ctx = canvas.getContext('2d');
+          
+          try {
+            // 设置画布尺寸（保持较小以避免性能问题）
+            const width = 600;
+            const height = 800;
+            canvas.width = width;
+            canvas.height = height;
+            
+            // 绘制背景
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillRect(0, 0, width, height);
+            
+            // 绘制标题
+            ctx.fillStyle = '#1B5E20';
+            ctx.font = 'bold 30px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('我的写作', width / 2, 60);
+            
+            // 绘制日期
+            const date = new Date();
+            const dateStr = this.formatDate(date);
+            ctx.fillStyle = '#666666';
+            ctx.font = '24px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(dateStr, width / 2, 100);
+            
+            // 绘制分隔线
+            ctx.strokeStyle = '#E0E0E0';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(40, 120);
+            ctx.lineTo(width - 40, 120);
+            ctx.stroke();
+            
+            // 绘制内容
+            ctx.fillStyle = '#333333';
+            ctx.font = '24px sans-serif';
+            ctx.textAlign = 'left';
+            
+            // 处理文本换行
+            const textLines = this.wrapText(ctx, this.data.writingContent, width - 80);
+            let y = 160;
+            const lineHeight = 36;
+            
+            textLines.forEach(line => {
+              ctx.fillText(line, 40, y);
+              y += lineHeight;
+            });
+            
+            // 底部装饰
+            ctx.fillStyle = '#E8F5E9';
+            ctx.fillRect(0, height - 60, width, 60);
+            
+            ctx.fillStyle = '#4CAF50';
+            ctx.font = '20px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('九域 · 写一写', width / 2, height - 25);
+            
+            // 将画布内容转为图片
+            wx.canvasToTempFilePath({
+              canvas: canvas,
+              success: (res) => {
+                wx.hideLoading();
+                // 保存图片到相册
+                wx.saveImageToPhotosAlbum({
+                  filePath: res.tempFilePath,
+                  success: () => {
+                    wx.showToast({
+                      title: '已保存至相册',
+                      icon: 'success',
+                      duration: 2000
+                    });
+                  },
+                  fail: (err) => {
+                    console.error('保存失败', err);
+                    wx.showModal({
+                      title: '保存失败',
+                      content: '无法保存到相册，请检查权限设置',
+                      showCancel: false
+                    });
+                  }
+                });
+              },
+              fail: (err) => {
+                console.error('生成图片失败', err);
+                wx.showToast({
+                  title: '生成图片失败',
+                  icon: 'none'
+                });
+                wx.hideLoading();
+              }
+            });
+          } catch (canvasError) {
+            console.error('绘制画布出错', canvasError);
+            wx.showToast({
+              title: '绘制内容失败',
+              icon: 'none'
+            });
+            wx.hideLoading();
+          }
+        });
+    } catch (error) {
+      console.error('保存图片过程出错', error);
+      wx.showToast({
+        title: '操作失败',
+        icon: 'none'
+      });
+      wx.hideLoading();
+    }
+  },
+  
+  // 文本换行处理
+  wrapText: function(ctx, text, maxWidth) {
+    const lines = [];
+    
+    // 按照换行符分割文本
+    const paragraphs = text.split('\n');
+    
+    paragraphs.forEach(paragraph => {
+      if (!paragraph) {
+        lines.push('');
+        return;
+      }
+      
+      let line = '';
+      let testLine = '';
+      const words = paragraph.split('');
+      
+      words.forEach(char => {
+        testLine += char;
+        const metrics = ctx.measureText(testLine);
+        if (metrics.width > maxWidth) {
+          lines.push(line);
+          line = char;
+          testLine = char;
+        } else {
+          line = testLine;
+        }
+      });
+      
+      if (line) {
+        lines.push(line);
+      }
+    });
+    
+    return lines;
+  },
+  
+  // 默认选择第一个新闻项
+  selectDefaultNewsItem: function() {
+    // 根据当前难度等级选择对应的新闻列表
+    let newsList = [];
+    if (this.data.currentLevel === 'sprout') {
+      newsList = this.data.sproutNews;
+    } else if (this.data.currentLevel === 'cocoon') {
+      newsList = this.data.cocoonNews;
+    } else if (this.data.currentLevel === 'soar') {
+      newsList = this.data.soarNews;
+    }
+    
+    // 如果当前难度等级没有新闻，尝试从其他难度级别选择
+    if (newsList.length === 0) {
+      if (this.data.sproutNews.length > 0) {
+        this.selectNewsItem({
+          currentTarget: {
+            dataset: {
+              item: this.data.sproutNews[0]
+            }
+          }
+        });
+        return;
+      } else if (this.data.cocoonNews.length > 0) {
+        this.selectNewsItem({
+          currentTarget: {
+            dataset: {
+              item: this.data.cocoonNews[0]
+            }
+          }
+        });
+        return;
+      } else if (this.data.soarNews.length > 0) {
+        this.selectNewsItem({
+          currentTarget: {
+            dataset: {
+              item: this.data.soarNews[0]
+            }
+          }
+        });
+        return;
+      }
+    } else if (newsList.length > 0) {
+      // 选择当前难度等级的第一个新闻
+      this.selectNewsItem({
+        currentTarget: {
+          dataset: {
+            item: newsList[0]
+          }
+        }
+      });
+    }
+  },
+  
+  // 切换调试模式
+  toggleDebugMode: function() {
+    this.debugClickCount = (this.debugClickCount || 0) + 1;
+    
+    if (this.debugClickCount >= 5) {
+      this.debugClickCount = 0;
+      const newValue = !this.data.isDebugMode;
+      
+      this.setData({ isDebugMode: newValue });
+      
+      // 如果启用了调试模式，进一步获取更多信息
+      if (newValue) {
+        // 检查网络状态
+        api.checkNetworkStatus().then(isConnected => {
+          this.setData({
+            networkStatus: isConnected ? '已连接' : '未连接',
+            dataSource: api.DEV_CONFIG && api.DEV_CONFIG.USE_MOCK_DATA ? '模拟数据' : '实际API'
+          });
+        });
+      }
+      
+      wx.showToast({
+        title: newValue ? '调试模式已启用' : '调试模式已禁用',
+        icon: 'none',
+        duration: 1500
+      });
+    }
+  },
+
+  // 测试API连接
+  testApiConnection: function() {
+    wx.showLoading({
+      title: '测试连接中...',
+      mask: true
+    });
+    
+    api.testConnection().then(result => {
+      wx.hideLoading();
+      
+      // 更新状态
+      this.setData({
+        networkStatus: result.success ? '已连接' : '未连接',
+        dataSource: result.success ? 'API可用' : 'API不可用'
+      });
+      
+      // 显示结果
+      wx.showModal({
+        title: result.message,
+        content: result.details,
+        showCancel: false
+      });
+    });
+  },
+
+  // 切换模拟数据/实际API
+  toggleMockData: function() {
+    // 检查API模块是否正确导出了DEV_CONFIG
+    if (!api.DEV_CONFIG) {
+      wx.showModal({
+        title: '配置错误',
+        content: 'API模块未正确导出DEV_CONFIG',
+        showCancel: false
+      });
+      return;
+    }
+    
+    // 反转当前设置
+    const newValue = !api.DEV_CONFIG.USE_MOCK_DATA;
+    
+    // 修改配置
+    api.DEV_CONFIG.USE_MOCK_DATA = newValue;
+    
+    // 更新状态
+    this.setData({
+      dataSource: newValue ? '模拟数据' : '实际API'
+    });
+    
+    // 重新加载数据
+    this.getNewsData();
+    
+    // 提示用户
+    wx.showToast({
+      title: newValue ? '已切换到模拟数据' : '已切换到实际API',
+      icon: 'none',
+      duration: 2000
+    });
+  },
+
+  // 格式化日期
+  formatDate: function(date) {
+    const year = date.getFullYear().toString().slice(2);
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const day = date.getDate().toString().padStart(2, '0');
+    return `${year}/${month}/${day}`;
+  },
+}); 

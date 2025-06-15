@@ -1,0 +1,223 @@
+/* 日历打卡页面样式 */
+page {
+  background-color: #e8f5e9;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.calendar-container {
+  padding: 30rpx;
+  box-sizing: border-box;
+}
+
+/* 头部样式 */
+.header {
+  background: white;
+  padding: 30rpx;
+  border-radius: 15rpx;
+  margin-bottom: 20rpx;
+  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
+}
+
+.title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20rpx;
+}
+
+.title {
+  font-size: 38rpx;
+  font-weight: bold;
+}
+
+.view-btn {
+  font-size: 28rpx;
+  color: #009688;
+  padding: 6rpx 20rpx;
+  border: 1px solid #009688;
+  border-radius: 30rpx;
+  background-color: rgba(0, 150, 136, 0.05);
+}
+
+.view-btn:active {
+  background-color: rgba(0, 150, 136, 0.1);
+}
+
+.stats {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 30rpx;
+}
+
+.stat-label {
+  font-size: 28rpx;
+  color: #666;
+  margin-bottom: 5rpx;
+}
+
+.stat-value {
+  font-size: 36rpx;
+  font-weight: bold;
+  color: #009688;
+}
+
+.stat-divider {
+  color: #ddd;
+  font-size: 40rpx;
+}
+
+/* 日历控制 */
+.calendar-header {
+  background: white;
+  padding: 20rpx;
+  margin-bottom: 2rpx;
+  border-radius: 15rpx 15rpx 0 0;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
+}
+
+.month-selector {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 40rpx;
+}
+
+.current-month {
+  font-size: 34rpx;
+  font-weight: bold;
+}
+
+.arrow {
+  width: 60rpx;
+  height: 60rpx;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #009688;
+  font-size: 28rpx;
+  border-radius: 30rpx;
+  background-color: #e0f2f1;
+}
+
+.arrow:active {
+  background-color: #b2dfdb;
+}
+
+/* 星期标题 */
+.weekday-header {
+  display: flex;
+  background: white;
+  border-bottom: 1px solid #f0f0f0;
+  margin-bottom: 1rpx;
+}
+
+.weekday {
+  flex: 1;
+  text-align: center;
+  padding: 20rpx 0;
+  font-size: 28rpx;
+  color: #666;
+}
+
+.weekend {
+  color: #ff9800;
+}
+
+/* 日历主体 */
+.calendar-body {
+  background: white;
+  border-radius: 0 0 15rpx 15rpx;
+  overflow: hidden;
+  margin-bottom: 30rpx;
+  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
+}
+
+.calendar-row {
+  display: flex;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.calendar-row:last-child {
+  border-bottom: none;
+}
+
+.calendar-cell {
+  flex: 1;
+  height: 100rpx;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  border-right: 1px solid #f0f0f0;
+}
+
+.calendar-cell:last-child {
+  border-right: none;
+}
+
+.day-number {
+  font-size: 30rpx;
+  color: #333;
+}
+
+.other-month {
+  background-color: #f9f9f9;
+}
+
+.other-month .day-number {
+  color: #ccc;
+}
+
+.today {
+  background-color: #e8f5e9;
+}
+
+.today .day-number {
+  color: #009688;
+  font-weight: bold;
+}
+
+.checked {
+  background-color: #e0f2f1;
+}
+
+.check-mark {
+  color: #009688;
+  font-size: 24rpx;
+  font-weight: bold;
+  margin-top: 4rpx;
+}
+
+/* 底部按钮 */
+.footer {
+  display: flex;
+  justify-content: center;
+  margin-top: 20rpx;
+}
+
+.today-btn {
+  background: #009688;
+  color: white;
+  padding: 20rpx 60rpx;
+  border-radius: 40rpx;
+  font-size: 30rpx;
+  font-weight: bold;
+  box-shadow: 0 2rpx 10rpx rgba(0, 150, 136, 0.3);
+}
+
+.today-btn:active {
+  background: #00897b;
+}
+
+.today-btn.disabled {
+  background: #b2dfdb;
+  color: white;
+} 

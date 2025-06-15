@@ -1,0 +1,6 @@
+{
+  "usingComponents": {},
+  "navigationBarTitleText": "读一读",
+  "enablePullDownRefresh": true,
+  "navigationStyle": "default"
+} 

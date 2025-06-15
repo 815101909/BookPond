@@ -1,0 +1,266 @@
+/* 会员页面样式 */
+.container {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: #FFFFFF;
+  position: relative;
+  overflow: hidden;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.membership-content {
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* A4宣传区域样式 - 放大 */
+.promo-area {
+  width: 100%;
+  height: 65vh;
+  background-color: #F8F8F8;
+  overflow: hidden;
+}
+
+.promo-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.promo-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: #F8F8F8;
+}
+
+.placeholder-text {
+  font-size: 30rpx;
+  color: #999;
+  margin-bottom: 20rpx;
+}
+
+.placeholder-icon {
+  font-size: 80rpx;
+  color: #CCC;
+  font-weight: 200;
+}
+
+/* 底部会员方案区域 */
+.bottom-section {
+  width: 100%;
+  padding: 25rpx 30rpx 30rpx;
+  background-color: #FFFFFF;
+  border-top-left-radius: 30rpx;
+  border-top-right-radius: 30rpx;
+  box-shadow: 0 -4rpx 20rpx rgba(0, 0, 0, 0.05);
+  margin-top: -30rpx;
+  z-index: 1;
+  box-sizing: border-box;
+}
+
+/* 会员方案标题 */
+.plan-title {
+  width: 100%;
+  font-size: 32rpx;
+  font-weight: 500;
+  color: #333;
+  margin-bottom: 15rpx;
+}
+
+/* 会员方案横排 */
+.plans-scroll {
+  width: 100%;
+  white-space: nowrap;
+  margin-bottom: 25rpx;
+  padding-left: 0;
+}
+
+.plans-container {
+  display: inline-flex;
+  padding: 8rpx 30rpx; /* 增加左边距到30rpx */
+  margin-left: 0;
+}
+
+.plan-card {
+  width: 140rpx;
+  height: 170rpx;
+  background-color: #FFF;
+  border-radius: 14rpx;
+  margin-right: 25rpx; /* 增加卡片间距到25rpx */
+  padding: 10rpx;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  border: 2rpx solid #F0F0F0;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.04);
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+}
+
+.plan-card.selected {
+  border: 2rpx solid #FF87B5;
+  background-color: #FFF0F5;
+  transform: scale(1.02);
+}
+
+.plan-name {
+  font-size: 22rpx; /* 稍微减小字体大小 */
+  font-weight: 500;
+  color: #333;
+  margin-bottom: 12rpx; /* 减小间距 */
+  text-align: center;
+}
+
+.plan-price {
+  font-size: 28rpx; /* 稍微减小字体大小 */
+  font-weight: 600;
+  color: #FF87B5;
+  margin-bottom: 8rpx; /* 减小间距 */
+  text-align: center;
+}
+
+.plan-duration {
+  font-size: 24rpx;
+  color: #999;
+}
+
+.plan-tag {
+  position: absolute;
+  top: -2rpx;
+  right: -2rpx;
+  background: #F0F0F0;
+  color: #666;
+  font-size: 18rpx;
+  padding: 4rpx 10rpx;
+  border-radius: 0 14rpx 0 14rpx;
+}
+
+.plan-tag.best-value {
+  background: #FF87B5;
+  color: #FFF;
+}
+
+/* 开通会员按钮 */
+.subscribe-btn {
+  width: 90%;
+  height: 88rpx;
+  line-height: 58rpx; /* 将文本向上平移15rpx */
+  background: linear-gradient(90deg, #FF87B5, #FFA6C9);
+  color: #FFF;
+  font-size: 32rpx;
+  font-weight: 500;
+  border-radius: 44rpx;
+  margin: 0 auto 20rpx;
+  display: block;
+  box-shadow: 0 6rpx 20rpx rgba(255, 135, 181, 0.3);
+  border: none;
+  text-align: center;
+}
+
+/* 温馨提示 */
+.tips {
+  width: 100%;
+  text-align: center;
+  margin-bottom: 10rpx;
+}
+
+.tips-text {
+  font-size: 24rpx;
+  color: #999;
+}
+
+/* 加载状态样式 */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100vh;
+  position: absolute;
+  left: 0;
+  top: 0;
+  background-color: #FFFFFF;
+  z-index: 10;
+}
+
+.loading-spinner {
+  width: 60rpx;
+  height: 60rpx;
+  border: 4rpx solid #e0e0e0;
+  border-top: 4rpx solid #FF87B5;
+  border-radius: 50%;
+  margin-bottom: 20rpx;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.loading-text {
+  font-size: 28rpx;
+  color: #999;
+}
+
+/* 错误状态样式 */
+.error-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 60vh;
+}
+
+.error-text {
+  font-size: 28rpx;
+  color: #999;
+  text-align: center;
+  margin-bottom: 30rpx;
+}
+
+.retry-btn {
+  background-color: #F0F0F0;
+  color: #666;
+  font-size: 28rpx;
+  padding: 10rpx 40rpx;
+  border-radius: 30rpx;
+  border: none;
+} 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 

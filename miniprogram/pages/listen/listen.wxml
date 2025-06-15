@@ -1,0 +1,262 @@
+<view class="listen-container">
+  <!-- 积分顶部导航栏 -->
+  <view class="points-navbar">
+    <view class="points-mode">
+      <text class="mode-icon">🎯</text>
+      <text class="mode-text">擂台模式</text>
+    </view>
+    <view class="points-display">
+      <text class="points-icon">🏆</text>
+      <view class="points-info">
+        <text class="points-label">今日积分</text>
+        <text class="points-value">{{todayPoints}}</text>
+      </view>
+      <view class="points-info">
+        <text class="points-label">总积分</text>
+        <text class="points-value">{{totalPoints}}</text>
+      </view>
+      <view class="view-rules" catchtap="showPointsRules">
+        <text class="rules-text">查看规则</text>
+      </view>
+    </view>
+  </view>
+  
+  <!-- 设置区域 -->
+  <view class="settings-section">
+      <view class="settings-row">
+        <!-- 语言选择 -->
+        <view class="settings-item language-settings">
+        <text class="settings-label">语言</text>
+        <picker bindchange="onLanguageChange" value="{{languageIndex}}" range="{{languages}}">
+          <view class="language-selector">
+            <text class="selector-text">{{currentLanguage}}</text>
+            </view>
+          </picker>
+        </view>
+        <!-- 日期选择 -->
+        <view class="settings-item date-settings">
+        <text class="settings-label">日期</text>
+        <picker mode="date" value="{{selectedDate}}" start="2024-01-01" bindchange="onDateChange">
+          <view class="date-selector">
+            <text class="selector-text">{{selectedDate || '选择日期'}}</text>
+            </view>
+          </picker>
+        </view>
+      </view>
+    <!-- 难度选择 -->
+    <view class="settings-row difficulty-row">
+      <text class="settings-label">难度</text>
+      <view class="difficulty-selector">
+        <view class="difficulty-btn {{currentDifficulty === 'sprout' ? 'active' : ''}}" 
+              data-difficulty="sprout" 
+              bindtap="selectDifficulty">
+          <text class="difficulty-icon">🌱</text>
+          <text class="difficulty-name">萌芽岛</text>
+        </view>
+        <view class="difficulty-btn {{currentDifficulty === 'forest' ? 'active' : ''}}" 
+              data-difficulty="forest" 
+              bindtap="selectDifficulty">
+          <text class="difficulty-icon">🌳</text>
+          <text class="difficulty-name">森林谷</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 音频播放器 -->
+  <view class="radio-player">
+    <!-- 添加电线装饰 -->
+    <view class="radio-wires">
+      <view class="radio-wire wire-left"></view>
+      <view class="radio-wire wire-right"></view>
+    </view>
+    <view class="radio-content">
+      <!-- 左侧封面 -->
+      <view class="audio-cover">
+        <image class="cover-image" src="{{currentAudio.coverUrl || '/images/default-cover.png'}}" mode="aspectFill"></image>
+      </view>
+
+      <!-- 右侧内容区 -->
+      <view class="audio-info">
+        <!-- 标题区域 -->
+        <view class="audio-title">{{currentAudio.title || '暂无标题'}}</view>
+        
+        <!-- 控制区域 -->
+        <view class="audio-controls">
+          <!-- 声波动画 -->
+          <view class="sound-waves {{isPlaying ? 'playing' : ''}}">
+            <view class="wave-line"></view>
+            <view class="wave-line"></view>
+            <view class="wave-line"></view>
+            <view class="wave-line"></view>
+            <view class="wave-line"></view>
+            <view class="wave-line"></view>
+            <view class="wave-line"></view>
+            <view class="wave-line"></view>
+            <view class="wave-line"></view>
+          </view>
+          
+          <!-- 播放按钮 -->
+          <view class="play-button" bindtap="togglePlay">
+            <view class="play-icon {{isPlaying ? 'pause' : ''}}"></view>
+          </view>
+          
+          <!-- 倍速控制 -->
+          <view class="speed-control" bindtap="showSpeedOptions">
+            <text class="speed-value">{{playbackSpeed}}x</text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 音频播放器结束 -->
+
+  <!-- 习题训练营版块 -->
+  <view class="exercise-camp" wx:if="{{currentAudioType}}">
+    <view class="camp-header">
+      <text class="camp-icon">📝</text>
+      <text class="camp-text">习题训练营</text>
+    </view>
+    
+    <!-- 直接显示当前题目 -->
+    <view class="exercise-content">
+      <view class="exercise-type-badge">
+        <text wx:if="{{currentDifficulty === 'sprout'}}">单选题 · 3分</text>
+        <text wx:elif="{{currentDifficulty === 'forest'}}">多选题 · 5分</text>
+      </view>
+
+      <view class="exercise-question">
+        <text>{{currentExercise.question}}</text>
+      </view>
+      
+      <!-- 单选题选项 -->
+      <view class="exercise-options" wx:if="{{currentDifficulty === 'sprout'}}">
+        <view class="option-item {{selectedSingleOption === index ? 'selected' : ''}}" 
+              wx:for="{{currentExercise.options}}" 
+              wx:key="index" 
+              bindtap="selectSingleOption" 
+              data-index="{{index}}">
+          <text class="option-letter">{{optionLetters[index]}}</text>
+          <text class="option-text">{{item}}</text>
+        </view>
+        <view class="single-submit" bindtap="submitSingleChoice">提交答案</view>
+              </view>
+              
+      <!-- 多选题选项 -->
+      <view class="exercise-options" wx:elif="{{currentDifficulty === 'forest'}}">
+        <view class="option-item multi-option {{selectedOptions[index] ? 'selected' : ''}}" 
+              wx:for="{{currentExercise.options}}" 
+              wx:key="index" 
+              bindtap="toggleMultiOption" 
+              data-index="{{index}}">
+          <text class="option-letter">{{optionLetters[index]}}</text>
+          <text class="option-text">{{item}}</text>
+                    </view>
+        <view class="multi-submit" bindtap="submitMultiChoice">提交答案</view>
+                </view>
+        
+      <!-- 填空题输入框 -->
+      <view class="exercise-fill-blank" wx:elif="{{currentDifficulty === 'forest'}}">
+        <input class="fill-input" placeholder="请输入答案" bindinput="onFillInputChange" value="{{fillAnswer}}"/>
+        <view class="fill-submit" bindtap="submitFillBlank">提交答案</view>
+        </view>
+    </view>
+  </view>
+
+  <!-- 答题结果弹窗 -->
+  <view class="result-modal" wx:if="{{showResultModal}}">
+    <view class="result-content">
+      <!-- 结果头部 -->
+      <view class="result-header {{resultData.isCorrect ? 'correct' : 'incorrect'}}">
+        <view class="result-status">
+          <text class="status-icon">{{resultData.isCorrect ? '✓' : '✗'}}</text>
+          <text class="status-text">{{resultData.isCorrect ? '回答正确' : '回答错误'}}</text>
+      </view>
+        <view class="result-points" wx:if="{{resultData.isCorrect && resultData.points > 0}}">
+          <text class="points-text">+{{resultData.points}}分</text>
+        </view>
+        <view class="result-no-points" wx:if="{{resultData.isCorrect && resultData.points === 0}}">
+          <text class="no-points-text">(重复作答不计分)</text>
+                  </view>
+                </view>
+
+      <!-- 反馈信息 -->
+      <view class="result-feedback">
+        <text>{{resultData.feedback}}</text>
+              </view>
+              
+      <!-- 正确答案 -->
+      <view class="result-answer">
+        <view class="answer-label">正确答案：</view>
+        <view class="answer-text">{{resultData.correctAnswer}}</view>
+                </view>
+                
+      <!-- 答案解析 -->
+      <view class="result-explanation">
+        <view class="explanation-label">听力原文：</view>
+        <view class="explanation-text">{{resultData.explanation}}</view>
+        <view class="explanation-note" wx:if="{{!resultData.explanation}}">听力原文稍后由后台上传</view>
+        </view>
+        
+      <!-- 按钮区域 -->
+      <view class="result-actions">
+        <view class="action-btn" bindtap="closeResultModal">返回</view>
+        <view class="action-btn favorite" bindtap="favoriteExercise">
+          <text class="favorite-icon">♥</text>
+          <text>收藏</text>
+        </view>
+      </view>
+    </view>
+  </view>
+  
+  <!-- 积分规则弹窗 -->
+  <view class="rules-modal" wx:if="{{showRules}}">
+    <view class="rules-overlay" bindtap="closePointsRules"></view>
+    <view class="rules-content">
+      <view class="rules-header">
+        <text class="rules-title">擂台模式积分规则</text>
+        <view class="rules-close" bindtap="closePointsRules">×</view>
+      </view>
+      
+      <view class="rules-body">
+        <view class="rule-item">
+          <view class="rule-icon">1️⃣</view>
+          <view class="rule-text">
+            <view class="rule-desc">听力习题只有第一次作答时积分，重复作答不计分数</view>
+          </view>
+        </view>
+        
+        <view class="rule-item">
+          <view class="rule-icon">2️⃣</view>
+          <view class="rule-text">
+            <view class="rule-desc">每月1号更新排行榜，第一名用户会被赠予1个月的会员</view>
+  </view>
+</view>
+
+        <view class="points-details">
+          <view class="point-detail">
+            <text class="point-value">3</text>
+            <text class="point-label">萌芽岛单选题</text>
+          </view>
+          <view class="point-detail">
+            <text class="point-value">5</text>
+            <text class="point-label">森林谷多选题</text>
+    </view>
+      </view>
+      </view>
+      
+      <view class="rules-footer">
+        <view class="rules-btn" bindtap="closePointsRules">我知道了</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 积分规则弹窗结束 -->
+  
+  <!-- 自定义小字体提示 -->
+  <view class="custom-toast {{customToastType}} {{customToastVisible ? 'visible' : ''}}" wx:if="{{customToastVisible}}">
+    <view class="custom-toast-icon" wx:if="{{customToastType === 'success'}}">✓</view>
+    <text class="custom-toast-text">{{customToastText}}</text>
+  </view>
+</view> 

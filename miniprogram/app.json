@@ -1,0 +1,76 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/login/login",
+    "pages/profile/profile",
+    "pages/read/read",
+    "pages/write/write",
+    "pages/listen/listen",
+    "pages/speak/speak",
+    "pages/article-detail/article-detail",
+    "pages/messenger-station/messenger-station",
+    "pages/message-detail/message-detail",
+    "pages/news-detail/news-detail",
+    "pages/classics-detail/classics-detail",
+    "pages/customer-service/customer-service",
+    "pages/favorites/favorites",
+    "pages/messages/messages",
+    "pages/calendar/calendar",
+    "pages/article-favorites/article-favorites",
+    "pages/listening-errors/listening-errors",
+    "pages/listening-errors/error-detail/error-detail",
+    "pages/recording-repository/recording-repository",
+    "pages/rankings/rankings",
+    "pages/membership/membership",
+    "pages/edit-profile/edit-profile",
+    "pages/print/print"
+  ],
+  "window": {
+    "backgroundTextStyle": "light",
+    "navigationBarBackgroundColor": "#fff",
+    "navigationBarTitleText": "晓世界",
+    "navigationBarTextStyle": "black"
+  },
+  "tabBar": {
+    "color": "#999999",
+    "selectedColor": "#FFB6C1",
+    "backgroundColor": "#ffffff",
+    "borderStyle": "black",
+    "list": [
+      {
+        "pagePath": "pages/read/read",
+        "text": "读一读",
+        "iconPath": "images/tabbar/read.png",
+        "selectedIconPath": "images/tabbar/read-active.png"
+      },
+      {
+        "pagePath": "pages/write/write",
+        "text": "写一写",
+        "iconPath": "images/tabbar/write.png",
+        "selectedIconPath": "images/tabbar/write-active.png"
+      },
+      {
+        "pagePath": "pages/profile/profile",
+        "text": "我的主页",
+        "iconPath": "images/tabbar/profile.png",
+        "selectedIconPath": "images/tabbar/profile-active.png"
+      },
+      {
+        "pagePath": "pages/listen/listen",
+        "text": "听一听",
+        "iconPath": "images/tabbar/listen.png",
+        "selectedIconPath": "images/tabbar/listen-active.png"
+      },
+      {
+        "pagePath": "pages/speak/speak",
+        "text": "说一说",
+        "iconPath": "images/tabbar/speak.png",
+        "selectedIconPath": "images/tabbar/speak-active.png"
+      }
+    ]
+  },
+  "style": "v2",
+  "componentFramework": "glass-easel",
+  "sitemapLocation": "sitemap.json",
+  "lazyCodeLoading": "requiredComponents"
+}

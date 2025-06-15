@@ -1,0 +1,68 @@
+<!-- 文章收藏页面 -->
+<view class="container">
+  <view class="header">
+    <text class="title">文章收藏</text>
+    <text class="subtitle">共{{total}}篇收藏文章</text>
+  </view>
+
+  <view class="article-list">
+    <block wx:if="{{articles.length > 0}}">
+      <view class="article-item" wx:for="{{articles}}" wx:key="id">
+        <!-- 标题覆盖在顶部 -->
+        <view class="article-header">
+          <text class="article-title">{{item.title}}</text>
+          <text class="article-type">{{item.type === 'news' ? '科普见闻' : '经典名著'}}</text>
+        </view>
+        
+        <view class="article-content">
+          <!-- 左侧：文章封面图 -->
+          <image class="article-image" src="{{item.image || '/images/default-article.png'}}" mode="aspectFill"></image>
+          
+          <!-- 右侧：文章描述和元数据 -->
+          <view class="article-info">
+            <view class="article-description">{{item.description}}</view>
+            
+            <view class="article-meta">
+              <view class="meta-group">
+                <text class="meta-label">日期：</text>
+                <text class="article-date">{{item.date}}</text>
+              </view>
+            </view>
+          </view>
+        </view>
+        
+        <!-- 底部操作按钮 -->
+        <view class="article-actions">
+          <view class="action-btn read" bindtap="navigateToArticle" data-id="{{item.id}}" data-type="{{item.type}}">
+            <text class="action-icon">📖</text>
+            <text class="action-text">阅读</text>
+          </view>
+          <view class="action-btn share" bindtap="shareArticle" data-id="{{item.id}}">
+            <text class="action-icon">📤</text>
+            <text class="action-text">分享</text>
+          </view>
+          <view class="action-btn delete" bindtap="deleteArticle" data-id="{{item.id}}">
+            <text class="action-icon">🗑️</text>
+            <text class="action-text">删除</text>
+          </view>
+        </view>
+      </view>
+    </block>
+    <view class="empty-state" wx:else>
+      <text class="empty-icon">📚</text>
+      <text class="empty-text">文章收藏空空如也</text>
+      <text class="empty-tip">快去学习收藏喜欢的文章吧！</text>
+    </view>
+  </view>
+
+  <view class="bottom-actions">
+    <view class="action-btn back" catchtap="backToProfile">
+      <text class="action-icon">👤</text>
+      <text class="action-text">返回主页</text>
+    </view>
+    <view class="action-btn explore" catchtap="navigateToExplore">
+      <text class="action-icon">🔍</text>
+      <text class="action-text">发现文章</text>
+    </view>
+  </view>
+</view> 

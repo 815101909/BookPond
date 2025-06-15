@@ -1,0 +1,22 @@
+<view class="edit-container">
+  <view class="header">
+    <text class="title">{{pageTitle}}</text>
+  </view>
+  
+  <view class="input-section">
+    <input class="input-field" 
+           type="text" 
+           value="{{inputValue}}" 
+           placeholder="{{placeholder}}"
+           maxlength="{{maxLength}}"
+           bindinput="onInputChange"
+           focus="true"
+           cursor-spacing="100" />
+    <view class="input-counter" wx:if="{{showCounter}}">{{inputValue.length}}/{{maxLength}}</view>
+  </view>
+  
+  <view class="buttons">
+    <button class="cancel-btn" bindtap="onCancel">取消</button>
+    <button class="save-btn" bindtap="onSave" disabled="{{!inputValue}}">保存</button>
+  </view>
+</view> 

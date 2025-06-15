@@ -1,0 +1,114 @@
+<!-- 写一写页面 -->
+<!-- 写一写页面 -->
+<view class="container">
+  <!-- 整个模式版块 -->
+  <view class="mode-section">
+    <!-- 信件模式标题 -->
+    <view class="mode-title-wrapper">
+      <view class="mailbox-mode-title" bindtap="toggleDebugMode"><text class="mailbox-icon">📮</text><text>信箱模式</text></view>
+    </view>
+    
+    <!-- 信件类型选择 -->
+    <view class="letter-types">
+      <view class="letter-type {{selectedType === 'news' ? 'active' : ''}}" bindtap="switchLetterType" data-type="news">
+        <text class="type-icon">📰</text>
+        <text class="type-name">热点信件</text>
+      </view>
+      <view class="letter-type {{selectedType === 'classics' ? 'active' : ''}}" bindtap="switchLetterType" data-type="classics">
+        <text class="type-icon">📚</text>
+        <text class="type-name">名著信件</text>
+      </view>
+    </view>
+
+    <!-- 信封区域用scroll-view包裹，确保可滚动 -->
+    <scroll-view class="envelope-scroll" scroll-y="true">
+      <view class="envelope-area">
+        <view class="envelope">
+          <!-- 顶部控制区域 -->
+          <view class="top-controls">
+            <!-- 来信内容标题 -->
+            <text class="materials-title">来信内容</text>
+            
+            <!-- 日期选择器 -->
+            <view class="date-picker-container">
+              <picker mode="date" value="{{selectedDate}}" bindchange="onDateChange">
+                <view class="date-picker">
+                  <text class="date-label">选择来信日期</text>
+                  <text class="date-value">{{formattedDate}}</text>
+                  <text class="date-arrow">▼</text>
+                </view>
+              </picker>
+            </view>
+          </view>
+
+          <!-- 轮播文章列表区域 -->
+          <view class="news-carousel-section">
+            <swiper class="news-swiper" autoplay="{{true}}" interval="3000" circular="{{true}}" indicator-dots="{{true}}" indicator-color="rgba(0, 0, 0, 0.2)" indicator-active-color="#4CAF50">
+              <!-- 萌芽岛文章 (只显示第一篇) -->
+              <swiper-item wx:if="{{sproutNews.length > 0}}" bindtap="onNewsSelect" data-id="{{sproutNews[0].id}}" data-level="sprout">
+                <view class="news-card">
+                  <view class="difficulty-badge">
+                    <text class="badge-icon">🌱</text>
+                    <text class="badge-text">萌芽岛</text>
+                  </view>
+                  <image class="news-image" src="{{sproutNews[0].cover}}" mode="aspectFill"></image>
+                  <view class="news-info">
+                    <text class="news-title">{{sproutNews[0].title}}</text>
+                  </view>
+                </view>
+              </swiper-item>
+              
+              <!-- 破茧谷文章 (只显示第一篇) -->
+              <swiper-item wx:if="{{cocoonNews.length > 0}}" bindtap="onNewsSelect" data-id="{{cocoonNews[0].id}}" data-level="cocoon">
+                <view class="news-card">
+                  <view class="difficulty-badge">
+                    <text class="badge-icon">🦋</text>
+                    <text class="badge-text">破茧谷</text>
+                  </view>
+                  <image class="news-image" src="{{cocoonNews[0].cover}}" mode="aspectFill"></image>
+                  <view class="news-info">
+                    <text class="news-title">{{cocoonNews[0].title}}</text>
+                  </view>
+                </view>
+              </swiper-item>
+              
+              <!-- 翱翔峰文章 (只显示第一篇) -->
+              <swiper-item wx:if="{{soarNews.length > 0}}" bindtap="onNewsSelect" data-id="{{soarNews[0].id}}" data-level="soar">
+                <view class="news-card">
+                  <view class="difficulty-badge">
+                    <text class="badge-icon">🦅</text>
+                    <text class="badge-text">翱翔峰</text>
+                  </view>
+                  <image class="news-image" src="{{soarNews[0].cover}}" mode="aspectFill"></image>
+                  <view class="news-info">
+                    <text class="news-title">{{soarNews[0].title}}</text>
+                  </view>
+                </view>
+              </swiper-item>
+              
+              <!-- 空状态展示 -->
+              <swiper-item wx:if="{{sproutNews.length === 0 && cocoonNews.length === 0 && soarNews.length === 0}}">
+                <view class="news-card empty-card">
+                  <text class="empty-message">今日暂无内容</text>
+                </view>
+              </swiper-item>
+            </swiper>
+          </view>
+
+          <!-- 写作区域 -->
+          <view class="writing-area">
+            <!-- 写信卡片区 -->
+            <view class="cards-section">
+              <view class="cards-header">
+                <text class="cards-title">写信卡片</text>
+                <!-- 语言选择器区域 -->
+                <view class="language-selectors">
+                  <text class="language-select-label">选择写信语言</text>
+                  <view class="language-picker">
+                    <picker bindchange="onCompareChange1" value="{{compareIndex1}}" range="{{languageOptions}}" range-key="name">
+                      <view class="picker">
+                        <text wx:if="{{selectedLanguage1}}" class="language-text">{{selectedLanguage1.flag}} {{selectedLanguage1.shortName}}</text>
+                        <text wx:else class="language-text">选择语言</text>
+                      </view>
+                    </picker>
+                  </view>

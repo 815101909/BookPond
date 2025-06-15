@@ -1,0 +1,45 @@
+/**
+ * 习题解析辅助函数
+ */
+
+// 检查多选题选项是否为正确答案
+function isCorrectMultipleAnswer(correctAnswers, optionIndex) {
+  if (!correctAnswers) return false;
+  
+  // 如果是数组对象，检查它是否包含选项索引
+  if (correctAnswers.constructor === 'Array') {
+    for (var i = 0; i < correctAnswers.length; i++) {
+      if (correctAnswers[i] == optionIndex) {
+        return true;
+      }
+    }
+    return false;
+  }
+  
+  // 直接尝试按下标访问
+  for (var i = 0; i < correctAnswers.length; i++) {
+    if (correctAnswers[i] == optionIndex) {
+      return true;
+    }
+  }
+  
+  return false;
+}
+
+// 检查选项是否在用户答案数组中
+function isInArray(array, item) {
+  if (!array) return false;
+
+  // 直接尝试按下标访问
+  for (var i = 0; i < array.length; i++) {
+    if (array[i] == item) {
+      return true;
+    }
+  }
+  return false;
+}
+
+module.exports = {
+  isCorrectMultipleAnswer: isCorrectMultipleAnswer,
+  isInArray: isInArray
+}; 

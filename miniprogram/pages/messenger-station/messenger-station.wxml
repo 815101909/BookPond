@@ -1,0 +1,61 @@
+<!-- 信使驿站页面 -->
+<view class="container">
+  <view class="header">
+    <text class="title">信使驿站</text>
+    <text class="subtitle">共{{total}}条消息</text>
+  </view>
+
+  <view class="message-list">
+    <block wx:if="{{messages.length > 0}}">
+      <view class="message-item" wx:for="{{messages}}" wx:key="id">
+        <view class="message-content">
+          <image class="avatar" src="{{item.avatar}}" mode="aspectFill"></image>
+          <view class="message-info">
+            <view class="message-header">
+              <text class="username">{{item.username}}</text>
+              <text class="time">{{item.time}}</text>
+            </view>
+            <text class="message-content-text">{{item.content}}</text>
+            <view class="message-footer">
+              <view class="message-type-container">
+                <text class="message-type">{{item.type}}</text>
+                <text class="writing-date">2025年4月12日</text>
+              </view>
+              <view class="unread-badge" wx:if="{{item.unread > 0}}">{{item.unread}}</view>
+            </view>
+          </view>
+        </view>
+        <view class="message-actions">
+          <view class="action-btn read" bindtap="navigateToVocabulary" data-id="{{item.id}}">
+            <text class="action-icon">📝</text>
+            <text class="action-text">词汇</text>
+          </view>
+          <view class="action-btn share" bindtap="shareMessage" data-id="{{item.id}}">
+            <text class="action-icon">📤</text>
+            <text class="action-text">分享</text>
+          </view>
+          <view class="action-btn delete" bindtap="deleteMessage" data-id="{{item.id}}">
+            <text class="action-icon">🗑️</text>
+            <text class="action-text">删除</text>
+          </view>
+        </view>
+      </view>
+    </block>
+    <view class="empty-state" wx:else>
+      <text class="empty-icon">💌</text>
+      <text class="empty-text">信使驿站空空如也</text>
+      <text class="empty-tip">去和学习伙伴交流互动吧！</text>
+    </view>
+  </view>
+
+  <view class="bottom-actions">
+    <view class="action-btn back" catchtap="backToProfile">
+      <text class="action-icon">👤</text>
+      <text class="action-text">返回主页</text>
+    </view>
+    <view class="action-btn new-message" catchtap="createNewMessage">
+      <text class="action-icon">✉️</text>
+      <text class="action-text">发新消息</text>
+    </view>
+  </view>
+</view> 

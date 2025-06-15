@@ -1,0 +1,8 @@
+{
+  "navigationBarTitleText": "擂台模式积分排行",
+  "navigationBarBackgroundColor": "#f8f8f8",
+  "navigationBarTextStyle": "black",
+  "enablePullDownRefresh": true,
+  "backgroundTextStyle": "dark",
+  "backgroundColor": "#f8f8f8"
+} 

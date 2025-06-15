@@ -1,0 +1,77 @@
+<!-- 录音仓库页面 -->
+<view class="container">
+  <view class="header">
+    <text class="title">录音仓库</text>
+    <text class="subtitle">共{{total}}条录音</text>
+  </view>
+
+  <view class="recording-list">
+    <block wx:if="{{recordings.length > 0}}">
+      <view class="recording-item" wx:for="{{recordings}}" wx:key="id">
+        <!-- 标题覆盖在封面和文本框上方 -->
+        <view class="recording-title-overlay">
+          <text class="recording-title">{{item.title}}</text>
+          <text class="recording-type">{{item.type === 'hotspot' ? '热点主持' : '名著配音'}}</text>
+        </view>
+        
+        <view class="recording-content">
+          <!-- 左侧：屏幕封面 -->
+          <image class="recording-cover" src="{{item.coverImage}}" mode="aspectFill"></image>
+          
+          <!-- 右侧：字幕内容 -->
+          <view class="recording-info">
+            <view class="recording-subtitle-container">
+              <scroll-view scroll-y class="recording-subtitle-scroll">
+                <text class="recording-subtitle">{{item.subtitle || '暂无字幕内容'}}</text>
+              </scroll-view>
+            </view>
+            
+            <!-- 难度和日期显示在同一行 -->
+            <view class="recording-meta">
+              <view class="meta-row">
+                <view class="meta-group">
+                  <text class="meta-label">难度：</text>
+                  <text class="recording-difficulty">{{item.difficultyName}}</text>
+                </view>
+                <view class="meta-group">
+                  <text class="meta-label">日期：</text>
+                  <text class="recording-date">{{item.formattedDate || (item.recordTime ? item.recordTime.substring(0, 10) : '未知日期')}}</text>
+                </view>
+              </view>
+            </view>
+          </view>
+        </view>
+        <view class="recording-actions">
+          <view class="action-btn play" bindtap="playRecording" data-id="{{item.id}}">
+            <text class="action-icon">▶️</text>
+            <text class="action-text">播放</text>
+          </view>
+          <view class="action-btn share" bindtap="shareRecording" data-id="{{item.id}}">
+            <text class="action-icon">📤</text>
+            <text class="action-text">分享</text>
+          </view>
+          <view class="action-btn delete" bindtap="deleteRecording" data-id="{{item.id}}">
+            <text class="action-icon">🗑️</text>
+            <text class="action-text">删除</text>
+          </view>
+        </view>
+      </view>
+    </block>
+    <view class="empty-state" wx:else>
+      <text class="empty-icon">🎙️</text>
+      <text class="empty-text">录音仓库空空如也</text>
+      <text class="empty-tip">前往「说一说」页面进行录音练习</text>
+    </view>
+  </view>
+
+  <view class="bottom-actions">
+    <view class="action-btn back" bindtap="backToProfile">
+      <text class="action-icon">👤</text>
+      <text class="action-text">返回主页</text>
+    </view>
+    <view class="action-btn record" bindtap="navigateToSpeak">
+      <text class="action-icon">🎙️</text>
+      <text class="action-text">开始录音</text>
+    </view>
+  </view>
+</view> 

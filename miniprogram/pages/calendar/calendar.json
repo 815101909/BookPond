@@ -1,0 +1,7 @@
+{
+  "navigationBarTitleText": "学习打卡日历",
+  "navigationBarBackgroundColor": "#FFFFFF",
+  "navigationBarTextStyle": "black",
+  "backgroundColor": "#e8f5e9",
+  "enablePullDownRefresh": false
+} 

@@ -1,0 +1,88 @@
+<!-- 错题详情页面 -->
+<view class="detail-container">
+  <!-- 顶部导航栏 -->
+  <view class="nav-bar">
+    <view class="back-btn" bindtap="goBack">
+      <text class="back-icon">←</text>
+    </view>
+    <view class="page-title">听力习题详情</view>
+    <view style="width: 70rpx;"></view> <!-- 平衡布局 -->
+  </view>
+  
+  <!-- 习题信息 -->
+  <view class="exercise-card">
+    <!-- 习题头部信息 -->
+    <view class="exercise-header">
+      <!-- 题型 -->
+      <view class="exercise-meta">
+        <text class="audio-type">{{exerciseItem.audioType === 'podcast' ? '热点「晓」播客' : '名著「晓」喇叭'}}</text>
+        
+        <!-- 难度标签 -->
+        <view class="difficulty sprout" wx:if="{{exerciseItem.difficulty === 'sprout'}}">
+          <text class="difficulty-icon">🌱</text>
+          <text class="difficulty-name">萌芽岛</text>
+        </view>
+        <view class="difficulty cocoon" wx:elif="{{exerciseItem.difficulty === 'cocoon'}}">
+          <text class="difficulty-icon">🦋</text>
+          <text class="difficulty-name">破茧谷</text>
+        </view>
+        <view class="difficulty soar" wx:elif="{{exerciseItem.difficulty === 'soar'}}">
+          <text class="difficulty-icon">🦅</text>
+          <text class="difficulty-name">翱翔峰</text>
+        </view>
+      </view>
+      
+      <!-- 日期 -->
+      <text class="date">{{exerciseItem.date}}</text>
+    </view>
+    
+    <!-- 习题内容 -->
+    <view class="exercise-content">
+      <!-- 问题 -->
+      <view class="question">
+        <text class="question-text">{{exerciseItem.question}}</text>
+      </view>
+      
+      <!-- 单选/多选题选项 -->
+      <view class="options" wx:if="{{exerciseItem.difficulty === 'sprout' || exerciseItem.difficulty === 'cocoon'}}">
+        <view class="option-title">
+          <text wx:if="{{exerciseItem.difficulty === 'sprout'}}">单选题选项</text>
+          <text wx:elif="{{exerciseItem.difficulty === 'cocoon'}}">多选题选项</text>
+        </view>
+        <block wx:for="{{exerciseItem.options}}" wx:for-item="option" wx:for-index="idx" wx:key="idx">
+          <view class="option-item {{exerciseItem.difficulty === 'sprout' && exerciseItem.answer === idx ? 'correct' : ''}} {{exerciseItem.difficulty === 'cocoon' && exerciseItem.answer.includes(idx) ? 'correct' : ''}}">
+            <text class="option-letter">{{optionLetters[idx]}}</text>
+            <text class="option-text">{{option}}</text>
+            <text class="correct-mark" wx:if="{{exerciseItem.difficulty === 'sprout' && exerciseItem.answer === idx || exerciseItem.difficulty === 'cocoon' && exerciseItem.answer.includes(idx)}}">✓</text>
+          </view>
+        </block>
+      </view>
+      
+      <!-- 填空题答案 -->
+      <view class="fill-blank" wx:if="{{exerciseItem.difficulty === 'soar'}}">
+        <view class="answer-title">正确答案：</view>
+        <view class="answer-content">{{exerciseItem.answer}}</view>
+      </view>
+      
+      <!-- 习题解析 -->
+      <view class="explanation">
+        <view class="explanation-title">解析：</view>
+        <view class="explanation-content">{{exerciseItem.explanation || '暂无解析'}}</view>
+      </view>
+
+      <!-- 添加正确/错误状态显示 -->
+      <view class="result-status {{exerciseItem.isCorrect ? 'correct' : 'wrong'}}">
+        <text class="status-icon">{{exerciseItem.isCorrect ? '✓' : '✗'}}</text>
+        <text class="status-text">{{exerciseItem.isCorrect ? '答对了' : '答错了'}}</text>
+      </view>
+    </view>
+  </view>
+  
+  <!-- 底部操作栏 -->
+  <view class="action-bar">
+    <view class="listen-again-btn" bindtap="listenAgain">
+      <text class="listen-icon">🎧</text>
+      <text class="listen-text">再听一遍</text>
+    </view>
+  </view>
+</view> 

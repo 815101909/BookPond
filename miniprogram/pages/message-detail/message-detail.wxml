@@ -1,0 +1,51 @@
+<!-- 消息详情页面 -->
+<view class="container">
+  <!-- 顶部返回栏 -->
+  <view class="header">
+    <view class="back-btn" bindtap="goBack">
+      <text class="back-icon">←</text>
+      <text class="back-text">返回</text>
+    </view>
+    <view class="header-title">写作详情</view>
+    <view class="delete-btn" bindtap="deleteMessage">删除</view>
+  </view>
+
+  <!-- 加载中 -->
+  <view class="loading" wx:if="{{loading}}">
+    <view class="loading-spinner"></view>
+    <text class="loading-text">加载中...</text>
+  </view>
+
+  <!-- 消息详情 -->
+  <view class="message-detail" wx:if="{{!loading && message}}">
+    <!-- 消息元数据 -->
+    <view class="message-meta">
+      <view class="message-title">{{message.title || '我的写作'}}</view>
+      <view class="message-time">{{message.formattedDate}}</view>
+      <view class="message-type">{{message.source || '写作分享'}}</view>
+    </view>
+
+    <!-- 分隔线 -->
+    <view class="divider"></view>
+
+    <!-- 消息内容 -->
+    <view class="message-content">
+      <text class="content-text">{{message.content}}</text>
+    </view>
+
+    <!-- 相关文章（如果有） -->
+    <view class="related-article" wx:if="{{message.title}}">
+      <view class="related-title">写作来源</view>
+      <view class="article-card">
+        <view class="article-title">《{{message.title}}》</view>
+        <view class="article-date">{{message.date}}</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 空状态 -->
+  <view class="empty-state" wx:if="{{!loading && !message}}">
+    <image class="empty-icon" src="/images/empty.png" mode="aspectFit"></image>
+    <text class="empty-text">找不到该消息</text>
+  </view>
+</view> 

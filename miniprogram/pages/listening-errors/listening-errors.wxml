@@ -1,0 +1,75 @@
+<!-- 听力错题页面 -->
+<view class="container">
+  <view class="header">
+    <text class="title">听力错题</text>
+    <text class="subtitle">共{{total}}道习题</text>
+  </view>
+
+  <view class="error-list">
+    <block wx:if="{{errors.length > 0}}">
+      <view class="error-item" wx:for="{{errors}}" wx:key="timestamp">
+        <view class="error-header">
+          <view class="error-type-info">
+            <text class="error-type">{{item.audioType === 'podcast' ? '热点「晓」播客' : '名著「晓」喇叭'}}</text>
+            
+            <text class="difficulty-tag" wx:if="{{item.difficulty === 'sprout'}}">萌芽岛</text>
+            <text class="difficulty-tag cocoon" wx:elif="{{item.difficulty === 'cocoon'}}">破茧谷</text>
+            <text class="difficulty-tag soar" wx:elif="{{item.difficulty === 'soar'}}">翱翔峰</text>
+          </view>
+          
+          <text class="error-date">{{item.date}}</text>
+        </view>
+        
+        <view class="error-content">
+          <view class="question-container">
+            <text class="error-text">{{item.question}}</text>
+          </view>
+          
+          <view class="error-options" wx:if="{{item.difficulty === 'sprout' || item.difficulty === 'cocoon'}}">
+            <block wx:for="{{item.options}}" wx:for-item="option" wx:for-index="idx" wx:key="idx">
+              <view class="option {{item.difficulty === 'sprout' && item.answer === idx ? 'correct' : ''}} {{item.difficulty === 'cocoon' && item.answer.includes(idx) ? 'correct' : ''}}">
+                {{optionLetters[idx]}}. {{option}}
+              </view>
+            </block>
+          </view>
+          
+          <view class="fill-answer" wx:if="{{item.difficulty === 'soar'}}">
+            <text class="answer-label">正确答案: </text>
+            <text class="answer-text">{{item.answer}}</text>
+          </view>
+
+          <view class="answer-status {{item.isCorrect ? 'correct' : 'incorrect'}}">
+            <text>{{item.isCorrect ? '已答对' : ''}}</text>
+          </view>
+        </view>
+        
+        <view class="error-actions">
+          <view class="action-btn practice {{isNavigating ? 'disabled' : ''}}" bindtap="navigateToDetail" data-index="{{index}}">
+            <text class="practice-icon">{{isNavigating ? '⏳' : '▶'}}</text>
+            <text>{{isNavigating ? '准备中...' : '继续练习'}}</text>
+          </view>
+          <view class="action-btn delete" bindtap="deleteError" data-index="{{index}}">
+            <text>删除</text>
+          </view>
+        </view>
+      </view>
+    </block>
+    
+    <view class="empty-state" wx:else>
+      <text class="empty-icon">🎧</text>
+      <text class="empty-text">听力错题空空如也</text>
+      <text class="empty-tip">在听力练习中收藏题目后会显示在这里</text>
+    </view>
+  </view>
+
+  <view class="bottom-actions">
+    <view class="action-btn back" catchtap="backToProfile">
+      <text class="action-icon">👤</text>
+      <text class="action-text">返回主页</text>
+    </view>
+    <view class="action-btn practice-new" catchtap="navigateToListen">
+      <text class="action-icon">🎧</text>
+      <text class="action-text">听力练习</text>
+    </view>
+  </view>
+</view> 

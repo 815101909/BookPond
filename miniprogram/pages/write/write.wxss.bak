@@ -1,0 +1,753 @@
+/* 写一写页面样式 */
+page {
+  background: #E8F5E9;
+}
+
+.container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #E8F5E9;
+  padding: 40rpx;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 欢迎语部分 */
+.welcome-section {
+  text-align: center;
+  margin-bottom: 50rpx;
+}
+
+.welcome-title {
+  display: block;
+  font-size: 48rpx;
+  color: #1B5E20;
+  font-weight: bold;
+  margin-bottom: 16rpx;
+  letter-spacing: 2rpx;
+}
+
+.welcome-subtitle {
+  display: block;
+  font-size: 28rpx;
+  color: #388E3C;
+  letter-spacing: 1rpx;
+}
+
+/* 模式版块样式 */
+.mode-section {
+  flex: 1;
+  width: 100%;
+  background: #FFFEF7;
+  border-radius: 24rpx;
+  padding: 30rpx;
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.08);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.mode-title-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 30rpx;
+  position: relative;
+}
+
+.mailbox-mode-title {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 36rpx;
+  color: #2E7D32;
+  font-weight: bold;
+  background: linear-gradient(120deg, rgba(232, 245, 233, 0.6) 0%, rgba(232, 245, 233, 0.6) 100%);
+  padding: 16rpx 40rpx;
+  border-radius: 30rpx;
+  box-shadow: 0 4rpx 12rpx rgba(46, 125, 50, 0.15);
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.mailbox-mode-title:active {
+  transform: translateY(2rpx);
+  box-shadow: 0 2rpx 6rpx rgba(46, 125, 50, 0.1);
+}
+
+.mailbox-icon {
+  font-size: 40rpx;
+  margin-right: 12rpx;
+}
+
+/* 装饰性邮件图标 */
+.mode-title-wrapper::before,
+.mode-title-wrapper::after {
+  content: '✉️';
+  position: absolute;
+  font-size: 32rpx;
+  opacity: 0.6;
+}
+
+.mode-title-wrapper::before {
+  left: 20%;
+  transform: rotate(-15deg);
+}
+
+.mode-title-wrapper::after {
+  right: 20%;
+  transform: rotate(15deg);
+}
+
+/* 信件类型选择样式 */
+.letter-types {
+  display: flex;
+  gap: 35rpx;
+  margin-bottom: 30rpx;
+  justify-content: center;
+  padding: 20rpx 0;
+}
+
+.letter-type {
+  flex: 0 0 auto;
+  background: #F5F5F5;
+  border-radius: 16rpx;
+  padding: 20rpx 30rpx;
+  text-align: center;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  max-width: none;
+  width: 192rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
+}
+
+.letter-type.active {
+  background: #4CAF50;
+  color: white;
+  transform: translateY(-2rpx);
+  box-shadow: 0 4rpx 12rpx rgba(76, 175, 80, 0.2);
+}
+
+.type-icon {
+  font-size: 36rpx;
+  margin-bottom: 8rpx;
+}
+
+.type-name {
+  font-size: 28rpx;
+  font-weight: 500;
+}
+
+/* 信封区域滚动视图 */
+.envelope-scroll {
+  flex: 1;
+  overflow: hidden;
+  height: 100%;
+  position: relative;
+}
+
+.envelope-scroll::-webkit-scrollbar {
+  width: 10rpx;
+  background-color: transparent;
+}
+
+.envelope-scroll::-webkit-scrollbar-thumb {
+  background-color: rgba(76, 175, 80, 0.4);
+  border-radius: 10rpx;
+}
+
+.envelope-scroll::-webkit-scrollbar-track {
+  background-color: rgba(0, 0, 0, 0.05);
+  border-radius: 10rpx;
+}
+
+/* 信封区域 */
+.envelope-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  padding-bottom: 20rpx;
+}
+
+.envelope {
+  background: #FFFFFF;
+  border-radius: 16rpx;
+  padding: 20rpx;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+
+/* 顶部控制区域 */
+.top-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: -5rpx;
+  gap: 16rpx;
+  background: #FFFFF0;
+  border-radius: 12rpx;
+  padding: 12rpx;
+}
+
+/* 学习素材标题 */
+.materials-title {
+  font-size: 30rpx;
+  color: #333333;
+  font-weight: 500;
+  padding-left: 16rpx;
+  position: relative;
+  flex: 1;
+}
+
+.materials-title::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 6rpx;
+  height: 30rpx;
+  background: #FFC107;
+  border-radius: 3rpx;
+}
+
+/* 日期选择器 */
+.date-picker-container {
+  flex: 0 1 auto;
+  max-width: 280rpx;
+}
+
+.date-picker {
+  display: flex;
+  align-items: center;
+  background: #FFF9C4;
+  padding: 8rpx 12rpx;
+  border-radius: 16rpx;
+  box-shadow: 0 2rpx 6rpx rgba(76, 175, 80, 0.15);
+  gap: 8rpx;
+}
+
+.date-label {
+  font-size: 22rpx;
+  color: #333333;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.date-value {
+  font-size: 20rpx;
+  color: #333333;
+  font-weight: 500;
+  flex: 1;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-left: 6rpx;
+}
+
+.date-arrow {
+  font-size: 18rpx;
+  color: #FFC107;
+}
+
+/* 语言选择器 */
+.language-selectors {
+  display: flex;
+  gap: 10rpx;
+  flex: 2;
+}
+
+.language-picker {
+  flex: 1;
+}
+
+.picker {
+  background: #E8F5E9;
+  padding: 8rpx 12rpx;
+  border-radius: 16rpx;
+  text-align: center;
+  font-size: 22rpx;
+  color: #2E7D32;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  box-shadow: 0 2rpx 6rpx rgba(76, 175, 80, 0.15);
+}
+
+/* 主轮播区域 */
+.main-carousel {
+  margin-bottom: 5rpx;
+  border-radius: 16rpx;
+  overflow: hidden;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.1);
+}
+
+/* 轮播文章列表区域 */
+.news-carousel-section {
+  margin-bottom: 4rpx;
+  border-radius: 12rpx;
+  overflow: hidden;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.1);
+  background: #FFFFF0;
+}
+
+.news-swiper {
+  height: 160rpx;
+  width: 100%;
+}
+
+.news-card {
+  display: flex;
+  align-items: center;
+  background: #FFFFF0;
+  border-radius: 12rpx;
+  padding: 16rpx;
+  margin: 8rpx;
+  position: relative;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.1);
+  height: 120rpx;
+}
+
+.difficulty-badge {
+  position: absolute;
+  top: 8rpx;
+  right: 8rpx;
+  display: flex;
+  align-items: center;
+  background: #FFF9C4;
+  padding: 2rpx 8rpx;
+  border-radius: 16rpx;
+}
+
+.badge-icon {
+  font-size: 20rpx;
+  margin-right: 4rpx;
+}
+
+.badge-text {
+  font-size: 18rpx;
+  color: #333333;
+}
+
+.news-image {
+  width: 100rpx;
+  height: 100rpx;
+  border-radius: 8rpx;
+  margin-right: 16rpx;
+  flex-shrink: 0;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.2);
+}
+
+.news-info {
+  flex: 1;
+  overflow: hidden;
+}
+
+.news-title {
+  font-size: 28rpx;
+  color: #333333;
+  line-height: 1.4;
+  font-weight: 500;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.empty-card {
+  justify-content: center;
+}
+
+.empty-message {
+  text-align: center;
+  color: #333333;
+  font-size: 28rpx;
+}
+
+/* 写作区域 */
+.writing-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 24rpx;
+  border-top: 2rpx dashed #4CAF50;
+  padding-top: 24rpx;
+  min-height: 300rpx;
+}
+
+/* 学习卡片区 */
+.cards-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+  margin-bottom: 20rpx;
+  background: #FFFFF5;
+  padding: 12rpx;
+  border-radius: 12rpx;
+}
+
+.cards-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16rpx;
+  padding: 8rpx 16rpx 8rpx 0;
+  background: #FFFFF0;
+  border-radius: 12rpx;
+}
+
+.cards-title {
+  font-size: 30rpx;
+  color: #333333;
+  font-weight: 500;
+  padding-left: 16rpx;
+  position: relative;
+  flex: 0 0 auto;
+  margin-right: 20rpx;
+}
+
+.cards-title::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 6rpx;
+  height: 30rpx;
+  background: #FFC107;
+  border-radius: 3rpx;
+}
+
+/* 语言选择器 - 在学习卡片区域内 */
+.cards-section .language-selectors {
+  display: flex;
+  gap: 20rpx;
+  flex: 1;
+  justify-content: flex-end;
+  padding-right: 0;
+}
+
+.cards-section .language-picker {
+  flex: 0 1 auto;
+  max-width: 160rpx;
+}
+
+.cards-section .picker {
+  background: #FFF9C4;
+  padding: 8rpx 16rpx;
+  border-radius: 20rpx;
+  text-align: center;
+  font-size: 22rpx;
+  color: #333333;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  box-shadow: 0 2rpx 6rpx rgba(222, 184, 65, 0.2);
+  min-width: 80rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.language-text {
+  display: inline-block;
+  letter-spacing: 0.5rpx;
+}
+
+.cards-scroll {
+  white-space: normal;
+  margin-bottom: 16rpx;
+  padding: 0 16rpx;
+  box-sizing: border-box;
+  width: 100%;
+  position: relative;
+}
+
+.word-cards,
+.phrase-cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+  padding: 8rpx 0;
+  align-items: flex-start;
+  width: 100%;
+  justify-content: flex-start;
+  min-height: 80rpx;
+}
+
+.card-container {
+  display: inline-block;
+  margin-bottom: 10rpx;
+  vertical-align: top;
+  flex-grow: 0;
+  position: relative;
+}
+
+.card {
+  display: inline-flex;
+  align-items: center;
+  padding: 10rpx 16rpx;
+  border-radius: 8rpx;
+  font-size: 28rpx;
+  color: #333333;
+  transition: all 0.3s ease;
+  position: relative;
+  box-shadow: 0 2rpx 6rpx rgba(0, 0, 0, 0.1);
+}
+
+.card-text {
+  margin-right: 8rpx;
+}
+
+.expand-icon {
+  font-size: 20rpx;
+  color: #757575;
+}
+
+.word-card,
+.phrase-card {
+  background: #E8F5E9;
+  padding: 8rpx 14rpx;
+  font-size: 28rpx;
+  margin: 2rpx;
+  flex-shrink: 0;
+}
+
+.card:active {
+  transform: scale(0.95);
+  background: #C8E6C9;
+}
+
+.empty-card {
+  width: 100%;
+  text-align: center;
+  padding: 20rpx;
+  color: #999;
+  font-size: 28rpx;
+  background: #F5F5F5;
+  border-radius: 8rpx;
+}
+
+/* 翻译面板样式 */
+.translation-panel {
+  display: block;
+  background: white;
+  border-radius: 8rpx;
+  margin-top: 8rpx;
+  padding: 12rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.1);
+  width: max-content;
+  min-width: 100%;
+  max-width: 400rpx;
+  white-space: normal;
+  border: 1rpx solid #E0E0E0;
+  position: absolute;
+  z-index: 10;
+  left: 0;
+  top: 100%;
+}
+
+.translation-item {
+  margin-bottom: 8rpx;
+  font-size: 24rpx;
+  color: #424242;
+}
+
+.translation-lang {
+  font-weight: bold;
+  color: #4CAF50;
+  margin-right: 4rpx;
+}
+
+.translation-text {
+  color: #616161;
+}
+
+.translation-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 8rpx;
+  border-top: 1rpx solid #F0F0F0;
+  padding-top: 8rpx;
+}
+
+.action-btn {
+  display: inline-block;
+  font-size: 24rpx;
+  color: #4CAF50;
+  padding: 4rpx 12rpx;
+  border-radius: 4rpx;
+  background: #E8F5E9;
+}
+
+.action-btn:active {
+  background: #C8E6C9;
+}
+
+/* 写作输入区 */
+.writing-section {
+  flex: 1;
+  background: #FFFEF0; /* 最浅的黄色 */
+  border-radius: 12rpx;
+  padding: 20rpx;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 310rpx; /* 从290rpx增加到310rpx */
+  overflow: hidden;
+  box-shadow: 0 4rpx 12rpx rgba(200, 180, 0, 0.08);
+}
+
+.writing-scroll {
+  flex: 1;
+  height: 100%;
+  width: 100%;
+}
+
+.writing-container {
+  padding: 0 0 70rpx 0;
+  min-height: 100%;
+}
+
+.writing-input {
+  width: 100%;
+  min-height: 250rpx; /* 从230rpx增加到250rpx */
+  font-size: 32rpx;
+  line-height: 1.8;
+  box-sizing: border-box;
+  padding: 10rpx;
+  color: #333333;
+}
+
+.writing-scroll::-webkit-scrollbar {
+  width: 10rpx;
+  background-color: transparent;
+}
+
+.writing-scroll::-webkit-scrollbar-thumb {
+  background-color: rgba(76, 175, 80, 0.4);
+  border-radius: 10rpx;
+}
+
+.writing-scroll::-webkit-scrollbar-track {
+  background-color: rgba(0, 0, 0, 0.05);
+  border-radius: 10rpx;
+}
+
+.writing-tools {
+  position: absolute;
+  bottom: 16rpx;
+  right: 16rpx;
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  background-color: rgba(255, 255, 255, 0.8);
+  padding: 8rpx;
+  border-radius: 40rpx;
+  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.15);
+  z-index: 10;
+}
+
+.handwriting-btn {
+  display: flex;
+  align-items: center;
+  background: #E8F5E9;
+  color: #2E7D32;
+  font-size: 30rpx;
+  padding: 12rpx 24rpx;
+  border-radius: 30rpx;
+  box-shadow: 0 4rpx 12rpx rgba(76, 175, 80, 0.2);
+  transition: all 0.3s ease;
+}
+
+.handwriting-icon {
+  font-size: 32rpx;
+  margin-right: 8rpx;
+}
+
+.handwriting-btn:active {
+  transform: scale(0.95);
+  background: #C8E6C9;
+}
+
+.submit-btn {
+  background: #4CAF50;
+  color: white;
+  font-size: 30rpx;
+  padding: 12rpx 36rpx;
+  border-radius: 30rpx;
+  box-shadow: 0 4rpx 12rpx rgba(76, 175, 80, 0.3);
+  transition: all 0.3s ease;
+}
+
+.submit-btn:active {
+  transform: scale(0.95);
+  background: #388E3C;
+}
+
+/* 调试区域样式 */
+.debug-section {
+  margin-top: 20px;
+  padding: 10px;
+  background-color: #f0f0f0;
+  border-radius: 8px;
+  border: 1px dashed #999;
+}
+
+.debug-section .section-title {
+  font-size: 14px;
+  font-weight: bold;
+  margin-bottom: 10px;
+  color: #333;
+}
+
+.debug-info {
+  display: flex;
+  flex-direction: column;
+  font-size: 12px;
+  margin-bottom: 10px;
+  color: #666;
+}
+
+.debug-info text {
+  margin-bottom: 5px;
+}
+
+.debug-buttons {
+  display: flex;
+  justify-content: space-between;
+}
+
+.debug-button {
+  font-size: 12px;
+  padding: 5px 10px;
+  margin: 0 5px;
+  background-color: #eaeaea;
+  color: #333;
+  border: 1px solid #ddd;
+}
+
+.hidden-canvas {
+  position: absolute;
+  left: -9999rpx;
+  visibility: hidden;
+}
+
+.letter-mode-title {
+  font-size: 18px;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 15px;
+  text-align: center;
+} 

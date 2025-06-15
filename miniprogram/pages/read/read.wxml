@@ -1,0 +1,114 @@
+<!-- 读一读页面 -->
+<view class="read-container">
+  <!-- 阅读模式版块 -->
+  <view class="level-mode-section">
+    <view class="section-title">探索模式</view>
+    
+    <!-- 等级选择器 -->
+    <view class="level-section">
+      <view class="section-subtitle">难度选择</view>
+      <view class="level-selector">
+        <view 
+          class="level-item {{currentLevel === 'sprout' ? 'active' : ''}}" 
+          bindtap="switchLevel" 
+          data-level="sprout"
+        >
+          <view class="level-icon">🌱</view>
+          <view class="level-name">{{levels.sprout.name}}</view>
+        </view>
+        <view 
+          class="level-item {{currentLevel === 'forest' ? 'active' : ''}}" 
+          bindtap="switchLevel" 
+          data-level="forest"
+        >
+          <view class="level-icon">🌳</view>
+          <view class="level-name">{{levels.forest.name}}</view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 语言选择区 -->
+    <view class="language-section">
+      <view class="section-subtitle">对照语言</view>
+      <view class="language-selectors">
+        <view class="language-selector">
+          <picker 
+            bindchange="onCompareChange1" 
+            value="{{compareIndex1}}" 
+            range="{{languageOptions}}" 
+            range-key="name"
+          >
+            <view class="picker">
+              <text wx:if="{{selectedLanguage1}}">{{selectedLanguage1.flag}} {{selectedLanguage1.name}}</text>
+              <text wx:else>请选择语言</text>
+            </view>
+          </picker>
+        </view>
+        
+        <view class="language-selector">
+          <picker 
+            bindchange="onCompareChange2" 
+            value="{{compareIndex2}}" 
+            range="{{languageOptions}}" 
+            range-key="name"
+          >
+            <view class="picker">
+              <text wx:if="{{selectedLanguage2}}">{{selectedLanguage2.flag}} {{selectedLanguage2.name}}</text>
+              <text wx:else>请选择语言</text>
+            </view>
+          </picker>
+        </view>
+      </view>
+    </view>
+
+    <!-- 当日新闻展示区 -->
+    <view class="daily-news-showcase">
+      <view class="daily-news-image" bindtap="onNewsTap" data-id="{{dailyNews.id}}">
+        <image src="{{dailyNews.cover}}" mode="aspectFill"></image>
+        <view class="daily-news-marquee">
+          <view class="marquee-label">今日动态</view>
+          <view class="marquee-divider">|</view>
+          <view class="marquee-content">
+            <text>{{dailyNews.highlights}}</text>
+          </view>
+        </view>
+        <view class="daily-news-overlay">
+          <view class="daily-news-title">{{dailyNews.title}}</view>
+          <view class="daily-news-date">{{dailyNews.date}}</view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 内容区域 -->
+    <view class="content-area">
+      <!-- 「晓」见闻内容 -->
+      <view class="news-content" wx:if="{{currentTab === 'daily'}}">
+        <view class="section-subtitle" style="transform: translateY(-8rpx);">文章列表｜文化速递，世界窗口</view>
+        <scroll-view class="news-scroll" scroll-y enable-flex>
+          <view class="news-item" wx:for="{{newsList}}" wx:key="id" bindtap="onNewsTap" data-id="{{item.id}}">
+            <image class="news-cover" src="{{item.cover}}" mode="aspectFill"></image>
+            <view class="news-info">
+              <view class="news-title">{{item.title}}</view>
+              <view class="news-meta">
+                <text class="news-category">{{item.category}}</text>
+                <text class="news-country">{{item.country}}</text>
+                <text class="news-date">{{item.date}}</text>
+              </view>
+            </view>
+          </view>
+          
+          <!-- 加载更多提示 -->
+          <view class="scroll-hint" wx:if="{{newsList.length > 0 && !newsNoMore}}">
+            <text class="hint-icon">↓</text>
+            <text class="hint-text">下滑加载更多</text>
+          </view>
+          
+          <!-- 到底提示 -->
+          <view class="scroll-hint" wx:if="{{newsNoMore}}">
+            <text class="hint-text">已经到底啦！</text>
+          </view>
+        </scroll-view>
+      </view>
+    </view>
+  </view>
+</view> 

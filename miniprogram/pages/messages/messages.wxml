@@ -1,0 +1,33 @@
+<!-- 系统消息页面 -->
+<view class="container">
+  <!-- 页面标题 -->
+  <view class="header">
+    <view class="header-top">
+      <view class="title">系统消息</view>
+      <view class="read-all" wx:if="{{unreadCount > 0}}" bindtap="markAllAsRead">全部已读</view>
+    </view>
+    <view class="sub-title unread-message" wx:if="{{unreadCount > 0}}">您有 {{unreadCount}} 条未读消息</view>
+    <view class="sub-title" wx:else>所有消息已读</view>
+  </view>
+
+  <!-- 消息列表 -->
+  <view class="message-list" wx:if="{{messages.length > 0}}">
+    <block wx:for="{{messages}}" wx:key="index">
+      <view class="message-item {{!item.read ? 'unread' : ''}}" bindtap="viewMessageDetail" data-index="{{index}}">
+        <view wx:if="{{!item.read}}" class="message-status"></view>
+        <view class="message-content">
+          <view class="message-title">{{item.title}}</view>
+          <view class="message-preview">{{item.content}}</view>
+          <view class="message-date">{{item.date}}</view>
+        </view>
+      </view>
+    </block>
+  </view>
+
+  <!-- 空状态 -->
+  <view class="empty-state" wx:else>
+    <view class="empty-icon">📪</view>
+    <view class="empty-text">暂无系统消息</view>
+    <view class="empty-desc">新的系统通知和更新将会显示在这里</view>
+  </view>
+</view> 

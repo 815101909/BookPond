@@ -1,0 +1,183 @@
+<!-- 写一写页面 -->
+<view class="container" bindtap="onTapPage">
+  <!-- 整个模式版块 -->
+  <view class="mode-section">
+    <!-- 信件模式标题 -->
+    <view class="mode-title-wrapper">
+      <view class="mailbox-mode-title" bindtap="toggleDebugMode"><text class="mailbox-icon">📮</text><text>信箱模式</text></view>
+    </view>
+    
+    <!-- 信件类型选择 -->
+    <view class="letter-types">
+      <view class="letter-type {{selectedType === 'news' ? 'active' : ''}}" bindtap="switchLetterType" data-type="news">
+        <text class="type-icon">📰</text>
+        <text class="type-name">热点信件</text>
+      </view>
+      <view class="letter-type {{selectedType === 'classics' ? 'active' : ''}}" bindtap="switchLetterType" data-type="classics">
+        <text class="type-icon">📚</text>
+        <text class="type-name">名著信件</text>
+      </view>
+    </view>
+
+    <!-- 信封区域用scroll-view包裹，确保可滚动 -->
+    <scroll-view class="envelope-scroll" scroll-y="true">
+      <view class="envelope-area">
+        <view class="envelope">
+          <!-- 顶部控制区域 -->
+          <view class="top-controls">
+            <!-- 来信内容标题 -->
+            <text class="materials-title">来信内容</text>
+            
+            <!-- 日期选择器 -->
+            <view class="date-picker-container">
+              <picker mode="date" value="{{selectedDate}}" bindchange="onDateChange">
+                <view class="date-picker">
+                  <text class="date-label">选择来信日期</text>
+                  <text class="date-value">{{formattedDate}}</text>
+                  <text class="date-arrow">▼</text>
+                </view>
+              </picker>
+            </view>
+          </view>
+
+          <!-- 轮播文章列表区域 -->
+          <view class="news-carousel-section">
+            <swiper class="news-swiper" autoplay="{{true}}" interval="3000" circular="{{true}}" indicator-dots="{{true}}" indicator-color="rgba(0, 0, 0, 0.2)" indicator-active-color="#4CAF50">
+              <!-- 萌芽岛文章 (只显示第一篇) -->
+              <swiper-item wx:if="{{sproutNews.length > 0}}" bindtap="onNewsSelect" data-id="{{sproutNews[0].id}}" data-level="sprout">
+                <view class="news-card">
+                  <view class="difficulty-badge">
+                    <text class="badge-icon">🌱</text>
+                    <text class="badge-text">萌芽岛</text>
+                  </view>
+                  <image class="news-image" src="{{sproutNews[0].cover}}" mode="aspectFill"></image>
+                  <view class="news-info">
+                    <text class="news-title">{{sproutNews[0].title}}</text>
+                  </view>
+                </view>
+              </swiper-item>
+              
+              <!-- 破茧谷文章 (只显示第一篇) -->
+              <swiper-item wx:if="{{cocoonNews.length > 0}}" bindtap="onNewsSelect" data-id="{{cocoonNews[0].id}}" data-level="cocoon">
+                <view class="news-card">
+                  <view class="difficulty-badge">
+                    <text class="badge-icon">🦋</text>
+                    <text class="badge-text">破茧谷</text>
+                  </view>
+                  <image class="news-image" src="{{cocoonNews[0].cover}}" mode="aspectFill"></image>
+                  <view class="news-info">
+                    <text class="news-title">{{cocoonNews[0].title}}</text>
+                  </view>
+                </view>
+              </swiper-item>
+              
+              <!-- 翱翔峰文章 (只显示第一篇) -->
+              <swiper-item wx:if="{{soarNews.length > 0}}" bindtap="onNewsSelect" data-id="{{soarNews[0].id}}" data-level="soar">
+                <view class="news-card">
+                  <view class="difficulty-badge">
+                    <text class="badge-icon">🦅</text>
+                    <text class="badge-text">翱翔峰</text>
+                  </view>
+                  <image class="news-image" src="{{soarNews[0].cover}}" mode="aspectFill"></image>
+                  <view class="news-info">
+                    <text class="news-title">{{soarNews[0].title}}</text>
+                  </view>
+                </view>
+              </swiper-item>
+              
+              <!-- 空状态展示 -->
+              <swiper-item wx:if="{{sproutNews.length === 0 && cocoonNews.length === 0 && soarNews.length === 0}}">
+                <view class="news-card empty-card">
+                  <text class="empty-message">今日暂无内容</text>
+                </view>
+              </swiper-item>
+            </swiper>
+          </view>
+
+          <!-- 写作区域 -->
+          <view class="writing-area">
+            <!-- 写信卡片区 -->
+            <view class="cards-section">
+              <view class="cards-header">
+                <text class="cards-title">写信卡片</text>
+                <!-- 语言选择器区域 -->
+                <view class="language-selectors">
+                  <text class="language-select-label">选择写信语言</text>
+                  <view class="language-picker">
+                    <picker bindchange="onCompareChange1" value="{{compareIndex1}}" range="{{languageOptions}}" range-key="name">
+                      <view class="picker">
+                        <text wx:if="{{selectedLanguage1}}" class="language-text">{{selectedLanguage1.flag}} {{selectedLanguage1.shortName}}</text>
+                        <text wx:else class="language-text">选择语言</text>
+                      </view>
+                    </picker>
+                  </view>
+                </view>
+              </view>
+              
+              <!-- 新的简化布局：只保留写信提示按钮和写作内容 -->
+              <view class="writing-layout">
+                <!-- 写信提示按钮 -->
+<view style="display: flex; align-items: center; margin-bottom: 12rpx;"><view style="margin-right: 12rpx; background: #FFF9C4; padding: 8rpx 16rpx; border-radius: 10rpx; box-shadow: 0 2rpx 4rpx rgba(0,0,0,0.1);"><text style="font-size: 24rpx; color: #333333; font-weight: 500;">「晓」tip</text></view>
+                  <text class="prompt-button-icon">💡</text>
+                  <text class="prompt-button-text">写信提示</text>
+                </view>
+                
+                <!-- 浮动提示词汇面板 -->
+                <view id="prompt-panel" class="prompt-panel" wx:if="{{showPromptPanel}}" catchtap>
+                  <view class="panel-close" catchtap="togglePromptPanel">✕</view>
+                  <!-- 未选择文章时的提示 -->
+                  <view class="panel-content" catchtap wx:if="{{!currentArticle}}">
+                    <text class="panel-title">写信提示</text>
+                    <view class="panel-tip">
+                      请先<text class="bold">点击上方来信内容的一篇文章</text>，这里会<text class="bold">生成对应的提示词</text>，有助于您写一封信给亲朋好友。
+                    </view>
+                  </view>
+                  
+                  <!-- 已选择文章后的提示内容 (简化版) -->
+                  <view class="panel-content" catchtap wx:else>
+                    <text class="panel-title">写信提示</text>
+                    <view class="panel-tip">
+                      您可以根据所选文章《{{currentArticle.title}}》的内容，写一封信给亲朋好友，分享您的观点和感受。
+                    </view>
+                  </view>
+                </view>
+                
+                <!-- 写作内容区 -->
+                <view class="writing-section">
+                  <scroll-view class="writing-scroll" scroll-y="true">
+                    <view class="writing-container">
+                      <textarea class="writing-input" placeholder="请在此输入您的写作内容..." value="{{writingContent}}" bindinput="onWritingInput" show-confirm-bar="{{false}}" adjust-keyboard-to="{{false}}" style="height: {{textareaHeight}}px;" auto-height="true"></textarea>
+                    </view>
+                  </scroll-view>
+
+                  <!-- 写作工具按钮 -->
+                  <view class="writing-tools">
+                    <view class="save-btn" bindtap="submitWriting">保存至我的主页</view>
+                    <view class="share-btn" bindtap="shareWriting">分享</view>
+                  </view>
+                </view>
+              </view>
+            </view>
+          </view>
+        </view>
+      </view>
+    </scroll-view>
+  </view>
+</view>
+
+<!-- 添加在页面最后，其他内容之后 -->
+<view class="debug-section" wx:if="{{isDebugMode}}">
+  <view class="section-title">调试工具</view>
+  <view class="debug-info">
+    <text>BASE_URL: {{apiBaseUrl}}</text>
+    <text>网络状态: {{networkStatus}}</text>
+    <text>数据来源: {{dataSource}}</text>
+  </view>
+  <view class="debug-buttons">
+    <button class="debug-button" bindtap="testApiConnection">测试API连接</button>
+    <button class="debug-button" bindtap="toggleMockData">{{useMockData ? '切换到实际API' : '切换到模拟数据'}}</button>
+  </view>
+</view>
+
+<!-- 隐藏的画布，用于生成图片 -->
+<canvas class="hidden-canvas" canvas-id="share-canvas" style="width: 750rpx; height: 1000rpx;"></canvas> 

@@ -1,0 +1,409 @@
+// API 接口工具
+
+// 开发模式配置
+const DEV_CONFIG = {
+  // 是否使用模拟数据（强制使用模拟数据而不调用API）
+  USE_MOCK_DATA: false,
+  // 是否在控制台显示详细日志
+  VERBOSE_LOGGING: true
+};
+
+// API 基础 URL - 修改为你的实际后端地址
+const BASE_URL = 'http://localhost:5050';  // 替换为你的实际后端地址
+
+/**
+ * 检查网络连接状态
+ * @returns {Promise<boolean>} - 返回是否连接到网络
+ */
+function checkNetworkStatus() {
+  return new Promise((resolve) => {
+    wx.getNetworkType({
+      success: function(res) {
+        const networkType = res.networkType;
+        console.log('当前网络类型:', networkType);
+        // networkType 取值为 wifi, 2g, 3g, 4g, 5g, unknown, none
+        if (networkType === 'none') {
+          wx.showToast({
+            title: '网络连接已断开',
+            icon: 'none',
+            duration: 2000
+          });
+          resolve(false);
+        } else {
+          resolve(true);
+        }
+      },
+      fail: function() {
+        console.error('获取网络状态失败');
+        resolve(false);
+      }
+    });
+  });
+}
+
+/**
+ * 通用请求函数
+ * @param {string} url - API 端点
+ * @param {string} method - 请求方法 (GET, POST, etc.)
+ * @param {Object} data - 请求数据
+ * @returns {Promise} - 返回请求结果的 Promise
+ */
+function request(url, method = 'GET', data = {}) {
+  // 添加日志以便调试
+  console.log(`准备发送请求到: ${BASE_URL}${url}`);
+  
+  return new Promise(async (resolve, reject) => {
+    // 先检查网络连接状态
+    const isConnected = await checkNetworkStatus();
+    if (!isConnected) {
+      console.warn('网络连接不可用，无法发送请求');
+      reject(new Error('网络连接不可用'));
+      return;
+    }
+    
+    wx.request({
+      url: BASE_URL + url,
+      method: method,
+      data: data,
+      header: {
+        'content-type': 'application/json'
+      },
+      success: (res) => {
+        console.log(`请求成功: ${url}`, res);
+        if (res.statusCode === 200) {
+          resolve(res.data);
+        } else {
+          console.error(`请求失败: ${res.statusCode}`, res);
+          reject(new Error(`请求失败: ${res.statusCode}`));
+        }
+      },
+      fail: (err) => {
+        console.error(`请求错误: ${url}`, err);
+        // 添加更详细的错误信息
+        let errorMsg = '未知错误';
+        if (err.errMsg) {
+          if (err.errMsg.includes('timeout')) {
+            errorMsg = '请求超时';
+          } else if (err.errMsg.includes('fail')) {
+            if (err.errMsg.includes('domain')) {
+              errorMsg = '域名解析失败 - 请检查 BASE_URL 是否正确设置';
+            } else {
+              errorMsg = '请求失败 - ' + err.errMsg;
+            }
+          }
+        }
+        console.error(`详细错误: ${errorMsg}`);
+        reject(new Error(errorMsg));
+      }
+    });
+  });
+}
+
+/**
+ * 获取新闻列表
+ * @param {string} level - 难度等级 (sprout, cocoon, soar)
+ * @param {string} date - 日期 (YYYY-MM-DD)
+ * @returns {Promise} - 返回新闻数据的 Promise
+ */
+function getNewsList(level, date) {
+  // 如果强制使用模拟数据，直接返回模拟数据
+  if (DEV_CONFIG.USE_MOCK_DATA) {
+    console.log('开发模式：使用模拟新闻数据');
+    return Promise.resolve(getMockNewsData(level, date));
+  }
+  return request(`/api/news?level=${level}&date=${date}`);
+}
+
+/**
+ * 获取经典名著列表
+ * @param {string} level - 难度等级 (sprout, cocoon, soar)
+ * @param {string} date - 日期 (YYYY-MM-DD)
+ * @returns {Promise} - 返回经典名著数据的 Promise
+ */
+function getClassicsList(level, date) {
+  // 如果强制使用模拟数据，直接返回模拟数据
+  if (DEV_CONFIG.USE_MOCK_DATA) {
+    console.log('开发模式：使用模拟经典名著数据');
+    return Promise.resolve(getMockClassicsData(level, date));
+  }
+  return request(`/api/classics?level=${level}&date=${date}`);
+}
+
+/**
+ * 获取学习卡片数据
+ * @param {string} articleId - 文章ID
+ * @param {string} type - 文章类型 (news, classics)
+ * @returns {Promise} - 返回学习卡片数据的 Promise
+ */
+function getCardData(articleId, type) {
+  // 如果强制使用模拟数据，直接返回模拟数据
+  if (DEV_CONFIG.USE_MOCK_DATA) {
+    console.log('开发模式：使用模拟学习卡片数据');
+    return Promise.resolve(getMockCardData(articleId, type));
+  }
+  return request(`/api/cards?articleId=${articleId}&type=${type}`);
+}
+
+// 添加离线模式支持
+// 如果API请求失败，使用本地模拟数据
+/**
+ * 获取模拟新闻数据
+ * @param {string} level - 难度等级
+ * @param {string} date - 日期
+ * @returns {Array} - 模拟新闻数据
+ */
+function getMockNewsData(level, date) {
+  // 定义新闻分类
+  const newsCategories = [
+    '自然科学',
+    '工程技术',
+    '医学健康',
+    '社会科学',
+    '人文艺术',
+    '农业食品',
+    '体育运动',
+    '交叉学科'
+  ];
+
+  // 复用现有的模拟数据逻辑
+  const mockNewsByLevel = {
+    sprout: [
+      {
+        id: 'sprout-1',
+        title: '小学生发明环保机器人，获全国创新奖',
+        cover: '/images/news/robot.jpg',
+        category: newsCategories[Math.floor(Math.random() * newsCategories.length)],
+        date: date,
+        level: '萌芽岛'
+      },
+      {
+        id: 'sprout-2',
+        title: '新型太阳能电池效率突破30%',
+        cover: '/images/news/solar.jpg',
+        category: newsCategories[Math.floor(Math.random() * newsCategories.length)],
+        date: date,
+        level: '萌芽岛'
+      }
+    ],
+    cocoon: [
+      {
+        id: 'cocoon-1',
+        title: '全球气候变化：2024年或将创下新的温度记录',
+        cover: '/images/news/climate.jpg',
+        category: newsCategories[Math.floor(Math.random() * newsCategories.length)],
+        date: date,
+        level: '破茧谷'
+      },
+      {
+        id: 'cocoon-2',
+        title: '人工智能在医疗诊断领域取得重大突破',
+        cover: '/images/news/ai-medical.jpg',
+        category: newsCategories[Math.floor(Math.random() * newsCategories.length)],
+        date: date,
+        level: '破茧谷'
+      }
+    ],
+    soar: [
+      {
+        id: 'soar-1',
+        title: '量子计算突破：首次实现室温量子纠缠',
+        cover: '/images/news/quantum.jpg',
+        category: newsCategories[Math.floor(Math.random() * newsCategories.length)],
+        date: date,
+        level: '翱翔峰'
+      },
+      {
+        id: 'soar-2',
+        title: '新型材料技术革新：可自修复的智能材料问世',
+        cover: '/images/news/material.jpg',
+        category: newsCategories[Math.floor(Math.random() * newsCategories.length)],
+        date: date,
+        level: '翱翔峰'
+      }
+    ]
+  };
+
+  return mockNewsByLevel[level] || [];
+}
+
+/**
+ * 获取模拟经典名著数据
+ * @param {string} level - 难度等级
+ * @param {string} date - 日期
+ * @returns {Array} - 模拟经典名著数据
+ */
+function getMockClassicsData(level, date) {
+  // 定义名著分类
+  const classicsCategories = [
+    '中国古典文学',
+    '西方古典文学',
+    '中国儿童文学',
+    '西方儿童文学',
+    '东方人物传记',
+    '西方人物传记'
+  ];
+
+  const mockClassicsByLevel = {
+    sprout: [
+      {
+        id: 'classic-sprout-1',
+        title: '《狼王梦》：生命的勇气与坚持',
+        cover: '/images/classics/langwangmeng.jpg',
+        category: classicsCategories[Math.floor(Math.random() * classicsCategories.length)],
+        level: '萌芽岛',
+        date: date
+      },
+      {
+        id: 'classic-sprout-2',
+        title: '《小王子》：纯真与爱的寓言',
+        cover: '/images/classics/prince.jpg',
+        category: classicsCategories[Math.floor(Math.random() * classicsCategories.length)],
+        level: '萌芽岛',
+        date: date
+      }
+    ],
+    cocoon: [
+      {
+        id: 'classic-cocoon-1',
+        title: '《平凡的世界》：人生与命运的思考',
+        cover: '/images/classics/pingfan.jpg',
+        category: classicsCategories[Math.floor(Math.random() * classicsCategories.length)],
+        level: '破茧谷',
+        date: date
+      },
+      {
+        id: 'classic-cocoon-2',
+        title: '《傲慢与偏见》：爱情与婚姻的经典',
+        cover: '/images/classics/pride.jpg',
+        category: classicsCategories[Math.floor(Math.random() * classicsCategories.length)],
+        level: '破茧谷',
+        date: date
+      }
+    ],
+    soar: [
+      {
+        id: 'classic-soar-1',
+        title: '《红楼梦》：人性的复杂与社会的矛盾',
+        cover: '/images/classics/hongloumeng.jpg',
+        category: classicsCategories[Math.floor(Math.random() * classicsCategories.length)],
+        level: '翱翔峰',
+        date: date
+      },
+      {
+        id: 'classic-soar-2',
+        title: '《战争与和平》：人性的光辉与战争的残酷',
+        cover: '/images/classics/war.jpg',
+        category: classicsCategories[Math.floor(Math.random() * classicsCategories.length)],
+        level: '翱翔峰',
+        date: date
+      }
+    ]
+  };
+
+  return mockClassicsByLevel[level] || [];
+}
+
+/**
+ * 获取模拟学习卡片数据
+ * @param {string} articleId - 文章ID
+ * @param {string} type - 文章类型 (news, classics)
+ * @returns {Object} - 模拟学习卡片数据
+ */
+function getMockCardData(articleId, type) {
+  // 返回模拟的学习卡片数据
+  const isClassic = articleId.includes('classic');
+  
+  return {
+    words: [
+      { id: 1, text: '科技', showTranslation: false },
+      { id: 2, text: '创新', showTranslation: false },
+      { id: 3, text: '探索', showTranslation: false }
+    ],
+    phrases: [
+      { id: 1, text: '人工智能时代', showTranslation: false },
+      { id: 2, text: '科技与生活', showTranslation: false }
+    ]
+  };
+}
+
+/**
+ * 测试API连接
+ * @returns {Promise} - 返回测试结果的 Promise
+ */
+function testConnection() {
+  return new Promise(async (resolve) => {
+    try {
+      // 检查网络连接
+      const isConnected = await checkNetworkStatus();
+      if (!isConnected) {
+        resolve({
+          success: false,
+          message: '设备未连接到网络',
+          details: '请检查您的网络连接'
+        });
+        return;
+      }
+      
+      // 如果强制使用模拟数据，直接返回提示
+      if (DEV_CONFIG.USE_MOCK_DATA) {
+        resolve({
+          success: true,
+          message: '开发模式 - 使用模拟数据',
+          details: '系统当前配置为使用模拟数据，未进行实际API测试'
+        });
+        return;
+      }
+      
+      // 尝试发送请求到后端
+      const testUrl = '/api/test';
+      
+      // 设置超时
+      const timeout = setTimeout(() => {
+        resolve({
+          success: false,
+          message: '请求超时',
+          details: `${BASE_URL}${testUrl} 连接超时，请检查 BASE_URL 是否正确`
+        });
+      }, 5000);
+      
+      try {
+        await request(testUrl);
+        clearTimeout(timeout);
+        resolve({
+          success: true,
+          message: 'API连接成功',
+          details: `成功连接到 ${BASE_URL}`
+        });
+      } catch (error) {
+        clearTimeout(timeout);
+        resolve({
+          success: false,
+          message: '无法连接到API',
+          details: error.message || '连接失败，请检查 BASE_URL 是否正确'
+        });
+      }
+    } catch (error) {
+      resolve({
+        success: false,
+        message: '测试期间发生错误',
+        details: error.message || '未知错误'
+      });
+    }
+  });
+}
+
+// 导出函数
+module.exports = {
+  getArticleDetail,
+  getAudioUrl,
+  getNewsList,
+  getClassicsList,
+  getCardData,
+  getMockNewsData,
+  getMockClassicsData,
+  getMockCardData,
+  checkNetworkStatus,
+  DEV_CONFIG,
+  testConnection,
+  BASE_URL
+}; 

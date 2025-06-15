@@ -1,0 +1,102 @@
+<!-- 会员页面 -->
+<view class="container">
+  <!-- 加载状态显示 -->
+  <view class="loading-container" wx:if="{{isLoading}}">
+    <view class="loading-spinner"></view>
+    <text class="loading-text">加载中...</text>
+  </view>
+  
+  <view class="membership-content" wx:if="{{!isLoading}}">
+    <!-- A4宣传区域（放大） -->
+    <view class="promo-area">
+      <image 
+        class="promo-image" 
+        src="{{promoImageUrl}}" 
+        mode="aspectFill" 
+        bindtap="uploadPromoImage"
+        wx:if="{{promoImageUrl}}"
+      ></image>
+      <view class="promo-placeholder" bindtap="uploadPromoImage" wx:else>
+        <text class="placeholder-text">点击上传会员宣传图</text>
+        <text class="placeholder-icon">+</text>
+      </view>
+    </view>
+    
+    <!-- 底部会员方案区域 -->
+    <view class="bottom-section">
+      <!-- 会员方案标题 -->
+      <view class="plan-title">会员方案</view>
+      
+      <!-- 会员方案（横排） -->
+      <scroll-view scroll-x="true" class="plans-scroll">
+        <view class="plans-container">
+          <view class="plan-card {{selectedPlan === 'monthly' ? 'selected' : ''}}" 
+                bindtap="selectPlan" data-plan="monthly">
+            <view class="plan-name">月度会员</view>
+            <view class="plan-price">¥{{prices.monthly}}</view>
+            <view class="plan-tag" wx:if="{{bestValue !== 'monthly'}}">基础</view>
+            <view class="plan-tag best-value" wx:if="{{bestValue === 'monthly'}}">超值</view>
+          </view>
+          
+          <view class="plan-card {{selectedPlan === 'quarterly' ? 'selected' : ''}}" 
+                bindtap="selectPlan" data-plan="quarterly">
+            <view class="plan-name">季度会员</view>
+            <view class="plan-price">¥{{prices.quarterly}}</view>
+            <view class="plan-tag" wx:if="{{bestValue !== 'quarterly'}}">优惠</view>
+            <view class="plan-tag best-value" wx:if="{{bestValue === 'quarterly'}}">超值</view>
+          </view>
+          
+          <view class="plan-card {{selectedPlan === 'halfYear' ? 'selected' : ''}}" 
+                bindtap="selectPlan" data-plan="halfYear">
+            <view class="plan-name">半年会员</view>
+            <view class="plan-price">¥{{prices.halfYear}}</view>
+            <view class="plan-tag" wx:if="{{bestValue !== 'halfYear'}}">优惠</view>
+            <view class="plan-tag best-value" wx:if="{{bestValue === 'halfYear'}}">超值</view>
+          </view>
+          
+          <view class="plan-card {{selectedPlan === 'yearly' ? 'selected' : ''}}" 
+                bindtap="selectPlan" data-plan="yearly">
+            <view class="plan-name">年度会员</view>
+            <view class="plan-price">¥{{prices.yearly}}</view>
+            <view class="plan-tag" wx:if="{{bestValue !== 'yearly'}}">优惠</view>
+            <view class="plan-tag best-value" wx:if="{{bestValue === 'yearly'}}">超值</view>
+          </view>
+        </view>
+      </scroll-view>
+      
+      <!-- 开通会员按钮 -->
+      <button class="subscribe-btn" bindtap="subscribeMembership">立即开通</button>
+      
+      <!-- 温馨提示 -->
+      <view class="tips">
+        <text class="tips-text">* 开通会员即表示您同意《会员服务协议》</text>
+      </view>
+    </view>
+  </view>
+  
+  <!-- 错误状态 -->
+  <view class="error-container" wx:if="{{!isLoading && !promoImageUrl && apiError}}">
+    <text class="error-text">加载失败，请稍后再试</text>
+    <button class="retry-btn" bindtap="loadMembershipData">重试</button>
+  </view>
+</view> 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 

@@ -1,0 +1,1310 @@
+/* 新闻详情页面样式 */
+@font-face {
+  font-family: 'ZCOOL KuaiLe';
+  src: url('https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&display=swap');
+}
+
+page {
+  background: #FFFFF0;
+  height: 100vh;
+  overflow: hidden;
+  width: 100vw;
+  box-sizing: border-box;
+}
+
+.container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #FFFFF0;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* 顶部导航栏 */
+.nav-bar {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0 24rpx;
+  margin: 0;
+  background: #FFFFF0;
+  border-bottom: 1rpx solid rgba(0,0,0,0.05);
+  min-height: 44px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.nav-item {
+  width: 60rpx;
+  height: 60rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 24rpx;
+}
+
+.iconfont {
+  font-size: 36rpx;
+}
+
+/* 新闻头部信息区域 */
+.news-header-section {
+  padding: 24rpx 24rpx;
+  background: #FFFFF0;
+  border-bottom: 1rpx solid rgba(0,0,0,0.05);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.news-header {
+  display: flex;
+  gap: 24rpx;
+  padding: 8rpx 0;
+  margin-bottom: 24rpx;
+  width: 100%;
+}
+
+.cover-container {
+  position: relative;
+  width: 260rpx;
+  height: 220rpx;
+  flex-shrink: 0;
+  border-radius: 16rpx;
+  overflow: hidden;
+  box-shadow: 0 8rpx 24rpx rgba(0, 0, 0, 0.08);
+  transform: translateY(2rpx);
+  transition: all 0.3s ease;
+}
+
+.cover-container:active {
+  transform: translateY(4rpx);
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.06);
+}
+
+.news-cover {
+  width: 100%;
+  height: 100%;
+  border-radius: 16rpx;
+  object-fit: cover;
+}
+
+.news-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0; /* 确保flex子项不会溢出 */
+}
+
+.news-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #333;
+  line-height: 1.4;
+  margin-top: 7rpx;
+  width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.highlights-box {
+  background: #FFF0F5;
+  border-radius: 24rpx;
+  padding: 28rpx 20rpx;
+  position: relative;
+  border: 1rpx solid rgba(255, 182, 193, 0.3);
+  box-shadow: 
+    0 4rpx 12rpx rgba(255, 182, 193, 0.08),
+    inset 0 0 0 1rpx rgba(255, 255, 255, 0.8);
+  margin-top: 8rpx;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.highlights-label {
+  position: absolute;
+  top: -14rpx;
+  left: 20rpx;
+  background: linear-gradient(135deg, #FFB6C1, #FFC0CB);
+  color: #fff;
+  font-size: 22rpx;
+  padding: 6rpx 24rpx;
+  border-radius: 28rpx;
+  font-weight: bold;
+  letter-spacing: 2rpx;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+  box-shadow: 
+    0 4rpx 12rpx rgba(255, 182, 193, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.news-highlights {
+  font-size: 24rpx;
+  color: #666;
+  line-height: 1.5;
+  margin-top: 20rpx;
+  letter-spacing: 1rpx;
+  white-space: normal; /* 允许换行 */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 0 4rpx;
+  width: 100%;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+/* 新闻内容 */
+.news-content {
+  flex: 1;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 16rpx 24rpx;
+  background: #FFFFF0;
+  border-radius: 16rpx;
+  margin-bottom: 24rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.05);
+  animation: fadeIn 0.3s ease;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* 标题区域 */
+.title-section {
+  margin-bottom: 20rpx;
+}
+
+.translation-titles {
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+}
+
+.translation-title {
+  color: #666;
+  line-height: 1.4;
+}
+
+.news-meta {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+}
+
+.news-category {
+  font-size: 24rpx;
+  color: #FFB6C1;
+  background: #FFF0F5;
+  padding: 4rpx 16rpx;
+  border-radius: 20rpx;
+}
+
+.news-time {
+  font-size: 24rpx;
+  color: #999;
+}
+
+/* 正文内容 */
+.article-content {
+  background: #FFFFF0;
+  border-radius: 16rpx;
+  padding: 20rpx 16rpx;
+  margin-bottom: 24rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.05);
+  animation: fadeIn 0.3s ease;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.section-label {
+  position: absolute;
+  top: -14rpx;
+  left: 28rpx;
+  background: linear-gradient(135deg, #FFB6C1, #FFC0CB);
+  color: #fff;
+  font-size: 22rpx;
+  padding: 6rpx 32rpx;
+  border-radius: 28rpx;
+  font-weight: bold;
+  letter-spacing: 2rpx;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+  box-shadow: 
+    0 4rpx 12rpx rgba(255, 182, 193, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  z-index: 1;
+}
+
+.article-section {
+  position: relative;
+  margin-bottom: 40rpx;
+  padding: 24rpx;
+  background: #FFFFF0;
+  border-radius: 16rpx;
+  box-shadow: 
+    0 4rpx 12rpx rgba(0, 0, 0, 0.03),
+    inset 0 0 0 1rpx rgba(255, 255, 255, 0.8);
+  transition: all 0.3s ease;
+  border: 2rpx dashed rgba(255, 182, 193, 0.3);
+  background-image: 
+    linear-gradient(rgba(255, 182, 193, 0.05) 1rpx, transparent 1rpx),
+    linear-gradient(90deg, rgba(255, 182, 193, 0.05) 1rpx, transparent 1rpx);
+  background-size: 20rpx 20rpx;
+  background-position: center center;
+}
+
+.article-section:last-child {
+  margin-bottom: 0;
+}
+
+.article-text {
+  font-size: 28rpx;
+  color: #333;
+  line-height: 1.8;
+  letter-spacing: 1rpx;
+  text-align: justify;
+  padding: 0;
+  position: relative;
+  z-index: 1;
+  text-indent: 2em;
+  margin: 0;
+}
+
+/* 对照翻译 */
+.translation-section {
+  background: #FFFFF0;
+  border-radius: 16rpx;
+  padding: 20rpx 16rpx;
+  margin-bottom: 24rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.05);
+  animation: fadeIn 0.3s ease;
+  position: relative;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.translation-section .section-label {
+  position: absolute;
+  top: -14rpx;
+  left: 28rpx;
+  background: linear-gradient(135deg, #FFB6C1, #FFC0CB);
+  color: #fff;
+  font-size: 22rpx;
+  padding: 6rpx 32rpx;
+  border-radius: 28rpx;
+  font-weight: bold;
+  letter-spacing: 2rpx;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+  box-shadow: 
+    0 4rpx 12rpx rgba(255, 182, 193, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  z-index: 1;
+}
+
+/* 翻译导航 */
+.translation-nav {
+  position: absolute;
+  top: -14rpx;
+  right: 28rpx;
+  z-index: 2;
+}
+
+.sentence-compare-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sentence-compare-btn text {
+  color: #333;
+  font-size: 22rpx;
+  font-weight: 500;
+  letter-spacing: 1rpx;
+}
+
+.sentence-compare-btn:active {
+  opacity: 0.7;
+}
+
+/* 修改翻译内容的上边距，避免与按钮重叠 */
+.translation-content {
+  margin-top: 20rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+}
+
+/* 句子对照样式 */
+.sentence-group {
+  background: #FFFFF0;
+  border-radius: 16rpx;
+  margin-bottom: 20rpx;
+  overflow: hidden;
+  box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.05);
+}
+
+.sentence-header {
+  display: flex;
+  align-items: center;
+  padding: 24rpx;
+  background: #FFF0F5;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.sentence-header:active {
+  background: #FFE4E1;
+}
+
+.play-btn {
+  width: 60rpx;
+  height: 60rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  border-radius: 50%;
+  margin-right: 20rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.1);
+  transition: all 0.3s ease;
+}
+
+.play-btn.playing {
+  background: #FFB6C1;
+  color: #fff;
+  animation: pulse 1.5s infinite;
+}
+
+.play-btn .iconfont {
+  font-size: 36rpx;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.sentence-text {
+  flex: 1;
+  font-size: 24rpx;
+  color: #333;
+  line-height: 1.5;
+  margin-right: 20rpx;
+}
+
+.expand-icon {
+  width: 40rpx;
+  height: 40rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24rpx;
+  color: #999;
+  transition: transform 0.3s ease;
+}
+
+.expand-icon.expanded {
+  transform: rotate(180deg);
+}
+
+.translation-list {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease-out;
+  background: #FFFFF0;
+}
+
+.translation-list.expanded {
+  max-height: 1000rpx;
+}
+
+.translation-line {
+  padding: 20rpx 24rpx;
+  border-top: 1rpx solid rgba(255, 182, 193, 0.2);
+}
+
+.translation-header {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.translation-header .play-btn {
+  width: 48rpx;
+  height: 48rpx;
+  margin-right: 0;
+}
+
+.translation-header .play-btn .iconfont {
+  font-size: 28rpx;
+}
+
+.language-tag {
+  display: inline-flex;
+  align-items: center;
+  background: #FFF0F5;
+  padding: 4rpx 12rpx;
+  border-radius: 8rpx;
+  font-size: 22rpx;
+  color: #FF69B4;
+  font-weight: 500;
+}
+
+.flag-emoji {
+  font-size: 24rpx;
+  margin-right: 4rpx;
+  line-height: 1;
+}
+
+.language-tag.flag {
+  padding-left: 8rpx;
+}
+
+.language-tag.flag::before {
+  content: '';
+  display: inline-block;
+  width: 24rpx;
+  height: 24rpx;
+  margin-right: 4rpx;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.language-tag.flag[data-lang="en"]::before {
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 24"><rect width="36" height="24" fill="%23012169"/><path d="M0,0 L36,24 M36,0 L0,24" stroke="white" stroke-width="2.4"/><path d="M18,0 L18,24 M0,12 L36,12" stroke="white" stroke-width="4"/><path d="M18,0 L18,24 M0,12 L36,12" stroke="#C8102E" stroke-width="2.4"/></svg>');
+}
+
+.language-tag.flag[data-lang="de"]::before {
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 24"><rect width="36" height="8" fill="%23000000"/><rect y="8" width="36" height="8" fill="%23DD0000"/><rect y="16" width="36" height="8" fill="%23FFCE00"/></svg>');
+}
+
+.translation-text {
+  margin: 2rpx 0;
+  line-height: 1.6;
+  color: #333;
+}
+
+/* 正文对照样式 */
+.translation-tabs {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20rpx 0;
+  margin-bottom: 20rpx;
+  background: #FFFFF0;
+  border-radius: 16rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.05);
+}
+
+.tab-item {
+  padding: 12rpx 30rpx;
+  font-size: 28rpx;
+  color: #666;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.tab-item.active {
+  color: #FF69B4;
+  font-weight: bold;
+}
+
+.tab-item.active::after {
+  content: '';
+  position: absolute;
+  bottom: -4rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 40rpx;
+  height: 4rpx;
+  background: #FF69B4;
+  border-radius: 2rpx;
+}
+
+.translation-swiper {
+  height: 400rpx;
+  background: #FFFFF0;
+  border-radius: 16rpx;
+  overflow: hidden;
+  box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.05);
+}
+
+.translation-block {
+  height: 100%;
+  padding: 30rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.translation-block::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4rpx;
+  background: currentColor;
+  opacity: 0.3;
+}
+
+.translation-block.yellow {
+  background: #FFF9E6;
+  color: #FFB800;
+}
+
+.translation-block.blue {
+  background: #E6F3FF;
+  color: #0066FF;
+}
+
+.translation-block.green {
+  background: #E6FFF0;
+  color: #00B800;
+}
+
+.translation-block .translation-text {
+  font-size: 28rpx;
+  line-height: 1.8;
+  text-align: justify;
+  color: #333;
+  padding: 0 20rpx;
+}
+
+/* 全文翻译样式 */
+.full-text-translations {
+  display: flex;
+  flex-direction: column;
+  gap: 30rpx;
+  padding: 20rpx 0;
+}
+
+.paragraph-group {
+  background: #FFFFF0;
+  border-radius: 16rpx;
+  padding: 24rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.05);
+  border: 2rpx dashed rgba(255, 182, 193, 0.3);
+}
+
+.paragraph-original {
+  font-size: 28rpx;
+  color: #333;
+  line-height: 1.8;
+  margin-bottom: 16rpx;
+  text-indent: 2em;
+  padding: 16rpx;
+  background: rgba(255, 182, 193, 0.1);
+  border-radius: 8rpx;
+}
+
+.paragraph-translation {
+  font-size: 28rpx;
+  color: #666;
+  line-height: 1.8;
+  text-indent: 2em;
+  padding: 16rpx;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 8rpx;
+  border-left: 4rpx solid #FFB6C1;
+}
+
+/* 全文翻译样式 */
+.language-switch-bar {
+  padding: 20rpx;
+  background: #f8f8f8;
+  border-bottom: 1px solid #eee;
+}
+
+.language-switch-text {
+  font-size: 24rpx;
+  color: #999;
+  text-align: center;
+  margin-bottom: 10rpx;
+}
+
+.language-indicators {
+  display: flex;
+  justify-content: center;
+  gap: 10rpx;
+}
+
+.language-indicator {
+  padding: 10rpx 20rpx;
+  font-size: 28rpx;
+  color: #666;
+  position: relative;
+}
+
+.language-indicator.active {
+  color: #333;
+  font-weight: bold;
+}
+
+.language-indicator.active::after {
+  content: '';
+  position: absolute;
+  bottom: -2rpx;
+  left: 0;
+  width: 100%;
+  height: 4rpx;
+  background: #4a90e2;
+  border-radius: 2rpx;
+}
+
+.translation-swiper {
+  height: calc(100vh - 400rpx);
+  background: #FFFFF0;
+}
+
+.translation-scroll {
+  height: 100%;
+}
+
+.colored-translation-block {
+  padding: 30rpx;
+  min-height: 100%;
+}
+
+/* 为不同语言设置不同的背景色 */
+.colored-translation-block.de {
+  background: #e3f2fd;
+}
+
+.colored-translation-block.fr {
+  background: #e8f5e9;
+}
+
+.colored-translation-block.en {
+  background: #fff3e0;
+}
+
+.colored-translation-block.es {
+  background: #fce4ec;
+}
+
+.paragraph-text {
+  font-size: 30rpx;
+  line-height: 1.6;
+  color: #333;
+  margin-bottom: 30rpx;
+}
+
+.paragraph-divider {
+  height: 2rpx;
+  background: rgba(0, 0, 0, 0.1);
+  margin: 30rpx 0;
+  width: 100%;
+}
+
+/* 添加滑动切换指示器的动画效果 */
+.language-indicator {
+  transition: all 0.3s ease;
+}
+
+/* 优化滑动体验 */
+.translation-swiper {
+  transition: all 0.3s ease;
+}
+
+/* 语言对照功能样式 */
+.language-comparison {
+  margin-top: 20rpx;
+  background: #FFFFF0;
+  border-radius: 16rpx;
+  overflow: hidden;
+  box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.05);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* 语言标识栏样式 */
+.language-tabs {
+  display: flex;
+  border-bottom: 1rpx solid #eee;
+  margin-bottom: 16rpx;
+  justify-content: space-around; /* 更改为空间均匀分布 */
+  text-align: center;
+  width: 100%;
+  box-sizing: border-box;
+  flex-wrap: wrap; /* 允许在较窄屏幕上换行 */
+}
+
+.tab {
+  padding: 12rpx 16rpx;
+  font-size: 24rpx;
+  color: #666;
+  position: relative;
+  border-radius: 24rpx 24rpx 0 0;
+  transition: all 0.3s ease;
+  text-align: center;
+  min-width: 90rpx; /* 设置最小宽度 */
+  flex-grow: 1; /* 允许元素增长占据额外空间 */
+  max-width: 180rpx; /* 设置最大宽度 */
+}
+
+.tab.active {
+  color: #333;
+  font-weight: bold;
+}
+
+.tab.active::after {
+  content: '';
+  position: absolute;
+  bottom: -1rpx;
+  left: 0;
+  width: 100%;
+  height: 4rpx;
+  background: #FFB6C1;
+  border-radius: 2rpx;
+}
+
+/* 为不同的对照语言设置不同背景色 */
+.language-content.zh {
+  background: #FFFFF0;
+  border: 1rpx solid rgba(255, 255, 240, 0.3);
+}
+
+/* 第一个对照语言 - 浅粉色背景 */
+.first-compare-language {
+  background: #FFF0F5 !important;
+  border: 1rpx solid rgba(255, 182, 193, 0.3);
+}
+
+/* 第二个对照语言 - 浅绿色背景 */
+.second-compare-language {
+  background: #F0FFF0 !important;
+  border: 1rpx solid rgba(144, 238, 144, 0.3);
+}
+
+/* 语言内容滑动区 */
+.language-swiper {
+  height: 600rpx;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.language-content {
+  padding: 16rpx;
+  height: 100%;
+  width: 100%;
+  box-sizing: border-box;
+  overflow-y: auto;
+  border-radius: 12rpx;
+}
+
+/* 对照语言选择样式 */
+picker {
+  display: inline-block;
+  text-align: center;
+}
+
+picker .tab {
+  min-width: 160rpx;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.article-section {
+  margin-bottom: 30rpx;
+  padding: 20rpx;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 12rpx;
+  box-shadow: 0 2rpx 4rpx rgba(0,0,0,0.05);
+}
+
+.article-text {
+  line-height: 1.6;
+  color: #333;
+  font-size: 28rpx;
+  text-align: justify;
+}
+
+/* 音频播放器样式 */
+.audio-player {
+  display: flex;
+  align-items: center;
+  padding: 12rpx 16rpx;
+  background: rgba(255, 255, 240, 0.8);
+  border-radius: 8rpx;
+  margin: 12rpx 16rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
+  width: calc(100% - 32rpx);
+  box-sizing: border-box;
+}
+
+.audio-player-btn {
+  display: flex;
+  align-items: center;
+  background: #FFB6C1; /* 默认粉色 */
+  color: white;
+  padding: 8rpx 20rpx;
+  border-radius: 24rpx;
+  font-size: 24rpx;
+  box-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+/* 中文语言 - 浅黄色 */
+.audio-player-btn.zh-lang {
+  background: #FFF8E1; /* 更浅的黄色 */
+  color: #B39256; /* 更浅的文字颜色 */
+}
+
+/* 第一个对照语言 - 浅粉色 */
+.audio-player-btn.first-lang {
+  background: #FFDEE9; /* 更浅的粉色 */
+  color: #D0688C; /* 浅粉色文字 */
+}
+
+/* 第二个对照语言 - 浅绿色 */
+.audio-player-btn.second-lang {
+  background: #E0F7E9; /* 更浅的绿色 */
+  color: #4A8D60; /* 更浅的绿色文字 */
+}
+
+.audio-player-btn.playing {
+  opacity: 0.9;
+  transform: scale(1.02);
+}
+
+/* 对应语言的播放进度条颜色 */
+.audio-progress.zh-lang {
+  background: #FFECB3; /* 更浅的黄色 */
+}
+
+.audio-progress.first-lang {
+  background: #FFCCE0; /* 更浅的粉色 */
+}
+
+.audio-progress.second-lang {
+  background: #C8E6C9; /* 更浅的绿色 */
+}
+
+/* 播放器按钮的播放/暂停图标 */
+.player-icon {
+  margin-right: 8rpx;
+  font-size: 22rpx;
+  display: inline-block;
+  width: 16rpx;
+  height: 16rpx;
+  position: relative;
+}
+
+/* 播放按钮三角形 */
+.player-icon:not(.pause)::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  border-style: solid;
+  border-width: 8rpx 0 8rpx 16rpx;
+  border-color: transparent transparent transparent currentColor;
+}
+
+/* 暂停按钮双竖线 */
+.player-icon.pause::before, .player-icon.pause::after {
+  content: "";
+  position: absolute;
+  width: 4rpx;
+  height: 16rpx;
+  background-color: currentColor;
+}
+
+.player-icon.pause::before {
+  left: 3rpx;
+}
+
+.player-icon.pause::after {
+  right: 3rpx;
+}
+
+@keyframes progress {
+  0% {
+    width: 0;
+  }
+  100% {
+    width: 100%;
+  }
+}
+
+.favorite-btn {
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.favorite-icon {
+  width: 20px;
+  height: 20px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23ffffff' d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'/%3E%3C/svg%3E");
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  transition: all 0.3s ease;
+}
+
+.favorite-icon.active {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23ff4d4f' d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'/%3E%3C/svg%3E");
+}
+
+.audio-progress-container {
+  flex: 1;
+  height: 6rpx;
+  background: #eee;
+  border-radius: 3rpx;
+  margin-left: 20rpx;
+  overflow: hidden;
+}
+
+.audio-progress-bar {
+  flex: 1;
+  height: 3rpx;
+  background: #f0f0f0;
+  border-radius: 2rpx;
+  overflow: hidden;
+  box-shadow: inset 0 1rpx 1rpx rgba(0, 0, 0, 0.05);
+  position: relative;
+  z-index: 1;
+  margin-top: 0;
+}
+
+.audio-progress {
+  height: 100%;
+  background: linear-gradient(90deg, #FFB6C1, #FFC0CB);
+  width: 0%; /* 默认宽度为0 */
+  border-radius: 2rpx;
+  transition: width 0.2s linear;
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+
+.audio-progress.playing {
+  animation: none; /* 移除默认动画，使用真实进度 */
+}
+
+@keyframes progress-animation {
+  0% {
+    width: 0;
+  }
+  100% {
+    width: 100%;
+  }
+}
+
+.showcase-img-inline {
+  width: 100%;
+  max-width: 420rpx;
+  height: auto;
+  aspect-ratio: 420/265;
+  display: block;
+  margin: 32rpx auto;
+  border-radius: 12rpx;
+  object-fit: cover;
+  border: 4rpx solid #FFFFF0;
+  box-shadow: 0 4rpx 16rpx rgba(0,0,0,0.10);
+  background: #fff;
+  flex-shrink: 0;
+}
+
+.title-translation,
+.title-translation-input {
+  margin-top: 10rpx !important;
+  transform: none !important;
+}
+
+.title-translation-input {
+  width: 100%;
+  /* background-color: #FFFFF0; */
+  /* border: 1rpx solid rgba(255, 182, 193, 0.3); */
+  /* border-radius: 8rpx; */
+  padding: 12rpx 16rpx;
+  color: #333;
+  font-size: 24rpx;
+  line-height: 1.4;
+  box-sizing: border-box;
+  margin-bottom: 8rpx;
+}
+
+.title-translation-input:disabled {
+  /* background-color: #FFFFF0; */
+  color: #666;
+}
+
+/* 打印区域样式 */
+.print-area {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  padding: 20rpx;
+  box-sizing: border-box;
+}
+
+/* 打印控制栏 */
+.print-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20rpx;
+  background: #fff;
+  border-radius: 12rpx;
+  margin-bottom: 20rpx;
+}
+
+.language-selector {
+  flex: 1;
+  margin-right: 20rpx;
+}
+
+.picker {
+  padding: 10rpx 20rpx;
+  background: #f5f5f5;
+  border-radius: 8rpx;
+  font-size: 28rpx;
+  color: #333;
+}
+
+.print-actions {
+  display: flex;
+  gap: 20rpx;
+}
+
+.print-btn, .close-btn {
+  padding: 10rpx 30rpx;
+  border-radius: 8rpx;
+  font-size: 28rpx;
+  border: none;
+}
+
+.print-btn {
+  background: #FF77A8;
+  color: #fff;
+}
+
+.close-btn {
+  background: #f5f5f5;
+  color: #666;
+}
+
+/* A4容器 */
+.a4-container {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  overflow-y: auto;
+  padding: 20rpx 0;
+}
+
+/* A4页面 */
+.a4-page {
+  width: 595rpx; /* A4宽度 */
+  min-height: 842rpx; /* A4高度 */
+  background: #fff;
+  padding: 40rpx;
+  box-sizing: border-box;
+  box-shadow: 0 0 20rpx rgba(0, 0, 0, 0.1);
+}
+
+/* 打印内容样式 */
+.print-content {
+  width: 100%;
+}
+
+.print-title {
+  font-size: 36rpx;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 20rpx;
+  line-height: 1.4;
+}
+
+.print-title-translation {
+  font-size: 32rpx;
+  color: #666;
+  margin-bottom: 30rpx;
+  line-height: 1.4;
+}
+
+.print-body {
+  margin-top: 30rpx;
+}
+
+.print-paragraph {
+  font-size: 28rpx;
+  color: #333;
+  line-height: 1.6;
+  margin-bottom: 20rpx;
+  text-align: justify;
+}
+
+/* 标题样式 */
+.title {
+  font-size: 40rpx;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 30rpx;
+  line-height: 1.4;
+  text-align: center;
+}
+
+/* 标题翻译样式 */
+.title-translation {
+  font-size: 34rpx;
+  color: #666;
+  margin-bottom: 40rpx;
+  line-height: 1.4;
+  text-align: center;
+  transform: translateY(20rpx);
+}
+
+/* 内容区域样式 */
+.content {
+  margin-top: 40rpx;
+}
+
+/* 段落样式 */
+.paragraph {
+  font-size: 30rpx;
+  color: #333;
+  line-height: 1.8;
+  margin-bottom: 30rpx;
+  text-align: justify;
+  text-indent: 2em;
+}
+
+/* 对照翻译样式 */
+.translation {
+  font-size: 28rpx;
+  color: #666;
+  line-height: 1.6;
+  margin-bottom: 30rpx;
+  text-align: justify;
+  text-indent: 2em;
+}
+
+/* 语言切换样式 */
+.language-switch {
+  display: flex;
+  justify-content: center;
+  gap: 20rpx;
+  margin: 30rpx 0;
+}
+
+.language-btn {
+  padding: 12rpx 30rpx;
+  font-size: 28rpx;
+  color: #666;
+  background: #F8FFF8;
+  border-radius: 30rpx;
+  transition: all 0.3s ease;
+}
+
+.language-btn.active {
+  color: #333;
+  background: #E8F5E8;
+  font-weight: 500;
+}
+
+/* 音频控制样式 */
+.audio-control {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20rpx;
+  margin: 30rpx 0;
+}
+
+.audio-btn {
+  display: flex;
+  align-items: center;
+  gap: 10rpx;
+  padding: 12rpx 30rpx;
+  font-size: 28rpx;
+  color: #666;
+  background: #F8FFF8;
+  border-radius: 30rpx;
+  transition: all 0.3s ease;
+}
+
+.audio-btn.active {
+  color: #333;
+  background: #E8F5E8;
+}
+
+.audio-btn .icon {
+  font-size: 32rpx;
+}
+
+/* 打印按钮样式 */
+.print-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10rpx;
+  padding: 12rpx 30rpx;
+  font-size: 28rpx;
+  color: #666;
+  background: #F8FFF8;
+  border-radius: 30rpx;
+  transition: all 0.3s ease;
+}
+
+.print-btn .icon {
+  font-size: 32rpx;
+}
+
+/* 打印样式 */
+@media print {
+  .container {
+    padding: 0;
+  }
+
+  .title {
+    font-size: 36rpx;
+    margin-bottom: 20rpx;
+  }
+
+  .title-translation {
+    font-size: 32rpx;
+    margin-bottom: 30rpx;
+  }
+
+  .paragraph {
+    font-size: 28rpx;
+    margin-bottom: 20rpx;
+  }
+
+  .translation {
+    font-size: 26rpx;
+    margin-bottom: 20rpx;
+  }
+}

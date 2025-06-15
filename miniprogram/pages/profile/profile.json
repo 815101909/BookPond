@@ -1,0 +1,6 @@
+{
+  "navigationBarTitleText": "我的主页",
+  "usingComponents": {
+    "fortune-modal": "/components/fortune-modal/fortune-modal"
+  }
+} 

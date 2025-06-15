@@ -1,0 +1,137 @@
+<!-- 排行榜页面 -->
+<view class="rankings-container">
+  <!-- 页面标题 -->
+  <view class="page-header">
+    <view class="header-title">
+      <text class="icon">🏆</text>
+      <text class="title-text">擂台模式排行榜</text>
+    </view>
+    <view class="header-subtitle">每月1号0时更新排名</view>
+  </view>
+  
+  <!-- 切换标签 -->
+  <view class="tab-container">
+    <view class="tab {{currentTab === 'daily' ? 'active' : ''}}" 
+          data-tab="daily" 
+          bindtap="switchTab">
+      <text>今日排行</text>
+    </view>
+    <view class="tab {{currentTab === 'monthly' ? 'active' : ''}}" 
+          data-tab="monthly" 
+          bindtap="switchTab">
+      <text>本月排行</text>
+    </view>
+  </view>
+  
+  <!-- 我的排名信息 -->
+  <view class="my-ranking">
+    <view class="ranking-card">
+      <view class="user-info">
+        <image class="avatar" src="{{userInfo.avatarUrl || '/images/default-avatar.png'}}" mode="aspectFill" wx:if="{{userInfo.avatarUrl}}"></image>
+        <view class="avatar default-avatar" style="background-color: {{userInfo.avatarColor || '#4ECDC4'}}" wx:else>晓</view>
+        <view class="user-details">
+          <text class="nickname">{{userInfo.nickName}}</text>
+          <text class="points">积分: {{currentTab === 'daily' ? todayPoints : monthPoints}}</text>
+        </view>
+      </view>
+      <view class="rank-info">
+        <text class="rank-number"># {{currentTab === 'daily' ? myDailyRank : myMonthlyRank}}</text>
+        <text class="rank-text">{{currentTab === 'daily' ? '今日' : '本月'}}排名</text>
+      </view>
+    </view>
+  </view>
+  
+  <!-- 今日排行榜 -->
+  <view class="ranking-list" wx:if="{{currentTab === 'daily'}}">
+    <view class="list-header">
+      <text class="header-cell rank">排名</text>
+      <text class="header-cell user">用户</text>
+      <text class="header-cell points">今日积分</text>
+    </view>
+    
+    <!-- 前三名特殊样式 -->
+    <view class="ranking-items">
+      <block wx:for="{{dailyRankings}}" wx:key="index">
+        <view class="ranking-item {{index < 3 ? 'top-three' : ''}} {{item.isMe ? 'is-me' : ''}}">
+          <view class="rank-cell">
+            <view class="rank-badge rank-{{index + 1}}" wx:if="{{index < 3}}">{{index + 1}}</view>
+            <text wx:else>{{index + 1}}</text>
+          </view>
+          <view class="user-cell">
+            <view class="avatar-container" wx:if="{{index === 0}}">
+              <view class="crown-icon crown-over-avatar">👑</view>
+              <image class="list-avatar" src="{{item.avatarUrl || '/images/default-avatar.png'}}" mode="aspectFill" wx:if="{{item.avatarUrl}}"></image>
+              <view class="default-avatar" style="background-color: {{item.avatarColor || '#4ECDC4'}}" wx:else>晓</view>
+            </view>
+            <block wx:else>
+              <image class="list-avatar" src="{{item.avatarUrl || '/images/default-avatar.png'}}" mode="aspectFill" wx:if="{{item.avatarUrl}}"></image>
+              <view class="default-avatar" style="background-color: {{item.avatarColor || '#4ECDC4'}}" wx:else>晓</view>
+            </block>
+            <text class="list-nickname">{{item.nickName}}</text>
+          </view>
+          <view class="points-cell">
+            <text>{{item.points}}</text>
+          </view>
+        </view>
+      </block>
+    </view>
+    
+    <!-- 无数据提示 -->
+    <view class="no-data" wx:if="{{dailyRankings.length === 0}}">
+      <text>暂无排行数据</text>
+    </view>
+  </view>
+  
+  <!-- 本月排行榜 -->
+  <view class="ranking-list" wx:if="{{currentTab === 'monthly'}}">
+    <view class="list-header">
+      <text class="header-cell rank">排名</text>
+      <text class="header-cell user">用户</text>
+      <text class="header-cell points">本月积分</text>
+    </view>
+    
+    <!-- 前三名特殊样式 -->
+    <view class="ranking-items">
+      <block wx:for="{{monthlyRankings}}" wx:key="index">
+        <view class="ranking-item {{index < 3 ? 'top-three' : ''}} {{item.isMe ? 'is-me' : ''}}">
+          <view class="rank-cell">
+            <view class="rank-badge rank-{{index + 1}}" wx:if="{{index < 3}}">{{index + 1}}</view>
+            <text wx:else>{{index + 1}}</text>
+          </view>
+          <view class="user-cell">
+            <view class="avatar-container" wx:if="{{index === 0}}">
+              <view class="crown-icon crown-over-avatar">👑</view>
+              <image class="list-avatar" src="{{item.avatarUrl || '/images/default-avatar.png'}}" mode="aspectFill" wx:if="{{item.avatarUrl}}"></image>
+              <view class="default-avatar" style="background-color: {{item.avatarColor || '#4ECDC4'}}" wx:else>晓</view>
+            </view>
+            <block wx:else>
+              <image class="list-avatar" src="{{item.avatarUrl || '/images/default-avatar.png'}}" mode="aspectFill" wx:if="{{item.avatarUrl}}"></image>
+              <view class="default-avatar" style="background-color: {{item.avatarColor || '#4ECDC4'}}" wx:else>晓</view>
+            </block>
+            <text class="list-nickname">{{item.nickName}}</text>
+          </view>
+          <view class="points-cell">
+            <text>{{item.points}}</text>
+          </view>
+        </view>
+      </block>
+    </view>
+    
+    <!-- 无数据提示 -->
+    <view class="no-data" wx:if="{{monthlyRankings.length === 0}}">
+      <text>暂无排行数据</text>
+    </view>
+    
+    <!-- 月度奖励提示 -->
+    <view class="reward-notice">
+      <text class="reward-icon">🎁</text>
+      <text class="reward-text">每月排名第一的用户将获得一个月会员!</text>
+    </view>
+  </view>
+  
+  <!-- 刷新按钮 -->
+  <view class="refresh-btn" bindtap="refreshRankings">
+    <text class="refresh-icon">🔄</text>
+    <text class="refresh-text">刷新排行</text>
+  </view>
+</view> 

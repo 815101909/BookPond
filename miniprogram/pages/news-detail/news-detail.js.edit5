@@ -1,0 +1,562 @@
+const languageManager = require('../../utils/language');
+
+Page({
+  data: {
+    newsId: '',
+    newsDetail: {
+      title: '量子计算新突破：我国科学家实现"祖冲之号"升级',
+      coverUrl: '/images/news/quantum.jpg',
+      highlights: '我国科学家在量子计算领域取得重大突破，量子比特数量从56个提升到66个',
+      content: [
+        '近日，我国科学家在量子计算领域取得重大突破。研究团队成功实现了"祖冲之号"超导量子计算原型机的升级，量子比特数量从56个提升到66个，计算能力显著提升。这一成果标志着我国在量子计算领域的研究水平已跻身世界前列。',
+        '专家表示，量子计算的发展将对人工智能、材料科学、药物研发等领域产生深远影响。未来，量子计算机有望在几分钟内解决传统计算机需要数百年才能完成的计算任务。这项技术的突破将为我国科技创新和产业发展带来新的机遇。',
+        '研究团队负责人表示，下一步将继续优化量子计算原型机的性能，并探索更多实际应用场景。同时，团队也将加强与国际同行的交流合作，共同推动量子计算技术的发展，为人类科技进步贡献力量。'
+      ],
+      sentenceTranslations: []
+    },
+    translations: [],
+    selectedLanguages: [], // 用户选择的语言列表
+    fontSize: 28, // 默认字体大小
+    isPlaying: false, // 背景音乐播放状态
+    isFavorite: false, // 收藏状态
+    audioContext: null, // 音频上下文
+    contentAudioContext: null, // 正文朗读音频上下文
+    isContentPlaying: false, // 正文朗读状态
+    audioProgress: 0, // 音频播放进度
+    isUploading: false,
+    pendingTranslations: [], // 存储待处理的翻译
+    isTranslating: false, // 翻译处理状态
+    showContent: true, // 控制时事内容区域的显示状态，默认展开
+    showTranslation: false, // 控制翻译区域的显示状态，默认折叠
+    languageMap: {
+      'zh-TW': { name: '中文（繁体）', flag: '🇨🇳' },
+      'en': { name: '英语', flag: '🇬🇧' },
+      'fr': { name: '法语', flag: '🇫🇷' },
+      'es': { name: '西班牙语', flag: '🇪🇸' },
+      'de': { name: '德语', flag: '🇩🇪' },
+      'it': { name: '意大利语', flag: '🇮🇹' },
+      'ar': { name: '阿拉伯语', flag: '🇸🇦' },
+      'ja': { name: '日语', flag: '🇯🇵' },
+      'pt-PT': { name: '葡萄牙语（葡萄牙）', flag: '🇵🇹' },
+      'pt-BR': { name: '葡萄牙语（巴西）', flag: '🇧🇷' },
+      'th': { name: '泰语', flag: '🇹🇭' },
+      'ru': { name: '俄语', flag: '🇷🇺' },
+      'ms': { name: '马来语', flag: '🇲🇾' },
+      'ko': { name: '韩语', flag: '🇰🇷' }
+    },
+    currentLanguage: 'zh', // 当前选中的语言
+    currentIndex: 0, // 当前滑动页面的索引
+    languageOptions: [] // 对照语言选项列表
+  },
+
+  onLoad: function(options) {
+    if (options.id) {
+      // 从URL参数中获取选中的语言
+      let selectedLanguages = [];
+      try {
+        selectedLanguages = JSON.parse(options.languages || '[]');
+      } catch (e) {
+        console.error('解析语言参数失败:', e);
+        // 如果解析失败，尝试从本地存储获取
+        selectedLanguages = wx.getStorageSync('selectedLanguages') || [];
+      }
+      
+      console.log('新闻详情页面加载时获取的语言选择:', selectedLanguages);
+      
+      // 转换语言代码为完整的语言信息
+      const fullSelectedLanguages = selectedLanguages.length > 0 ? selectedLanguages.map(code => ({
+        code: code,
+        name: this.data.languageMap[code]?.name || code,
+        flag: this.data.languageMap[code]?.flag || ''
+      })) : [];
+      
+      // 生成语言选项列表
+      const languageOptions = Object.keys(this.data.languageMap).map(code => ({
+        code: code,
+        name: this.data.languageMap[code].name,
+        flag: this.data.languageMap[code].flag
+      })) : [];
+      
+      this.setData({
+        newsId: options.id,
+        selectedLanguages: fullSelectedLanguages,
+        languageOptions: languageOptions,
+        currentIndex: 0,
+        currentLanguage: 'zh'
+      }, () => {
+        console.log('设置后的语言选择:', this.data.selectedLanguages);
+        this.fetchNewsDetail(options.id);
+      });
+      
+      this.initAudioContext();
+    }
+  },
+
+  onShow: function() {
+    // 每次页面显示时重新获取语言选择
+    const languages = wx.getStorageSync('selectedLanguages') || [];
+    console.log('新闻详情页面显示时获取的语言选择:', languages);
+    
+    // 转换语言代码为完整的语言信息
+    const fullSelectedLanguages = languages.length > 0 ? languages.map(code => ({
+      code: code,
+      name: this.data.languageMap[code]?.name || code,
+      flag: this.data.languageMap[code]?.flag || ''
+    })) : [];
+    
+    if (JSON.stringify(fullSelectedLanguages) !== JSON.stringify(this.data.selectedLanguages)) {
+      console.log('语言选择发生变化，更新翻译');
+      this.setData({ 
+        selectedLanguages: fullSelectedLanguages,
+        currentIndex: 0,
+        currentLanguage: 'zh'
+      }, () => {
+        if (this.data.newsId) {
+          this.fetchNewsDetail(this.data.newsId);
+        }
+      });
+    }
+  },
+
+  onUnload: function() {
+    if (this.data.audioContext) {
+      this.data.audioContext.stop();
+    }
+    if (this.data.contentAudioContext) {
+      this.data.contentAudioContext.stop();
+    }
+  },
+
+  initAudioContext: function() {
+    const audioContext = wx.createInnerAudioContext();
+    audioContext.src = '/audio/background.mp3';
+    audioContext.loop = true;
+    
+    // 初始化内容朗读音频上下文
+    const contentAudioContext = wx.createInnerAudioContext();
+    contentAudioContext.src = '/audio/content-reading.mp3'; // 这里应该是真实的音频文件路径
+    
+    // 监听播放进度变化
+    contentAudioContext.onTimeUpdate(() => {
+      if (contentAudioContext.duration > 0) {
+        const progress = (contentAudioContext.currentTime / contentAudioContext.duration) * 100;
+        this.setData({
+          audioProgress: progress
+        });
+      }
+    });
+    
+    // 监听播放结束
+    contentAudioContext.onEnded(() => {
+      this.setData({
+        isContentPlaying: false,
+        audioProgress: 0
+      });
+    });
+    
+    this.setData({ 
+      audioContext,
+      contentAudioContext
+    });
+  },
+
+  increaseFontSize: function() {
+    const newSize = Math.min(this.data.fontSize + 2, 40);
+    this.setData({
+      fontSize: newSize
+    });
+  },
+
+  decreaseFontSize: function() {
+    const newSize = Math.max(this.data.fontSize - 2, 24);
+    this.setData({
+      fontSize: newSize
+    });
+  },
+
+  toggleMusic: function() {
+    const audioContext = this.data.audioContext;
+    if (this.data.isPlaying) {
+      audioContext.pause();
+    } else {
+      audioContext.play();
+    }
+    this.setData({
+      isPlaying: !this.data.isPlaying
+    });
+  },
+
+  toggleFavorite: function() {
+    const isFavorite = !this.data.isFavorite;
+    this.setData({ isFavorite });
+    
+    wx.showToast({
+      title: isFavorite ? '已收藏' : '已取消收藏',
+      icon: 'none',
+      duration: 1500
+    });
+  },
+
+  fetchNewsDetail: function(newsId) {
+    console.log('当前选中的语言:', this.data.selectedLanguages);
+
+    // 模拟API返回的新闻详情数据
+    const mockData = {
+      id: newsId,
+      title: '量子计算新突破：我国科学家实现"祖冲之号"升级',
+      coverUrl: '/images/news/quantum.jpg',
+      highlights: '我国科学家在量子计算领域取得重大突破，量子比特数量从56个提升到66个',
+      category: '科技',
+      date: '2024-03-20',
+      content: [
+        '近日，我国科学家在量子计算领域取得重大突破。研究团队成功实现了"祖冲之号"超导量子计算原型机的升级，量子比特数量从56个提升到66个，计算能力显著提升。这一成果标志着我国在量子计算领域的研究水平已跻身世界前列。',
+        '专家表示，量子计算的发展将对人工智能、材料科学、药物研发等领域产生深远影响。未来，量子计算机有望在几分钟内解决传统计算机需要数百年才能完成的计算任务。这项技术的突破将为我国科技创新和产业发展带来新的机遇。',
+        '研究团队负责人表示，下一步将继续优化量子计算原型机的性能，并探索更多实际应用场景。同时，团队也将加强与国际同行的交流合作，共同推动量子计算技术的发展，为人类科技进步贡献力量。'
+      ],
+      translations: {} // 用于存储不同语言的翻译
+    };
+
+    // 为所有选中的语言预加载翻译
+    if (this.data.selectedLanguages.length > 0) {
+      // 预加载翻译
+      this.data.selectedLanguages.forEach(lang => {
+        mockData.translations[lang.code] = mockData.content.map(text => {
+          // 这里应该调用翻译API获取实际翻译
+          // 暂时使用模拟数据，但去掉语言标识前缀
+          // 简单模拟通过在原文前添加不同长度的空格来区分不同语言的翻译
+          if (lang.code === 'en') {
+            return text; // 英语翻译（示例）
+          } else if (lang.code === 'fr') {
+            return text; // 法语翻译（示例）
+          } else if (lang.code === 'de') {
+            return text; // 德语翻译（示例）
+          } else {
+            return text; // 其他语言翻译
+          }
+        });
+      });
+    }
+
+    // 处理句子翻译数据 - 确保在晓翻译部分展示所有选择的语言
+    let sentenceTranslations = mockData.content.map(text => ({
+      original: text,
+      isExpanded: true,
+      isPlaying: false,
+      translations: this.data.selectedLanguages.map(lang => ({
+        language: lang.code,
+        languageName: lang.name,
+        flag: lang.flag,
+        text: text // 去掉语言标识前缀，直接显示翻译文本
+      }))
+    })) : [];
+
+    // 更新数据
+    this.setData({
+      newsDetail: {
+        ...mockData,
+        sentenceTranslations: sentenceTranslations,
+        type: 'news' // 确保显示翻译部分
+      }
+    }, () => {
+      console.log('更新后的翻译数据:', this.data.newsDetail.sentenceTranslations);
+    });
+  },
+
+  getLanguageCode: function(language) {
+    const languageCodeMap = {
+      '英语': 'en',
+      '德语': 'de',
+      '法语': 'fr',
+      '西班牙语': 'es'
+    };
+    return languageCodeMap[language] || language;
+  },
+
+  getLanguageName: function(code) {
+    return this.data.languageMap[code]?.name || code;
+  },
+
+  toggleSentence: function(e) {
+    const index = e.currentTarget.dataset.index;
+    const sentenceTranslations = this.data.newsDetail.sentenceTranslations;
+    sentenceTranslations[index].isExpanded = !sentenceTranslations[index].isExpanded;
+    this.setData({
+      'newsDetail.sentenceTranslations': sentenceTranslations
+    });
+  },
+
+  playSentence: function(e) {
+    const index = e.currentTarget.dataset.index;
+    const sentenceTranslations = this.data.newsDetail.sentenceTranslations;
+    
+    sentenceTranslations.forEach((item, i) => {
+      if (i !== index) {
+        item.isPlaying = false;
+      }
+    });
+    
+    sentenceTranslations[index].isPlaying = !sentenceTranslations[index].isPlaying;
+    
+    this.setData({
+      'newsDetail.sentenceTranslations': sentenceTranslations
+    });
+
+    if (sentenceTranslations[index].isPlaying) {
+      console.log('播放语音:', sentenceTranslations[index].original);
+    } else {
+      console.log('停止播放');
+    }
+  },
+
+  // 播放翻译语音
+  playTranslation: function(e) {
+    const index = e.currentTarget.dataset.index;
+    const language = e.currentTarget.dataset.lang;
+    
+    const sentenceTranslations = this.data.newsDetail.sentenceTranslations;
+    const currentSentence = sentenceTranslations[index];
+    
+    // 重置所有翻译的播放状态
+    currentSentence.translations.forEach(trans => {
+      trans.isPlaying = false;
+    });
+    
+    // 找到当前语言的翻译
+    const currentTranslation = currentSentence.translations.find(trans => 
+      trans.language === language
+    );
+    
+    if (currentTranslation) {
+      // 切换播放状态
+      currentTranslation.isPlaying = !currentTranslation.isPlaying;
+      
+      this.setData({
+        'newsDetail.sentenceTranslations': sentenceTranslations
+      });
+      
+      if (currentTranslation.isPlaying) {
+        console.log('播放翻译语音:', currentTranslation.text, '语言:', language);
+        
+        // 语音播放逻辑
+        const audioContext = wx.createInnerAudioContext();
+        
+        // 检查是否已有缓存的音频
+        const audioKey = `translation_audio_${language}_${index}`;
+        const cachedAudioPath = wx.getStorageSync(audioKey);
+        
+        if (cachedAudioPath) {
+          // 使用缓存的音频文件
+          console.log('使用缓存的音频文件:', cachedAudioPath);
+          audioContext.src = cachedAudioPath;
+          audioContext.play();
+        } else {
+          // 需要请求或生成音频
+          // 这里是API端口，可以根据实际需求修改
+          const apiUrl = 'https://api.example.com/text-to-speech';
+          
+          // 模拟API请求
+          console.log('请求语音API:', apiUrl, {
+            text: currentTranslation.text,
+            language: language,
+            voiceType: 'natural' // 可以设置不同的声音类型
+          });
+          
+          // 这里应该是实际API请求，但现在只是模拟
+          // wx.request({
+          //   url: apiUrl,
+          //   method: 'POST',
+          //   data: {
+          //     text: currentTranslation.text,
+          //     language: language,
+          //     voiceType: 'natural'
+          //   },
+          //   success: (res) => {
+          //     const audioUrl = res.data.audioUrl;
+          //     
+          //     // 缓存音频文件
+          //     wx.setStorageSync(audioKey, audioUrl);
+          //     
+          //     // 播放音频
+          //     audioContext.src = audioUrl;
+          //     audioContext.play();
+          //   },
+          //   fail: (err) => {
+          //     console.error('请求语音API失败:', err);
+          //     wx.showToast({
+          //       title: '语音生成失败',
+          //       icon: 'none'
+          //     });
+          //     
+          //     // 重置播放状态
+          //     currentTranslation.isPlaying = false;
+          //     this.setData({
+          //       'newsDetail.sentenceTranslations': sentenceTranslations
+          //     });
+          //   }
+          // });
+          
+          // 模拟播放音频（实际开发时应该使用真实的API）
+          setTimeout(() => {
+            console.log('模拟语音已生成，开始播放');
+            
+            // 模拟音频播放结束
+            setTimeout(() => {
+              currentTranslation.isPlaying = false;
+              this.setData({
+                'newsDetail.sentenceTranslations': sentenceTranslations
+              });
+              console.log('音频播放结束');
+            }, 3000); // 假设音频长度为3秒
+          }, 500);
+        }
+        
+        // 添加音频播放结束事件
+        audioContext.onEnded(() => {
+          currentTranslation.isPlaying = false;
+          this.setData({
+            'newsDetail.sentenceTranslations': sentenceTranslations
+          });
+        });
+      } else {
+        console.log('停止播放翻译语音');
+      }
+    }
+  },
+
+  // 处理标签切换
+  handleTabClick: function(e) {
+    const language = e.currentTarget.dataset.lang;
+    const index = parseInt(e.currentTarget.dataset.index) || 0;
+    
+    // 如果正在播放音频，则停止
+    if (this.data.isContentPlaying) {
+      this.data.contentAudioContext.pause();
+      this.setData({
+        isContentPlaying: false,
+        audioProgress: 0
+      });
+    }
+    
+    this.setData({
+      currentLanguage: language,
+      currentIndex: index
+    });
+  },
+
+  // 处理滑动切换
+  handleSwiperChange: function(e) {
+    const index = e.detail.current;
+    let language = 'zh';
+    
+    if (index > 0 && this.data.selectedLanguages.length >= index) {
+      // 索引从1开始的是对照语言
+      language = this.data.selectedLanguages[index - 1].code;
+    }
+    
+    // 如果正在播放音频，则停止
+    if (this.data.isContentPlaying) {
+      this.data.contentAudioContext.pause();
+      this.setData({
+        isContentPlaying: false,
+        audioProgress: 0
+      });
+    }
+    
+    this.setData({
+      currentIndex: index,
+      currentLanguage: language
+    });
+  },
+
+  // 获取特定语言的翻译
+  fetchTranslation: function(languageCode) {
+    // 这里应该是调用翻译API获取翻译
+    // 现在使用模拟数据，但去掉语言标识前缀
+    const mockTranslation = this.data.newsDetail.content.map(text => {
+      // 简单模拟通过在原文前添加不同长度的空格来区分不同语言的翻译
+      if (languageCode === 'en') {
+        return text; // 英语翻译（示例）
+      } else if (languageCode === 'fr') {
+        return text; // 法语翻译（示例）
+      } else if (languageCode === 'de') {
+        return text; // 德语翻译（示例）
+      } else {
+        return text; // 其他语言翻译
+      }
+    });
+    
+    // 更新翻译数据
+    const newsDetail = this.data.newsDetail;
+    newsDetail.translations[languageCode] = mockTranslation;
+    
+    this.setData({
+      newsDetail: newsDetail
+    });
+  },
+
+  // 更新翻译数据（用于外部调用）
+  updateTranslations: function(translatedData) {
+    // 扩展功能，如果需要从外部更新翻译数据
+    const newsDetail = this.data.newsDetail;
+    
+    Object.keys(translatedData).forEach(langCode => {
+      newsDetail.translations[langCode] = translatedData[langCode];
+    });
+    
+    this.setData({
+      newsDetail: newsDetail
+    });
+  },
+
+  // 切换正文朗读状态
+  toggleContentAudio: function() {
+    const contentAudioContext = this.data.contentAudioContext;
+    const currentLanguage = this.data.currentLanguage;
+    
+    if (this.data.isContentPlaying) {
+      contentAudioContext.pause();
+    } else {
+      // 如果是从暂停恢复，直接播放；如果是重新开始，先停止背景音乐
+      if (this.data.isPlaying) {
+        this.data.audioContext.pause();
+        this.setData({ isPlaying: false });
+      }
+      
+      // 根据当前选择的语言选择对应的音频
+      if (currentLanguage !== 'zh') {
+        // 模拟不同语言的音频文件，实际应根据语言加载不同的音频
+        console.log('播放', currentLanguage, '语言的朗读');
+        // 这里可以设置不同语言对应的音频文件路径
+        // contentAudioContext.src = `/audio/content-${currentLanguage}.mp3`;
+      } else {
+        // 中文的音频路径
+        // contentAudioContext.src = '/audio/content-zh.mp3';
+        console.log('播放中文朗读');
+      }
+      
+      // 重置播放进度
+      this.setData({ audioProgress: 0 });
+      
+      // 开始播放
+      contentAudioContext.play();
+    }
+    
+    this.setData({
+      isContentPlaying: !this.data.isContentPlaying
+    });
+  },
+
+  // 切换时事内容区域的显示状态
+  toggleContent: function() {
+    this.setData({
+      showContent: !this.data.showContent
+    });
+  },
+  
+  // 切换翻译区域的显示状态
+  toggleTranslation: function() {
+    this.setData({
+      showTranslation: !this.data.showTranslation
+    });
+  },
+}); 

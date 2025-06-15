@@ -1,0 +1,9 @@
+<view class="modal-mask" wx:if="{{show}}">
+  <view class="modal-content">
+    <view class="modal-title">{{title}}</view>
+    <view class="modal-body">{{content}}</view>
+    <view class="modal-footer">
+      <button class="confirm-btn" bindtap="onConfirm">{{confirmText}}</button>
+    </view>
+  </view>
+</view> 

@@ -1,0 +1,49 @@
+<!-- 文章详情页 -->
+<view class="container">
+  <!-- 加载状态 -->
+  <view wx:if="{{isLoading}}" class="loading">
+    <view class="loading-spinner"></view>
+    <view class="loading-text">加载中...</view>
+  </view>
+
+  <!-- 文章内容 -->
+  <view wx:elif="{{article}}" class="article-container">
+    <!-- 文章标题 -->
+    <view class="article-header">
+      <view class="article-title">{{article.title}}</view>
+      <view class="article-meta">
+        <view class="article-category">{{article.category}}</view>
+        <view class="article-date">{{article.date}}</view>
+      </view>
+    </view>
+
+    <!-- 文章封面图 -->
+    <view class="article-cover" wx:if="{{article.imageUrl}}">
+      <image src="{{article.imageUrl}}" mode="widthFix"></image>
+    </view>
+
+    <!-- 文章内容 -->
+    <view class="article-content">
+      <rich-text nodes="{{article.content}}"></rich-text>
+    </view>
+
+    <!-- 操作按钮 -->
+    <view class="action-buttons">
+      <view class="action-button {{isFavorite ? 'active' : ''}}" bindtap="toggleFavorite">
+        <view class="button-icon">{{isFavorite ? '❤️' : '🤍'}}</view>
+        <view class="button-text">{{isFavorite ? '已收藏' : '收藏'}}</view>
+      </view>
+      <view class="action-button" bindtap="shareArticle">
+        <view class="button-icon">📤</view>
+        <view class="button-text">分享</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 错误信息 -->
+  <view wx:else class="error-container">
+    <view class="error-icon">❌</view>
+    <view class="error-message">文章加载失败</view>
+    <view class="error-retry" bindtap="loadArticle">重试</view>
+  </view>
+</view> 

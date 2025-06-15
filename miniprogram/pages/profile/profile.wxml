@@ -1,0 +1,140 @@
+<!-- 我的主页 -->
+<view class="container">
+  <!-- 用户信息区域 -->
+  <view class="user-section">
+    <view class="user-left">
+      <view class="avatar-box" bindtap="uploadAvatar">
+        <block wx:if="{{userInfo.avatarUrl}}">
+          <image class="avatar-image" src="{{userInfo.avatarUrl}}" mode="aspectFill"></image>
+        </block>
+        <block wx:else>
+          <view class="default-avatar" style="background-color: {{userInfo.avatarColor || '#4ECDC4'}}">
+            <text class="avatar-text">晓</text>
+          </view>
+        </block>
+      </view>
+      <view class="user-info">
+        <text class="user-name">{{userInfo.nickName}}</text>
+        <text class="user-signature">{{userInfo.signature || '每天进步一点点，离梦想更近一步'}}</text>
+      </view>
+    </view>
+    <view class="edit-profile" bindtap="editProfile">
+      <text class="edit-text">编辑</text>
+    </view>
+  </view>
+
+  <!-- 功能区 -->
+  <view class="menu-section">
+    <!-- 第一行功能按钮 -->
+    <view class="menu-row">
+      <view class="menu-item" bindtap="navigateToCustomerService">
+        <view class="menu-icon">🙋</view>
+        <text class="menu-text">我的客服</text>
+      </view>
+      <view class="menu-item" bindtap="navigateToSettings">
+        <view class="menu-icon">⚙️</view>
+        <text class="menu-text">系统设置</text>
+      </view>
+      <view class="menu-item" bindtap="navigateToRankings">
+        <view class="menu-icon">🏆</view>
+        <text class="menu-text">我的排行</text>
+      </view>
+      <view class="menu-item" bindtap="navigateToMessages">
+        <view class="menu-icon">📨</view>
+        <text class="menu-text">系统消息</text>
+        <view class="message-badge" wx:if="{{unreadMessages > 0}}">{{unreadMessages}}</view>
+      </view>
+    </view>
+    
+    <!-- 虚线分隔符 -->
+    <view class="divider"></view>
+    
+    <!-- 第二行功能按钮 -->
+    <view class="menu-row">
+      <view class="menu-item article-favorites" bindtap="navigateToArticleFavorites">
+        <view class="menu-icon">📖</view>
+        <text class="menu-text">文章收藏</text>
+      </view>
+      <view class="menu-item" bindtap="navigateToMessengerStation">
+        <view class="menu-icon">📫</view>
+        <text class="menu-text">信使驿站</text>
+      </view>
+      <view class="menu-item" bindtap="navigateToListeningErrors">
+        <view class="menu-icon">🔈</view>
+        <text class="menu-text">听力错题</text>
+      </view>
+      <view class="menu-item recording-repository" bindtap="navigateToRecordingRepository">
+        <view class="menu-icon">🎼</view>
+        <text class="menu-text">录音仓库</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 学习区块 -->
+  <view class="modules-section">
+    <!-- 学习打卡 -->
+    <view class="module" bindtap="navigateToStudyCheckin">
+      <view class="module-header">
+        <view class="module-title">学习打卡</view>
+        <view class="view-btn">点击查看</view>
+      </view>
+      <view class="module-desc">已连续 {{checkinDays}} 天 | 总计 {{totalCheckinDays}} 天</view>
+    </view>
+    
+    <!-- 会员 -->
+    <view class="module" bindtap="navigateToMembership">
+      <view class="module-header">
+        <view class="module-title">开通会员</view>
+        <view class="view-btn">{{membershipInfo.isMember ? '续费会员' : '点击开通'}}</view>
+      </view>
+      <view class="module-desc" wx:if="{{!membershipInfo.isMember}}">
+        未开通 | 开通解锁全部学习内容
+      </view>
+      <view class="module-desc" wx:else>
+        {{membershipInfo.startDate}} 开通 | {{membershipInfo.endDate}} 到期
+      </view>
+    </view>
+  </view>
+
+  <!-- 学习内容区 -->
+  <view class="study-section">
+    <view class="study-grid">
+      <!-- 读一读 -->
+      <view class="study-item read" bindtap="navigateToRead">
+        <text class="item-title">读一读</text>
+        <text class="item-stats">今日阅读: {{readStats.today}}分钟</text>
+      </view>
+      
+      <!-- 写一写 -->
+      <view class="study-item write" bindtap="navigateToWrite">
+        <text class="item-title">写一写</text>
+        <text class="item-stats">今日写作: {{writeStats.today}}分钟</text>
+      </view>
+      
+      <!-- 听一听 -->
+      <view class="study-item listen" bindtap="navigateToListen">
+        <text class="item-title">听一听</text>
+        <text class="item-stats">今日听力: {{listenStats.today}}分钟</text>
+      </view>
+      
+      <!-- 说一说 -->
+      <view class="study-item speak" bindtap="navigateToSpeak">
+        <text class="item-title">说一说</text>
+        <text class="item-stats">今日口语: {{speakStats.today}}分钟</text>
+      </view>
+    </view>
+    
+    <!-- 心灵抽签 -->
+    <view class="fortune-btn" catchtap="onFortuneDraw" hover-class="fortune-btn-hover">
+      <text class="fortune-text">心灵🎋抽签</text>
+    </view>
+  </view>
+</view>
+
+<fortune-modal 
+  show="{{showFortuneModal}}"
+  title="今日抽签"
+  content="{{fortuneContent}}"
+  confirmText="收到鼓励"
+  bind:confirm="onFortuneConfirm"
+/> 

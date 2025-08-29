@@ -75,7 +75,7 @@
       <!-- 电影屏幕形状的播放画面 -->
       <view class="video-screen">
         <view class="screen-header">
-          <text class="video-title">{{currentHotspot.title || '热点主持内容'}}</text>
+          <text class="video-title">{{currentHotspot.title || '正在加载内容，请稍等...'}}</text>
         </view>
         <view class="screen-content" bindtap="playHotspotAudio">
           <!-- 封面图片，当没有播放时显示 -->
@@ -89,7 +89,7 @@
           
           <!-- 字幕条，仅在播放时显示 -->
           <view class="subtitle-bar" wx:if="{{isHotspotPlaying || isHotspotMutedPlaying}}">
-            <text class="subtitle-text">{{currentHotspot.currentSubtitle || currentHotspot.subtitle || '这里是热点新闻的字幕内容示例'}}</text>
+            <text class="subtitle-text">{{currentHotspot.currentSubtitle || currentHotspot.subtitle}}</text>
           </view>
           <view class="play-overlay" wx:if="{{!isHotspotPlaying && !isHotspotMutedPlaying}}">
             <view class="play-icon"></view>
@@ -126,7 +126,7 @@
       <!-- 电影屏幕形状的播放画面 -->
       <view class="video-screen">
         <view class="screen-header">
-          <text class="video-title">{{currentClassic.title || '热点朗读内容'}}</text>
+          <text class="video-title">{{currentClassic.title || '森林朗读内容'}}</text>
         </view>
         <view class="screen-content" bindtap="playClassicAudio">
           <!-- 封面图片，当没有播放时显示 -->
@@ -140,7 +140,7 @@
           
           <!-- 字幕条，仅在播放时显示 -->
           <view class="subtitle-bar" wx:if="{{isClassicPlaying || isClassicMutedPlaying}}">
-            <text class="subtitle-text">{{currentClassic.currentSubtitle || currentClassic.subtitle || '这里是经典名著片段的字幕内容示例'}}</text>
+            <text class="subtitle-text">{{currentClassic.currentSubtitle || currentClassic.subtitle}}</text>
           </view>
           <view class="play-overlay" wx:if="{{!isClassicPlaying && !isClassicMutedPlaying}}">
             <view class="play-icon"></view>
@@ -196,7 +196,7 @@
       
       <!-- 花朵展示区域 -->
       <view class="flowers-wall" wx:else>
-        <swiper class="flowers-swiper" indicator-dots="{{true}}" autoplay="{{true}}" interval="3000" duration="500" circular="{{true}}" previous-margin="40rpx" next-margin="40rpx" bindchange="onFlowerSwiperChange">
+        <swiper class="flowers-swiper" indicator-dots="{{true}}" autoplay="{{true}}" interval="4000" duration="600" circular="{{true}}" previous-margin="30rpx" next-margin="30rpx" bindchange="onFlowerSwiperChange">
           <block wx:for="{{flowers}}" wx:key="id">
             <swiper-item>
               <view class="flower-item {{newFlowerAdded && index === 0 ? 'new-flower' : ''}}">
@@ -222,9 +222,9 @@
     <text class="type-icon">📢</text>
     <text class="type-text">萌芽主持</text>
   </view>
-  <view class="audio-type-btn {{currentAudioType === 'book' ? 'active' : ''}}" 
-        bindtap="selectAudioType" 
-        data-type="book">
+  <view class="audio-type-btn {{currentAudioType === 'forest' ? 'active' : ''}}" 
+        bindtap="selectAudioType"
+        data-type="forest">
     <text class="type-icon">📖</text>
     <text class="type-text">森林朗读</text>
   </view>
@@ -255,4 +255,4 @@
       </view>
     </view>
   </view>
-</view> 
+</view>

@@ -8,6 +8,11 @@
         <text class="picker-arrow">▼</text>
       </view>
     </picker>
+    
+    <!-- 页码指示器 (与原样式保持一致) -->
+    <view class="page-indicator" wx:if="{{totalImages > 1}}">
+      <text>{{currentImageIndex + 1}}/{{totalImages}}</text>
+    </view>
   </view>
 
   <!-- 主要内容区域 -->
@@ -15,8 +20,23 @@
     <!-- A4预览区域 -->
     <view class="preview-container">
       <view class="a4-page">
-        <image class="print-image" src="{{printImage}}" mode="aspectFit"></image>
+        <block wx:if="{{printImages.length > 0}}">
+          <image class="print-image" src="{{printImages[currentImageIndex]}}" mode="aspectFit" bindtap="previewImage"></image>
+        </block>
+        <block wx:else>
+          <view class="no-print-content">
+            <image class="empty-illustration" src="/images/empty-print.png" mode="aspectFit"></image>
+            <view class="no-print-message">当前语言暂无打印页面</view>
+            <view class="no-print-tip">请尝试切换到其他语言查看</view>
+          </view>
+        </block>
       </view>
+    </view>
+    
+    <!-- 图片导航按钮 (保持简洁样式) -->
+    <view class="image-nav" wx:if="{{totalImages > 1}}">
+      <view class="nav-button" bindtap="prevImage">上一页</view>
+      <view class="nav-button" bindtap="nextImage">下一页</view>
     </view>
 
     <!-- 底部文字 -->

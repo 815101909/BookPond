@@ -13,11 +13,10 @@
         class="promo-image" 
         src="{{promoImageUrl}}" 
         mode="aspectFill" 
-        bindtap="uploadPromoImage"
         wx:if="{{promoImageUrl}}"
       ></image>
-      <view class="promo-placeholder" bindtap="uploadPromoImage" wx:else>
-        <text class="placeholder-text">点击上传会员宣传图</text>
+      <view class="promo-placeholder">
+        <text class="placeholder-text">等待上传会员宣传图</text>
         <text class="placeholder-icon">+</text>
       </view>
     </view>
@@ -34,6 +33,7 @@
                 bindtap="selectPlan" data-plan="monthly">
             <view class="plan-name">月度会员</view>
             <view class="plan-price">¥{{prices.monthly}}</view>
+            <view class="original-price" wx:if="{{originalPrices.monthly}}">¥{{originalPrices.monthly}}</view>
             <view class="plan-tag" wx:if="{{bestValue !== 'monthly'}}">基础</view>
             <view class="plan-tag best-value" wx:if="{{bestValue === 'monthly'}}">超值</view>
           </view>
@@ -42,6 +42,7 @@
                 bindtap="selectPlan" data-plan="quarterly">
             <view class="plan-name">季度会员</view>
             <view class="plan-price">¥{{prices.quarterly}}</view>
+            <view class="original-price" wx:if="{{originalPrices.quarterly}}">¥{{originalPrices.quarterly}}</view>
             <view class="plan-tag" wx:if="{{bestValue !== 'quarterly'}}">优惠</view>
             <view class="plan-tag best-value" wx:if="{{bestValue === 'quarterly'}}">超值</view>
           </view>
@@ -50,6 +51,7 @@
                 bindtap="selectPlan" data-plan="halfYear">
             <view class="plan-name">半年会员</view>
             <view class="plan-price">¥{{prices.halfYear}}</view>
+            <view class="original-price" wx:if="{{originalPrices.halfYear}}">¥{{originalPrices.halfYear}}</view>
             <view class="plan-tag" wx:if="{{bestValue !== 'halfYear'}}">优惠</view>
             <view class="plan-tag best-value" wx:if="{{bestValue === 'halfYear'}}">超值</view>
           </view>
@@ -58,6 +60,7 @@
                 bindtap="selectPlan" data-plan="yearly">
             <view class="plan-name">年度会员</view>
             <view class="plan-price">¥{{prices.yearly}}</view>
+            <view class="original-price" wx:if="{{originalPrices.yearly}}">¥{{originalPrices.yearly}}</view>
             <view class="plan-tag" wx:if="{{bestValue !== 'yearly'}}">优惠</view>
             <view class="plan-tag best-value" wx:if="{{bestValue === 'yearly'}}">超值</view>
           </view>
@@ -79,7 +82,7 @@
     <text class="error-text">加载失败，请稍后再试</text>
     <button class="retry-btn" bindtap="loadMembershipData">重试</button>
   </view>
-</view> 
+</view>
  
  
  

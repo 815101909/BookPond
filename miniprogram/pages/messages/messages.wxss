@@ -148,4 +148,113 @@ page {
   font-size: 28rpx;
   color: #90a4ae;
   text-align: center;
-} 
+}
+
+/* 消息详情弹窗样式 */
+.message-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 20rpx;
+  width: 90%;
+  max-width: 600rpx;
+  max-height: 80%;
+  overflow: hidden;
+  box-shadow: 0 10rpx 30rpx rgba(0, 0, 0, 0.3);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 30rpx;
+  border-bottom: 1rpx solid #eee;
+  background-color: #f8f9fa;
+}
+
+.modal-title {
+  font-size: 36rpx;
+  font-weight: bold;
+  color: #333;
+  flex: 1;
+  margin-right: 20rpx;
+}
+
+.modal-close {
+  font-size: 40rpx;
+  color: #999;
+  width: 60rpx;
+  height: 60rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background-color: #f0f0f0;
+}
+
+.modal-close:active {
+  background-color: #e0e0e0;
+}
+
+.modal-body {
+  padding: 30rpx;
+  max-height: 400rpx;
+  overflow-y: auto;
+}
+
+.modal-date {
+  font-size: 26rpx;
+  color: #999;
+  margin-bottom: 20rpx;
+  text-align: center;
+}
+
+.modal-text {
+  font-size: 30rpx;
+  line-height: 1.6;
+  color: #333;
+  word-wrap: break-word;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 20rpx;
+  padding: 20rpx 30rpx;
+  border-top: 1rpx solid #eee;
+  background-color: #f8f9fa;
+}
+
+.modal-btn {
+  padding: 20rpx 40rpx;
+  border-radius: 10rpx;
+  font-size: 28rpx;
+  text-align: center;
+  min-width: 120rpx;
+  background-color: #f0f0f0;
+  color: #666;
+}
+
+.modal-btn:active {
+  background-color: #e0e0e0;
+}
+
+.modal-btn.primary {
+  background-color: #009688;
+  color: white;
+}
+
+.modal-btn.primary:active {
+  background-color: #00796b;
+}

@@ -1,9 +1,8 @@
 {
   "pages": [
-    "pages/index/index",
     "pages/login/login",
-    "pages/profile/profile",
     "pages/read/read",
+    "pages/profile/profile",
     "pages/write/write",
     "pages/listen/listen",
     "pages/speak/speak",
@@ -23,12 +22,13 @@
     "pages/rankings/rankings",
     "pages/membership/membership",
     "pages/edit-profile/edit-profile",
-    "pages/print/print"
+    "pages/print/print",
+    "pages/agreement/index"
   ],
   "window": {
     "backgroundTextStyle": "light",
     "navigationBarBackgroundColor": "#fff",
-    "navigationBarTitleText": "晓世界",
+    "navigationBarTitleText": "小舟摇书池",
     "navigationBarTextStyle": "black"
   },
   "tabBar": {

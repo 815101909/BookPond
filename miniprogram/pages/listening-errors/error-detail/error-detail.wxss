@@ -1,340 +1,293 @@
-/* 错题详情页面样式 - 浅紫色主题 */
-.detail-container {
-  min-height: 100vh;
-  background-color: #f6f3fb; /* 浅紫色背景 */
+/* 错题详情页样式 */
+.container {
+  padding: 0 30rpx 120rpx;
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  padding-bottom: 120rpx; /* 为底部操作栏留出空间 */
 }
 
-/* 顶部导航栏 */
-.nav-bar {
-  display: flex;
-  align-items: center;
-  padding: 25rpx;
-  background-color: #fff;
-  box-shadow: 0 4rpx 12rpx rgba(168, 140, 216, 0.1);
-  position: sticky;
-  top: 0;
-  z-index: 10;
-  background: linear-gradient(to right, #e9e2fa, #f8f5ff); /* 渐变背景 */
-}
-
-.back-btn {
-  width: 70rpx;
-  height: 70rpx;
+.header {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(168, 140, 216, 0.1);
-  border-radius: 50%;
+  padding: 20rpx 0;
+  margin-bottom: 30rpx;
+  position: relative;
+  height: 90rpx;
+  width: 100%;
+}
+
+.back-btn {
+  display: flex;
+  align-items: center;
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
 }
 
 .back-icon {
   font-size: 40rpx;
-  color: #7e57c2;
+  margin-right: 10rpx;
 }
 
-.page-title {
-  font-size: 34rpx;
+.title {
+  font-size: 36rpx;
   font-weight: bold;
-  color: #7e57c2;
-  flex: 1;
   text-align: center;
-  margin-right: 70rpx; /* 抵消左侧返回按钮宽度，使标题居中 */
 }
 
-/* 习题卡片 */
 .exercise-card {
-  margin: 25rpx;
   background-color: #fff;
-  border-radius: 18rpx;
-  box-shadow: 0 4rpx 15rpx rgba(168, 140, 216, 0.1);
-  overflow: hidden;
-  position: relative;
+  border-radius: 16rpx;
+  padding: 30rpx;
+  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.1);
+  margin-bottom: 30rpx;
 }
 
-/* 习题头部 */
-.exercise-header {
-  padding: 25rpx;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-bottom: 1rpx solid #f0e8ff;
-  background: linear-gradient(to right, #f1ebfc, #ffffff);
-}
-
-.exercise-meta {
-  display: flex;
-  align-items: center;
-  gap: 15rpx;
-}
-
-.audio-type {
-  font-size: 26rpx;
-  color: #7b68ee;
-  background-color: rgba(123, 104, 238, 0.1);
-  padding: 6rpx 16rpx;
-  border-radius: 30rpx;
-}
-
-.difficulty {
-  display: flex;
-  align-items: center;
-  gap: 8rpx;
-  padding: 6rpx 15rpx;
-  border-radius: 30rpx;
-}
-
-.difficulty-icon {
-  font-size: 26rpx;
-}
-
-.difficulty-name {
-  font-size: 24rpx;
-}
-
-/* 萌芽岛 */
-.difficulty.sprout {
-  background-color: rgba(121, 134, 203, 0.1);
-}
-
-.difficulty.sprout .difficulty-name {
-  color: #7986cb;
-}
-
-/* 破茧谷 */
-.difficulty.cocoon {
-  background-color: rgba(156, 100, 166, 0.1);
-}
-
-.difficulty.cocoon .difficulty-name {
-  color: #9c64a6;
-}
-
-/* 翱翔峰 */
-.difficulty.soar {
-  background-color: rgba(103, 58, 183, 0.1);
-}
-
-.difficulty.soar .difficulty-name {
-  color: #673ab7;
-}
-
-.date {
-  font-size: 24rpx;
-  color: #b39ddb;
-  background: rgba(179, 157, 219, 0.1);
-  padding: 4rpx 12rpx;
-  border-radius: 20rpx;
-}
-
-/* 习题内容 */
-.exercise-content {
-  padding: 35rpx 25rpx;
-}
-
-.question {
-  margin-bottom: 35rpx;
-  position: relative;
-  padding-left: 15rpx;
-}
-
-/* 添加装饰引号 */
-.question::before {
-  content: '"';
-  position: absolute;
-  left: -15rpx;
-  top: -20rpx;
-  font-size: 80rpx;
-  color: rgba(168, 140, 216, 0.15);
-  font-family: serif;
+.question-section {
+  margin-bottom: 30rpx;
 }
 
 .question-text {
   font-size: 32rpx;
-  color: #555;
-  line-height: 1.6;
-  position: relative;
-  z-index: 1;
+  line-height: 1.5;
+  color: #333;
 }
 
-/* 选项样式 */
-.options {
-  margin-bottom: 35rpx;
-  background: #faf8ff;
-  border-radius: 15rpx;
-  padding: 20rpx;
-}
-
-.option-title {
-  font-size: 30rpx;
-  color: #7e57c2;
-  margin-bottom: 20rpx;
-  font-weight: 500;
+.options-section {
+  margin-bottom: 30rpx;
 }
 
 .option-item {
   display: flex;
-  align-items: center;
-  padding: 16rpx;
-  background-color: white;
-  border-radius: 12rpx;
-  margin-bottom: 15rpx;
-  box-shadow: 0 2rpx 8rpx rgba(168, 140, 216, 0.05);
+  align-items: flex-start;
+  padding: 20rpx;
+  border-radius: 10rpx;
+  background-color: #f8f8f8;
+  margin-bottom: 20rpx;
   position: relative;
+  border: 2rpx solid transparent;
+  min-height: 60rpx;
 }
 
 .option-item.correct {
-  background-color: #ede7f6;
-  border-left: 5rpx solid #9575cd;
+  background-color: rgba(82, 196, 26, 0.1);
+  border-color: #52c41a;
+}
+
+.option-item.selected {
+  background-color: rgba(245, 34, 45, 0.1);
+  border-color: #f5222d;
 }
 
 .option-letter {
-  width: 45rpx;
-  height: 45rpx;
-  background-color: #e2d8f7;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 26rpx;
-  color: #7e57c2;
-  margin-right: 15rpx;
+  min-width: 40rpx;
+  margin-right: 20rpx;
+  font-weight: bold;
+  color: #666;
   flex-shrink: 0;
-}
-
-.option-item.correct .option-letter {
-  background-color: #9575cd;
-  color: white;
 }
 
 .option-text {
   flex: 1;
-  font-size: 28rpx;
-  color: #555;
   line-height: 1.5;
+  padding-right: 50rpx; /* 为对错标记留出空间 */
 }
 
-/* 正确选项标记 */
-.correct-mark {
+.option-mark {
   position: absolute;
-  right: 15rpx;
-  font-size: 30rpx;
-  color: #7e57c2;
-  font-weight: bold;
-}
-
-/* 填空题答案 */
-.fill-blank {
-  margin-bottom: 35rpx;
-  background-color: #faf8ff;
-  border-radius: 15rpx;
-  padding: 25rpx;
-}
-
-.answer-title {
-  font-size: 30rpx;
-  color: #7e57c2;
-  margin-bottom: 15rpx;
-  font-weight: 500;
-}
-
-.answer-content {
+  right: 20rpx;
+  top: 50%;
+  transform: translateY(-50%);
   font-size: 32rpx;
-  color: #5e35b1;
   font-weight: bold;
-  padding: 15rpx;
-  background: white;
-  border-radius: 10rpx;
-  border-left: 5rpx solid #9575cd;
+  color: #52c41a;
 }
 
-/* 习题解析 */
-.explanation {
-  margin-top: 35rpx;
-  background-color: #faf8ff;
-  border-radius: 15rpx;
-  padding: 25rpx;
+.option-mark.wrong {
+  color: #f5222d;
 }
 
-.explanation-title {
+.section-title {
   font-size: 30rpx;
-  color: #7e57c2;
-  margin-bottom: 15rpx;
-  font-weight: 500;
+  font-weight: bold;
+  margin-bottom: 20rpx;
+  color: #333;
 }
 
-.explanation-content {
+.explanation-section {
+  margin-bottom: 30rpx;
+  padding-top: 20rpx;
+  border-top: 2rpx dashed #eee;
+}
+
+.explanation-text {
   font-size: 28rpx;
-  color: #555;
   line-height: 1.6;
-  padding: 15rpx;
-  background: white;
-  border-radius: 10rpx;
+  color: #666;
 }
 
-/* 答题结果状态 */
-.result-status {
-  margin-top: 30rpx;
-  padding: 15rpx 25rpx;
-  border-radius: 50rpx;
-  display: inline-flex;
+.answer-comparison {
+  margin-bottom: 30rpx;
+  padding-top: 20rpx;
+  border-top: 2rpx dashed #eee;
+}
+
+.comparison-row {
+  display: flex;
   align-items: center;
-  gap: 10rpx;
-  box-shadow: 0 3rpx 10rpx rgba(0, 0, 0, 0.05);
+  margin-bottom: 20rpx;
 }
 
-.result-status.correct {
-  background-color: #e8f5e9;
-  color: #4caf50;
-}
-
-.result-status.wrong {
-  background-color: #ffebee;
-  color: #f44336;
-}
-
-.status-icon {
-  font-size: 32rpx;
-  font-weight: bold;
-}
-
-.status-text {
+.label {
+  width: 160rpx;
   font-size: 28rpx;
-  font-weight: 500;
+  color: #666;
+  flex-shrink: 0;
+  text-align: right;
+  padding-right: 20rpx;
 }
 
-/* 底部操作栏 */
-.action-bar {
+.value {
+  font-size: 28rpx;
+  font-weight: bold;
+  flex: 1;
+}
+
+.value.correct {
+  color: #52c41a;
+}
+
+.value.incorrect {
+  color: #f5222d;
+}
+
+.audio-section {
+  padding-top: 20rpx;
+  border-top: 2rpx dashed #eee;
+}
+
+.audio-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.play-btn {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 50%;
+  background-color: #1890ff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 42rpx;
+}
+.play-icon{
+  margin-left: 5rpx;
+}
+
+.play-btn.playing {
+  background-color: #ff7875;
+}
+
+.speed-controls {
+  display: flex;
+  align-items: center;
+}
+
+.speed-label {
+  margin-right: 20rpx;
+  font-size: 28rpx;
+  color: #666;
+}
+
+.speed-options {
+  display: flex;
+}
+
+.speed-btn {
+  padding: 10rpx 20rpx;
+  margin: 0 10rpx;
+  border-radius: 8rpx;
+  font-size: 24rpx;
+  background-color: #f0f0f0;
+}
+
+.speed-btn.active {
+  background-color: #1890ff;
+  color: white;
+}
+
+.audio-status {
+  text-align: center;
+  margin-top: 20rpx;
+  color: #999;
+  font-size: 28rpx;
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 100rpx 0;
+}
+
+.empty-icon {
+  font-size: 80rpx;
+  margin-bottom: 30rpx;
+}
+
+.empty-text {
+  font-size: 30rpx;
+  color: #999;
+}
+
+.bottom-actions {
   position: fixed;
   bottom: 0;
   left: 0;
   right: 0;
-  background-color: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  box-shadow: 0 -4rpx 15rpx rgba(168, 140, 216, 0.1);
-  padding: 25rpx;
   display: flex;
-  justify-content: center;
+  padding: 20rpx 30rpx;
+  background-color: white;
+  box-shadow: 0 -2rpx 10rpx rgba(0, 0, 0, 0.1);
 }
 
-.listen-again-btn {
-  background: linear-gradient(to right, #9575cd, #7e57c2);
-  color: white;
-  padding: 25rpx 80rpx;
-  border-radius: 50rpx;
+.action-btn {
+  flex: 1;
+  height: 80rpx;
+  border-radius: 40rpx;
   display: flex;
   align-items: center;
-  gap: 12rpx;
-  box-shadow: 0 5rpx 15rpx rgba(126, 87, 194, 0.3);
-  font-weight: 500;
+  justify-content: center;
+  margin: 0 10rpx;
 }
 
-.listen-icon {
-  font-size: 36rpx;
+.action-btn.review {
+  background-color: #52c41a;
+  color: white;
 }
 
-.listen-text {
-  font-size: 30rpx;
+.action-btn.practice {
+  background-color: #1890ff;
+  color: white;
+}
+
+.action-btn.disabled {
+  background-color: #d9d9d9;
+  color: #999;
+}
+
+.action-icon {
+  margin-right: 16rpx;
+  font-size: 28rpx;
+}
+
+.action-text {
+  font-size: 28rpx;
 } 

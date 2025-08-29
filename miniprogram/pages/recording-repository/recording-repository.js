@@ -2,7 +2,9 @@
 Page({
   data: {
     total: 0,
-    recordings: []
+    recordings: [],
+    currentPlayingId: null, // 当前播放的录音ID
+    isPlaying: false // 播放状态
   },
 
   onLoad: function() {
@@ -14,6 +16,25 @@ Page({
     this.loadRecordingRepository();
   },
   
+  onHide: function() {
+    // 页面隐藏时暂停音频播放
+    if (this.audioContext && this.data.isPlaying) {
+      this.audioContext.pause();
+      this.setData({
+        isPlaying: false
+      });
+    }
+  },
+  
+  onUnload: function() {
+    // 页面卸载时停止并销毁音频实例
+    if (this.audioContext) {
+      this.audioContext.stop();
+      this.audioContext.destroy();
+      this.audioContext = null;
+    }
+  },
+  
   // 加载录音仓库数据
   loadRecordingRepository: function() {
     try {
@@ -22,6 +43,17 @@ Page({
       
       // 确保每个录音项目都有充分的字幕内容展示
       const processedRecordings = recordings.map(recording => {
+        // 为旧录音补充难度信息（兼容性处理）
+        if (!recording.difficulty || !recording.difficultyName) {
+          if (recording.type === 'hotspot') {
+            recording.difficulty = 'sprout';
+            recording.difficultyName = '萌芽岛';
+          } else if (recording.type === 'classic') {
+            recording.difficulty = 'forest';
+            recording.difficultyName = '森林谷';
+          }
+        }
+        
         // 如果字幕内容太短或不存在，尝试用其他字段补充
         if (!recording.subtitle || recording.subtitle.length < 50) {
           // 尝试从其他字段获取更多内容
@@ -96,34 +128,103 @@ Page({
       return;
     }
     
+    // 如果当前正在播放同一个录音，则暂停
+    if (this.data.currentPlayingId === recordingId && this.data.isPlaying) {
+      if (this.audioContext) {
+        this.audioContext.pause();
+        this.setData({
+          isPlaying: false
+        });
+        wx.showToast({
+          title: '已暂停',
+          icon: 'none',
+          duration: 1000
+        });
+      }
+      return;
+    }
+    
+    // 如果当前正在播放同一个录音但已暂停，则继续播放
+    if (this.data.currentPlayingId === recordingId && !this.data.isPlaying) {
+      if (this.audioContext) {
+        this.audioContext.play();
+        this.setData({
+          isPlaying: true
+        });
+        wx.showToast({
+          title: '继续播放',
+          icon: 'none',
+          duration: 1000
+        });
+      }
+      return;
+    }
+    
+    // 停止当前播放的录音（如果有）
+    if (this.audioContext) {
+      this.audioContext.stop();
+      this.audioContext.destroy();
+    }
+    
     // 检查文件是否存在
     wx.getFileInfo({
       filePath: recording.audioPath,
       success: (res) => {
         console.log('播放录音文件信息:', res);
-    
-    // 播放录音
-    const innerAudioContext = wx.createInnerAudioContext();
-    innerAudioContext.src = recording.audioPath;
-    
-        innerAudioContext.onPlay(() => {
+        
+        // 创建新的音频实例
+        this.audioContext = wx.createInnerAudioContext();
+        this.audioContext.src = recording.audioPath;
+        
+        this.audioContext.onPlay(() => {
           console.log('开始播放录音');
-    wx.showToast({
-      title: '正在播放录音...',
-      icon: 'none',
-      duration: 2000
+          this.setData({
+            currentPlayingId: recordingId,
+            isPlaying: true
+          });
+          wx.showToast({
+            title: '正在播放录音...',
+            icon: 'none',
+            duration: 2000
           });
         });
         
-        innerAudioContext.onError((err) => {
+        this.audioContext.onPause(() => {
+          console.log('录音已暂停');
+          this.setData({
+            isPlaying: false
+          });
+        });
+        
+        this.audioContext.onEnded(() => {
+          console.log('录音播放结束');
+          this.setData({
+            currentPlayingId: null,
+            isPlaying: false
+          });
+        });
+        
+        this.audioContext.onStop(() => {
+          console.log('录音播放停止');
+          this.setData({
+            currentPlayingId: null,
+            isPlaying: false
+          });
+        });
+        
+        this.audioContext.onError((err) => {
           console.error('播放录音错误:', err);
+          this.setData({
+            currentPlayingId: null,
+            isPlaying: false
+          });
           wx.showToast({
             title: '播放录音失败',
             icon: 'none'
           });
         });
         
-        innerAudioContext.play();
+        this.audioContext.play();
       },
       fail: (err) => {
         console.error('录音文件不存在:', err);
@@ -207,4 +308,4 @@ Page({
       url: '/pages/speak/speak'
     });
   }
-}); 
+});

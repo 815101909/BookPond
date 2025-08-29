@@ -1,58 +1,71 @@
 <!-- 客服页面 -->
 <view class="container">
+  
+  
+  <!-- 主要内容区域 -->
+  <view class="main-content">
+  <!-- 页面头部 -->
   <view class="service-header">
     <view class="header-title">联系客服</view>
     <view class="header-desc">我们随时为您提供帮助</view>
   </view>
-  
-  <view class="contact-section">
-    <view class="section-title">联系方式</view>
-    
-    <view class="contact-item" bindtap="copyEmail">
-      <view class="contact-icon">📧</view>
-      <view class="contact-info">
-        <view class="contact-label">电子邮箱</view>
-        <view class="contact-value">{{serviceInfo.email}}</view>
+    <!-- 联系方式区域 -->
+    <view class="contact-section">
+      <view class="section-title">联系方式</view>
+      
+      <view class="contact-list">
+        <view class="contact-item" bindtap="copyWeChat">
+          <view class="contact-icon">🤵🏻‍♀️</view>
+          <view class="contact-info">
+            <view class="contact-label">客服微信</view>
+            <view class="contact-value">{{serviceInfo.wechat}}</view>
+          </view>
+          <view class="contact-action">复制</view>
+        </view>
+        
+        <view class="contact-item" bindtap="copyEmail">
+          <view class="contact-icon">📧</view>
+          <view class="contact-info">
+            <view class="contact-label">电子邮箱</view>
+            <view class="contact-value">{{serviceInfo.email}}</view>
+          </view>
+          <view class="contact-action">复制</view>
+        </view>
       </view>
-      <view class="contact-action">复制</view>
+    </view>
+
+    <!-- 服务时间区域 -->
+    <view class="service-time-section">
+      <view class="section-title">服务时间</view>
+      <view class="time-item">周一至周五： 9:00-19:00</view>
+      <view class="time-item">周六至周日：10:00-18:00</view>
+      <view class="holiday-tip">节假日客服时间可能有调整，请以公众号通知为准</view>
+    </view>
+    
+    <!-- 二维码区域 -->
+    <view class="qrcode-wrapper">
+      <view class="qrcode-section">
+        <view class="section-title">关注公众号</view>
+        
+        <view class="qrcode-container">
+          <!-- 加载中状态 -->
+          <view class="qrcode-loading" wx:if="{{isLoading}}">
+            <view class="loading-icon"></view>
+            <text class="loading-text">加载中...</text>
+          </view>
+          
+          <!-- 公众号二维码预留位置 -->
+          <view class="qrcode-placeholder" wx:elif="{{!qrCodeOfficialUrl}}">
+            <text class="placeholder-text">公众号二维码</text>
+            <text class="placeholder-desc">请在后台上传二维码</text>
+          </view>
+          
+          <!-- 二维码图片 -->
+          <image wx:else class="qrcode-image" src="{{qrCodeOfficialUrl}}" mode="aspectFit" bindtap="previewQRCode"></image>
+        </view>
+        
+        <view class="qrcode-tip">关注公众号，获取最新学习资源和活动信息</view>
+      </view>
     </view>
   </view>
-  
-  <view class="qrcode-grid">
-    <view class="qrcode-section">
-      <view class="section-title">添加客服微信</view>
-      <view class="qrcode-container">
-        <!-- 加载中状态 -->
-        <view class="qrcode-loading" wx:if="{{isLoading}}">
-          <view class="loading-icon"></view>
-          <text class="loading-text">加载中...</text>
-        </view>
-        <!-- 客服微信二维码预留位置 -->
-        <view class="qrcode-placeholder" wx:elif="{{!qrCodeServiceUrl}}">
-          <text class="placeholder-text">客服微信二维码</text>
-          <text class="placeholder-desc">请在后台上传二维码</text>
-        </view>
-        <image wx:else class="qrcode-image" src="{{qrCodeServiceUrl}}" mode="aspectFit"></image>
-      </view>
-      <view class="qrcode-tip">扫描二维码添加客服微信，获取一对一帮助</view>
-    </view>
-    
-    <view class="qrcode-section">
-      <view class="section-title">关注公众号</view>
-      <view class="qrcode-container">
-        <!-- 加载中状态 -->
-        <view class="qrcode-loading" wx:if="{{isLoading}}">
-          <view class="loading-icon"></view>
-          <text class="loading-text">加载中...</text>
-        </view>
-        <!-- 公众号二维码预留位置 -->
-        <view class="qrcode-placeholder" wx:elif="{{!qrCodeOfficialUrl}}">
-          <text class="placeholder-text">公众号二维码</text>
-          <text class="placeholder-desc">请在后台上传二维码</text>
-        </view>
-        <image wx:else class="qrcode-image" src="{{qrCodeOfficialUrl}}" mode="aspectFit"></image>
-      </view>
-      <view class="qrcode-tip">关注公众号，获取最新学习资源和活动信息</view>
-    </view>
-  </view>
-</view> 
+</view>

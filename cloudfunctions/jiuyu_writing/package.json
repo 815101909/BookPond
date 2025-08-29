@@ -1,0 +1,14 @@
+{
+  "name": "jiuyu_writing",
+  "version": "1.0.0",
+  "description": "小舟摇书池写作相关云函数",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "wx-server-sdk": "latest"
+  }
+} 

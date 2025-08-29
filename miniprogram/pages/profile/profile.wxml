@@ -2,24 +2,27 @@
 <view class="container">
   <!-- 用户信息区域 -->
   <view class="user-section">
-    <view class="user-left">
-      <view class="avatar-box" bindtap="uploadAvatar">
+    <view class="user-left" bindtap="{{!isLoggedIn ? 'navigateToLogin' : ''}}">
+      <view class="avatar-box" bindtap="{{isLoggedIn ? 'uploadAvatar' : 'navigateToLogin'}}">
         <block wx:if="{{userInfo.avatarUrl}}">
           <image class="avatar-image" src="{{userInfo.avatarUrl}}" mode="aspectFill"></image>
         </block>
         <block wx:else>
           <view class="default-avatar" style="background-color: {{userInfo.avatarColor || '#4ECDC4'}}">
-            <text class="avatar-text">晓</text>
+            <text class="avatar-text">{{isLoggedIn ? '舟' : '登'}}</text>
           </view>
         </block>
       </view>
       <view class="user-info">
-        <text class="user-name">{{userInfo.nickName}}</text>
-        <text class="user-signature">{{userInfo.signature || '每天进步一点点，离梦想更近一步'}}</text>
+        <view class="user-name-row">
+          <text class="user-name">{{userInfo.nickName}}</text>
+          <text class="user-id" bindtap="copyUserId" wx:if="{{userInfo.userId}}">{{userInfo.userId}}</text>
+        </view>
+        <text class="user-signature">{{userInfo.signature}}</text>
       </view>
     </view>
-    <view class="edit-profile" bindtap="editProfile">
-      <text class="edit-text">编辑</text>
+    <view class="edit-profile" bindtap="{{isLoggedIn ? 'editProfile' : 'navigateToLogin'}}">
+      <text class="edit-text">{{isLoggedIn ? '编辑' : '登录'}}</text>
     </view>
   </view>
 
@@ -91,7 +94,7 @@
         未开通 | 开通解锁全部学习内容
       </view>
       <view class="module-desc" wx:else>
-        {{membershipInfo.startDate}} 开通 | {{membershipInfo.endDate}} 到期
+        于{{membershipInfo.startDate}} 开通 | {{membershipInfo.endDate}} 到期
       </view>
     </view>
   </view>
@@ -131,10 +134,14 @@
   </view>
 </view>
 
+<view class="logout-section">
+  <button class="logout-btn" bindtap="logout">退出登录</button>
+</view>
+
 <fortune-modal 
   show="{{showFortuneModal}}"
   title="今日抽签"
   content="{{fortuneContent}}"
   confirmText="收到鼓励"
   bind:confirm="onFortuneConfirm"
-/> 
+/>

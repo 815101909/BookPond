@@ -73,7 +73,7 @@
     <view class="radio-content">
       <!-- 左侧封面 -->
       <view class="audio-cover">
-        <image class="cover-image" src="{{currentAudio.coverUrl || '/images/default-cover.png'}}" mode="aspectFill"></image>
+        <image class="cover-image" src="{{currentAudio.coverUrl || '../../images/default_article_1.png'}}" mode="aspectFill" binderror="onCoverError" bindload="onCoverLoad"></image>
       </view>
 
       <!-- 右侧内容区 -->
@@ -113,17 +113,25 @@
   <!-- 音频播放器结束 -->
 
   <!-- 习题训练营版块 -->
-  <view class="exercise-camp" wx:if="{{currentAudioType}}">
+  <view class="exercise-camp">
     <view class="camp-header">
       <text class="camp-icon">📝</text>
       <text class="camp-text">习题训练营</text>
     </view>
     
-    <!-- 直接显示当前题目 -->
-    <view class="exercise-content">
+    <!-- 没有对应语言习题时显示提示 -->
+    <view class="no-content-tip" wx:if="{{noContentForLanguage}}">
+      <view class="no-content-icon">🔍</view>
+      <view class="no-content-text">暂时没有{{currentLanguage}}语言的习题内容</view>
+      <view class="no-content-subtext">请尝试切换其他语言</view>
+    </view>
+    
+    <!-- 有对应语言习题时显示习题 -->
+    <view class="exercise-content" wx:else>
       <view class="exercise-type-badge">
-        <text wx:if="{{currentDifficulty === 'sprout'}}">单选题 · 3分</text>
-        <text wx:elif="{{currentDifficulty === 'forest'}}">多选题 · 5分</text>
+        <text wx:if="{{currentExercise.type === 'single'}}">单选题 · 3分</text>
+        <text wx:elif="{{currentExercise.type === 'multiple'}}">多选题 · 5分</text>
+        <text wx:else>{{currentDifficulty === 'sprout' ? '单选题 · 3分' : '多选题 · 5分'}}</text>
       </view>
 
       <view class="exercise-question">
@@ -131,7 +139,7 @@
       </view>
       
       <!-- 单选题选项 -->
-      <view class="exercise-options" wx:if="{{currentDifficulty === 'sprout'}}">
+      <view class="exercise-options" wx:if="{{currentExercise.type === 'single'}}">
         <view class="option-item {{selectedSingleOption === index ? 'selected' : ''}}" 
               wx:for="{{currentExercise.options}}" 
               wx:key="index" 
@@ -144,7 +152,7 @@
               </view>
               
       <!-- 多选题选项 -->
-      <view class="exercise-options" wx:elif="{{currentDifficulty === 'forest'}}">
+      <view class="exercise-options" wx:elif="{{currentExercise.type === 'multiple'}}">
         <view class="option-item multi-option {{selectedOptions[index] ? 'selected' : ''}}" 
               wx:for="{{currentExercise.options}}" 
               wx:key="index" 
@@ -157,7 +165,7 @@
                 </view>
         
       <!-- 填空题输入框 -->
-      <view class="exercise-fill-blank" wx:elif="{{currentDifficulty === 'forest'}}">
+      <view class="exercise-fill-blank" wx:elif="{{currentExercise.type === 'fill'}}">
         <input class="fill-input" placeholder="请输入答案" bindinput="onFillInputChange" value="{{fillAnswer}}"/>
         <view class="fill-submit" bindtap="submitFillBlank">提交答案</view>
         </view>
@@ -259,4 +267,4 @@
     <view class="custom-toast-icon" wx:if="{{customToastType === 'success'}}">✓</view>
     <text class="custom-toast-text">{{customToastText}}</text>
   </view>
-</view> 
+</view>

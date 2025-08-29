@@ -1,18 +1,15 @@
 // app.js
+wx.cloud.init({
+  env: 'cloud1-1gsyt78b92c539ef', // 替换成你的云开发环境ID
+  traceUser: true
+});
+
 App({
   onLaunch: function () {
-    // 存储API开发令牌到本地存储中
-    const apiToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjp7ImlkIjoiNjdmMGM0Njk1Y2NiYjljNDYyMTM2MjZlIiwicm9sZSI6ImFkbWluIn0sImlhdCI6MTc0NDU4OTMxNywiZXhwIjoxNzQ0Njc1NzE3fQ.LN9os9HljDtHexbAsDsfRf_rjs-0QUo4SPcGL0bvaTA';
-    wx.setStorageSync('token', apiToken);
-    console.log('API令牌已存储到本地');
+
     
     // 主动预热API连接
     this.preWarmApiConnection();
-    
-    // 展示tabBar的红点
-    wx.showTabBarRedDot({
-      index: 2
-    });
     
     // 展示本地存储能力
     const logs = wx.getStorageSync('logs') || [];
@@ -44,92 +41,32 @@ App({
     this.testAPIConnection();
   },
   
-  // 主动预热API连接
+  // 主动预热API连接 - 已禁用
   preWarmApiConnection: function() {
-    const apiUtil = require('./miniprogram/utils/api');
-    console.log('开始预热API连接...');
-    
-    // 尝试获取一个简单的数据，如sprout难度的文章列表
-    apiUtil.getNewsList('sprout', '', 1)
-      .then(data => {
-        console.log('API预热成功，获取到数据');
-        // 更新全局状态
-        this.globalData.apiConnectionStatus = {
-          status: 'connected',
-          message: '后台连接成功',
-          details: '预热连接成功获取数据'
-        };
-      })
-      .catch(error => {
-        console.error('API预热请求失败:', error);
-        // 这里不显示错误，因为后面会有正式的连接测试
-      });
+    // API功能已禁用，无需预热连接
+    this.globalData.apiConnectionStatus = {
+      status: 'disabled',
+      details: 'API功能已禁用'
+    };
   },
   
-  // 测试API连接
+  // 测试API连接 - 已禁用
   testAPIConnection: function() {
-    const apiUtil = require('./miniprogram/utils/api');
-    
-    // 设置连接状态为"检查中"
+    // API功能已禁用，直接设置状态
     this.globalData.apiConnectionStatus = {
-      status: 'checking',
-      message: '正在检查后台连接...'
+      status: 'disabled',
+      details: 'API功能已禁用'
     };
     
     // 通知已打开的页面连接状态更新
     if (this.apiConnectionStatusCallback) {
       this.apiConnectionStatusCallback(this.globalData.apiConnectionStatus);
     }
-    
-    console.log('开始测试API连接...');
-    
-    // 使用增强版的testConnection方法
-    apiUtil.testConnection().then(result => {
-      console.log('API连接测试结果:', result);
-      
-      if (result.success) {
-        this.globalData.apiConnectionStatus = {
-          status: 'connected',
-          message: '后台连接成功',
-          details: result.details
-        };
-        
-        // 更新全局路径格式
-        if (result.detectedPath) {
-          this.updateApiPathFormat(result.detectedPath);
-        }
-        
-        // 显示成功通知
-        wx.showToast({
-          title: '后台连接成功',
-          icon: 'success',
-          duration: 1500
-        });
-      } else {
-        this.globalData.apiConnectionStatus = {
-          status: 'failed',
-          message: '后台连接失败',
-          details: result.details
-        };
-        
-        // 再次尝试重新连接
-        console.log('连接失败，尝试重新连接...');
-        setTimeout(() => {
-          // 再次尝试预热连接
-          this.preWarmApiConnection();
-        }, 2000);
-      }
-      
-      // 通知已打开的页面连接状态更新
-      if (this.apiConnectionStatusCallback) {
-        this.apiConnectionStatusCallback(this.globalData.apiConnectionStatus);
-      }
-    });
   },
   
   // 更新API路径格式
   updateApiPathFormat: function(detectedPath) {
-    const apiUtil = require('./miniprogram/utils/api');
+    const apiUtil = require('./utils/api');
     
     // 检测到的API路径格式
     console.log('检测到的API路径格式:', detectedPath);

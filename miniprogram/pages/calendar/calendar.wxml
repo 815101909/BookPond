@@ -19,6 +19,48 @@
     </view>
   </view>
   
+  <!-- 打卡激励规则 -->
+  <view class="incentive-rules">
+    <view class="rules-title">打卡激励规则</view>
+    <view class="rules-list">
+      <view class="rule-item {{checkinDays >= 10 ? 'achieved' : ''}}">
+        <view class="rule-icon">🎁</view>
+        <view class="rule-content">
+          <view class="rule-text">连续打卡10天</view>
+          <view class="rule-reward">奖励3天会员</view>
+        </view>
+        <view class="rule-status">
+          <text wx:if="{{checkinDays >= 10}}" class="status-achieved">已达成</text>
+          <text wx:else class="status-progress">{{checkinDays}}/10</text>
+        </view>
+      </view>
+      
+      <view class="rule-item {{checkinDays >= 20 ? 'achieved' : ''}}">
+        <view class="rule-icon">🏆</view>
+        <view class="rule-content">
+          <view class="rule-text">连续打卡20天</view>
+          <view class="rule-reward">奖励7天会员</view>
+        </view>
+        <view class="rule-status">
+          <text wx:if="{{checkinDays >= 20}}" class="status-achieved">已达成</text>
+          <text wx:else class="status-progress">{{checkinDays}}/20</text>
+        </view>
+      </view>
+      
+      <view class="rule-item {{checkinDays >= 30 ? 'achieved' : ''}}">
+        <view class="rule-icon">👑</view>
+        <view class="rule-content">
+          <view class="rule-text">连续打卡30天</view>
+          <view class="rule-reward">奖励15天会员</view>
+        </view>
+        <view class="rule-status">
+          <text wx:if="{{checkinDays >= 30}}" class="status-achieved">已达成</text>
+          <text wx:else class="status-progress">{{checkinDays}}/30</text>
+        </view>
+      </view>
+    </view>
+  </view>
+  
   <!-- 日历控制 -->
   <view class="calendar-header">
     <view class="month-selector">
@@ -62,4 +104,4 @@
       今日打卡
     </view>
   </view>
-</view> 
+</view>

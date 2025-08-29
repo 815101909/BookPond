@@ -1,0 +1,29 @@
+<view class="agreement-container">
+  <view class="header">
+    <view class="title">{{title}}</view>
+    <view class="update-time">最后更新：2025年8月28日</view>
+  </view>
+  
+  <view class="content">
+    <block wx:if="{{isLoading}}">
+      <view class="loading">加载中...</view>
+    </block>
+    
+    <block wx:else>
+      <view class="section" wx:for="{{content}}" wx:key="title">
+        <view class="section-title">{{item.title}}</view>
+        <view class="section-content">
+          <view class="paragraph" wx:for="{{item.paragraphs}}" wx:for-item="paragraph" wx:key="*this">
+            {{paragraph}}
+          </view>
+        </view>
+      </view>
+    </block>
+  </view>
+</view> 
+ 
+ 
+ 
+ 
+ 
+ 

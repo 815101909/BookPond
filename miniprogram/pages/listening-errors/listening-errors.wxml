@@ -15,6 +15,9 @@
             <text class="difficulty-tag" wx:if="{{item.difficulty === 'sprout'}}">萌芽岛</text>
             <text class="difficulty-tag cocoon" wx:elif="{{item.difficulty === 'cocoon'}}">破茧谷</text>
             <text class="difficulty-tag soar" wx:elif="{{item.difficulty === 'soar'}}">翱翔峰</text>
+            
+            <!-- 已复习标记 -->
+            <text class="reviewed-tag" wx:if="{{item.is_reviewed}}">已复习</text>
           </view>
           
           <text class="error-date">{{item.date}}</text>

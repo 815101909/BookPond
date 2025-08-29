@@ -30,4 +30,22 @@
     <view class="empty-text">暂无系统消息</view>
     <view class="empty-desc">新的系统通知和更新将会显示在这里</view>
   </view>
-</view> 
+
+  <!-- 消息详情弹窗 -->
+  <view class="message-modal" wx:if="{{showModal}}" bindtap="closeModal">
+    <view class="modal-content" catchtap="">
+      <view class="modal-header">
+        <view class="modal-title">{{selectedMessage.title}}</view>
+        <view class="modal-close" bindtap="closeModal">×</view>
+      </view>
+      <view class="modal-body">
+        <view class="modal-date">{{selectedMessage.formattedDate}}</view>
+        <view class="modal-text">{{selectedMessage.content}}</view>
+      </view>
+      <view class="modal-footer">
+        <view class="modal-btn" wx:if="{{!selectedMessage.read}}" bindtap="markAsRead" data-id="{{selectedMessage.id}}">标为已读</view>
+        <view class="modal-btn primary" bindtap="closeModal">关闭</view>
+      </view>
+    </view>
+  </view>
+</view>

@@ -1,9 +1,11 @@
-// 听力错题页面逻辑
+// 听力错题页面
+// 引入跨环境云函数调用工具
+const { listeningAPI } = require('../../utils/cloud-api.js');
 const app = getApp();
 
 Page({
   data: {
-    errors: [],
+    errors: [], // 错题列表
     total: 0,
     optionLetters: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'],
     isNavigating: false
@@ -20,27 +22,74 @@ Page({
 
   // 加载保存的错题
   loadSavedErrors: function() {
-    wx.getStorage({
-      key: 'listening_mistakes',
-      success: (res) => {
-        const savedErrors = res.data || [];
+    wx.showLoading({
+      title: '加载中...',
+      mask: true
+    });
+    
+    // 调用云函数获取错题列表
+    listeningAPI.getMistakes(1, 100).then(res => {
+      wx.hideLoading();
+      
+      if (res.result && res.result.code === 0) {
+        const { list, total } = res.result.data;
         
-        // 根据时间戳倒序排列，最新收藏的显示在最前面
-        savedErrors.sort((a, b) => b.timestamp - a.timestamp);
+        // 转换数据格式以适配现有UI
+        const formattedErrors = list.map(mistake => {
+          return {
+            _id: mistake._id,
+            audioId: mistake.audio_id,
+            question: mistake.exercise.question,
+            options: mistake.exercise.options,
+            answer: mistake.exercise.answer,
+            explanation: mistake.exercise.explanation,
+            difficulty: mistake.exercise.type === 'single' ? 'sprout' : 'forest',
+            date: this.formatDate(mistake.created_at),
+            timestamp: mistake.created_at,
+            audioType: 'podcast', // 默认类型
+            is_reviewed: mistake.is_reviewed, // 修正字段名
+            userAnswer: mistake.user_answer
+          };
+        });
         
         this.setData({
-          total: savedErrors.length,
-          errors: savedErrors
+          total: total,
+          errors: formattedErrors
         });
-      },
-      fail: (err) => {
-        console.error('获取收藏习题失败', err);
+      } else {
+        console.error('获取错题失败:', res);
+        wx.showToast({
+          title: '获取错题失败',
+          icon: 'none'
+        });
+        
         this.setData({
           total: 0,
           errors: []
         });
       }
+    }).catch(err => {
+      wx.hideLoading();
+      console.error('获取错题失败:', err);
+      
+      this.setData({
+        total: 0,
+        errors: []
+      });
+      
+      wx.showToast({
+        title: '获取错题失败',
+        icon: 'none'
+      });
     });
+  },
+  
+  // 格式化日期
+  formatDate: function(timestamp) {
+    if (!timestamp) return '';
+    
+    const date = new Date(timestamp);
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
   },
 
   // 直接开始练习
@@ -65,87 +114,92 @@ Page({
       mask: true
     });
     
-    // 先将数据保存到本地存储，确保不会丢失
-    const pendingAudioData = {
-      audioType: errorItem.audioType, // 区分热点「晓」播客或名著「晓」喇叭
-      difficulty: errorItem.difficulty, // 保留原始难度（萌芽岛/破茧谷/翱翔峰）
-      language: errorItem.language || '中文（简体）', // 保留原始语言设置
-      date: errorItem.date, // 保留原始习题日期
-      exerciseQuestion: errorItem.question, // 传递原题目，以便listen页面可以加载相同的习题
-      timestamp: errorItem.timestamp,
-      options: errorItem.options, // 传递选项
-      answer: errorItem.answer, // 传递答案
-      explanation: errorItem.explanation, // 传递解析
-      pendingTimestamp: Date.now() // 添加时间戳标记，确保能识别最新请求
-    };
+    // 保存错题数据到全局，以便详情页使用
+    if (app.globalData) {
+      app.globalData.currentMistake = {
+        _id: errorItem._id,
+        audio_id: errorItem.audioId,
+        exercise: {
+          question: errorItem.question,
+          options: errorItem.options,
+          answer: errorItem.answer,
+          explanation: errorItem.explanation,
+          type: errorItem.difficulty === 'sprout' ? 'single' : 'multiple'
+        },
+        user_answer: errorItem.userAnswer,
+        created_at: errorItem.timestamp,
+        is_reviewed: errorItem.is_reviewed
+      };
+    }
     
-    // 同时保存到本地存储和全局状态
-    wx.setStorage({
-      key: 'pending_audio_exercise',
-      data: pendingAudioData,
+    // 导航到错题详情页
+    wx.navigateTo({
+      url: './error-detail/error-detail',
       success: () => {
-        // 设置全局状态
-        getApp().globalData.pendingAudio = pendingAudioData;
-        
-        // 延迟一点再跳转，确保数据已保存
         setTimeout(() => {
-          // 直接跳转到听力页面开始练习
-          wx.switchTab({
-            url: '/pages/listen/listen',
-            success: () => {
-              // 隐藏加载提示
-              setTimeout(() => {
-                wx.hideLoading();
-              }, 500);
-            },
-            fail: (err) => {
-              console.error('跳转到听力页面失败', err);
-              wx.hideLoading();
-              wx.showToast({
-                title: '跳转失败，请重试',
-                icon: 'none'
-              });
-            }
-          });
-        }, 100); // 添加100ms延迟确保数据已保存
+          wx.hideLoading();
+          this.setData({ isNavigating: false });
+        }, 500);
       },
       fail: (err) => {
-        console.error('保存练习数据失败', err);
+        console.error('导航到错题详情页失败', err);
         wx.hideLoading();
+        this.setData({ isNavigating: false });
+        
         wx.showToast({
-          title: '准备数据失败，请重试',
+          title: '导航失败，请重试',
           icon: 'none'
         });
       }
     });
   },
-  
+
   // 删除收藏的错题
   deleteError: function(e) {
     const index = e.currentTarget.dataset.index;
+    const errorItem = this.data.errors[index];
+    
     wx.showModal({
       title: '确认删除',
       content: '确定要删除这道习题吗？',
       success: (res) => {
         if (res.confirm) {
-          // 复制当前数组，删除指定项
-          const updatedErrors = [...this.data.errors];
-          updatedErrors.splice(index, 1);
+          wx.showLoading({
+            title: '删除中...',
+            mask: true
+          });
           
-          // 更新存储和页面数据
-          wx.setStorage({
-            key: 'listening_mistakes',
-            data: updatedErrors,
-            success: () => {
+          // 调用云函数删除错题
+          listeningAPI.deleteMistake(errorItem._id).then(res => {
+            wx.hideLoading();
+            
+            if (res.result && res.result.code === 0) {
+              // 更新本地数据
+              const updatedErrors = this.data.errors.filter((_, i) => i !== index);
+              
               this.setData({
                 total: updatedErrors.length,
                 errors: updatedErrors
               });
+              
               wx.showToast({
                 title: '删除成功',
                 icon: 'success'
               });
+            } else {
+              wx.showToast({
+                title: '删除失败',
+                icon: 'none'
+              });
             }
+          }).catch(err => {
+            wx.hideLoading();
+            console.error('删除错题失败:', err);
+            
+            wx.showToast({
+              title: '删除失败',
+              icon: 'none'
+            });
           });
         }
       }
@@ -163,4 +217,4 @@ Page({
       url: '/pages/listen/listen'
     });
   }
-}); 
+});

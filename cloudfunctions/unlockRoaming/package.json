@@ -1,0 +1,14 @@
+{
+  "name": "unlockRoaming",
+  "version": "1.0.0",
+  "description": "解锁到期的漫游记录",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "wx-server-sdk": "latest"
+  }
+} 

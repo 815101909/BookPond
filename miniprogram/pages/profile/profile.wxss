@@ -3,7 +3,39 @@ page {
   background: #e8f5e9;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   height: 100vh;
-  overflow: hidden;
+  overflow: scroll;
+}
+
+/* 退出登录区域 */
+.logout-section {
+  width: 100%;
+  padding: 20rpx;
+  box-sizing: border-box;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.logout-btn {
+  width: 80%;
+  background-color: #ff4c4c;
+  color: white;
+  border-radius: 50rpx;
+  font-size: 32rpx;
+  padding: 20rpx 0;
+  margin: 0;
+  box-shadow: 0 4rpx 15rpx rgba(255, 76, 76, 0.3);
+  transition: all 0.3s ease;
+}
+
+.logout-btn::after {
+  border: none;
+}
+
+.logout-btn:active {
+  background-color: #e03c3c;
+  box-shadow: 0 2rpx 10rpx rgba(255, 76, 76, 0.2);
+  transform: translateY(2rpx);
 }
 
 /* 容器 */
@@ -78,11 +110,33 @@ page {
   justify-content: center;
 }
 
+.user-name-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 12rpx;
+  gap: 15rpx;
+}
+
 .user-name {
   font-size: 38rpx;
   font-weight: bold;
-  margin-bottom: 12rpx;
   display: block;
+}
+
+.user-id {
+  font-size: 24rpx;
+  color: #ff6b35;
+  background: #fff3e0;
+  padding: 6rpx 12rpx;
+  border-radius: 20rpx;
+  border: 1rpx solid #ffcc80;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.user-id:active {
+  background: #ffcc80;
+  transform: scale(0.95);
 }
 
 .user-signature {
@@ -345,4 +399,4 @@ page {
   background: linear-gradient(135deg, #ff6377, #ff6a9a);
   box-shadow: 0 2rpx 10rpx rgba(255, 118, 140, 0.4);
   transform: translate(-50%, -50%) scale(0.98);
-} 
+}

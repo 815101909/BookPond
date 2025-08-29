@@ -1,4 +1,4 @@
-# 晓世界小程序
+# 小舟摇书池小程序
 
 一个专注于多语言新闻阅读和翻译的小程序，帮助用户更好地了解世界。
 
@@ -114,3 +114,136 @@ miniprogram/
 2. 音频播放需要网络连接
 3. 打印功能需要连接打印机
 4. 部分功能可能需要微信最新版本支持 
+
+## 打卡功能实现
+
+### 数据库设计
+
+1. **用户表(jiuyu_users)**
+   - `checkinDays`: 连续打卡天数
+   - `totalCheckinDays`: 总打卡天数
+
+2. **打卡记录表(jiuyu_checkin_records)**
+   ```javascript
+   {
+     _id: 自动生成,
+     openid: 用户openID,
+     date: 打卡日期(YYYY-MM-DD格式)String,
+     timestamp: 打卡时间戳,
+     type: 打卡类型(手动/自动)String,
+     study_time: 当日学习时间(分钟) number,
+     created_at: 创建时间String
+   }
+   ```
+
+### 云函数接口
+
+1. **jiuyu_checkin**
+   - `checkIn`: 执行打卡
+     ```javascript
+     // 请求参数
+     {
+       type: 'checkIn',
+       study_time: 30, // 学习时间(分钟)
+       type: 'manual' // 'manual'或'auto'
+     }
+     
+     // 返回数据
+     {
+       code: 0,
+       msg: '打卡成功',
+       data: {
+         checkinDays: 22, // 连续打卡天数
+         totalCheckinDays: 46, // 总打卡天数
+         record: {
+           date: '2023-12-25',
+           timestamp: 1703491200000,
+           type: 'manual',
+           study_time: 30
+         }
+       }
+     }
+     ```
+
+   - `getCheckinRecords`: 获取打卡记录
+     ```javascript
+     // 请求参数
+     {
+       type: 'getCheckinRecords',
+       year: 2023, // 年份
+       month: 12 // 月份
+     }
+     
+     // 返回数据
+     {
+       code: 0,
+       msg: '获取成功',
+       data: {
+         checkinDays: 22,
+         totalCheckinDays: 46,
+         records: [
+           {
+             date: '2023-12-01',
+             timestamp: 1701360000000,
+             type: 'manual',
+             study_time: 45
+           },
+           // 更多记录...
+         ]
+       }
+     }
+     ```
+
+   - `getCheckinStats`: 获取打卡统计数据
+     ```javascript
+     // 请求参数
+     {
+       type: 'getCheckinStats'
+     }
+     
+     // 返回数据
+     {
+       code: 0,
+       msg: '获取成功',
+       data: {
+         checkinDays: 22,
+         totalCheckinDays: 46,
+         monthlyStats: {
+           '2023-12': 25, // 12月打卡25天
+           '2023-11': 30  // 11月打卡30天
+         }
+       }
+     }
+     ```
+
+### 打卡功能实现
+
+1. **打卡触发方式**
+   - 用户手动在日历页面点击"今日打卡"按钮
+   - 用户在个人页面通过打卡提示进行打卡
+   - 当日总学习时间达到30分钟时自动触发打卡
+
+2. **打卡规则**
+   - 每天只能打卡一次
+   - 只能打卡当天，不能补打卡
+   - 连续打卡天数在中断后重新从1开始计算
+
+3. **页面实现**
+   - 日历页面显示打卡记录和打卡按钮
+   - 个人页面显示打卡统计和快捷打卡入口
+   - 学习时间累计达到30分钟自动打卡
+
+### 使用方法
+
+1. 用户可以通过以下方式进行打卡：
+   - 在个人页面点击"打卡"图标
+   - 在日历页面点击"今日打卡"按钮
+   - 累计学习时间达到30分钟后自动打卡
+
+2. 打卡记录查看：
+   - 在个人页面点击"打卡"图标，查看日历视图
+   - 在日历页面查看详细的打卡记录
+
+3. 打卡统计：
+   - 个人页面显示连续打卡天数和总打卡天数
+   - 日历页面可查看月度打卡详情 

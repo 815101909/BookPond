@@ -246,7 +246,7 @@
               </view>
               <!-- 作者和日期信息 -->
               <view class="print-meta-info">
-                <view class="print-author">晓世界</view>
+                <view class="print-author">小舟摇书池</view>
                 <view class="print-date">{{newsDetail.publishDate}}</view>
                 <view class="print-difficulty">{{newsDetail.difficulty}}</view>
                 <view class="print-type">经典名著</view>
@@ -308,7 +308,7 @@
               </view>
               <!-- 作者和日期信息 -->
               <view class="print-meta-info">
-                <view class="print-author">晓世界</view>
+                <view class="print-author">小舟摇书池</view>
                 <view class="print-date">{{newsDetail.publishDate}}</view>
                 <view class="print-difficulty">{{newsDetail.difficulty}}</view>
                 <view class="print-type">经典名著</view>

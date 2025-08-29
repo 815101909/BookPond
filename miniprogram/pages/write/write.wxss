@@ -189,13 +189,21 @@ page {
 .top-controls {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 8rpx;
-  margin-top: -10rpx;
+  align-items: center; /* 垂直居中对齐 */
+  margin-bottom: 0rpx; /* 从8rpx改为0rpx，减少底部间距 */
+  margin-top: 10rpx; /* 从-10rpx改为10rpx，向下移动 */
   gap: 16rpx;
   background: #FFFFF0;
   border-radius: 12rpx;
   padding: 12rpx 16rpx;
+}
+
+/* 标题容器 */
+.title-container {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  flex: 1;
 }
 
 /* 学习素材标题 */
@@ -207,7 +215,10 @@ page {
   padding-left: 16rpx;
   position: relative;
   flex: 1;
-  margin-top: 20rpx;
+  margin-top: 0; /* 从20rpx改为0，移除顶部边距 */
+  line-height: 1.2; /* 添加行高控制 */
+  display: flex;
+  align-items: center; /* 垂直居中 */
 }
 
 .materials-title::before {
@@ -226,6 +237,9 @@ page {
 .date-picker-container {
   flex: 0 1 auto;
   max-width: 400rpx;
+  min-width: 200rpx;
+  display: flex;
+  align-items: center; /* 垂直居中 */
 }
 
 .date-picker {
@@ -236,6 +250,7 @@ page {
   border-radius: 16rpx;
   box-shadow: 0 2rpx 6rpx rgba(76, 175, 80, 0.15);
   gap: 8rpx;
+  width: 100%; /* 确保使用全部可用宽度 */
 }
 
 .date-label {
@@ -243,6 +258,7 @@ page {
   color: #333333;
   font-weight: 500;
   white-space: nowrap;
+  flex-shrink: 0; /* 防止标签被压缩 */
 }
 
 .date-value {
@@ -255,11 +271,13 @@ page {
   overflow: hidden;
   text-overflow: ellipsis;
   margin-left: 8rpx;
+  min-width: 100rpx; /* 确保日期值有足够的显示空间 */
 }
 
 .date-arrow {
   font-size: 18rpx;
   color: #FFC107;
+  flex-shrink: 0; /* 防止箭头被压缩 */
 }
 
 /* 语言选择器 */
@@ -297,7 +315,7 @@ page {
 /* 轮播文章列表区域 */
 .news-carousel-section {
   margin-bottom: 4rpx;
-  margin-top: 20rpx;
+  margin-top: 10rpx; /* 从20rpx改为10rpx，减少顶部间距 */
   border-radius: 12rpx;
   overflow: hidden;
   box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.1);
@@ -366,6 +384,15 @@ page {
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
+  margin-top: 10rpx;  /* 添加上边距 */
+  padding-right: 80rpx;  /* 为难度标签留出空间 */
+}
+
+.news-date {
+  font-size: 22rpx;
+  color: #666666;
+  margin-top: 8rpx;
+  display: block;
 }
 
 .empty-card {
@@ -544,7 +571,7 @@ page {
 }
 
 .prompt-button-text {
-  font-size: 28rpx;
+  font-size: 25rpx;
   color: #2E7D32;
   font-weight: 500;
 }
@@ -727,18 +754,6 @@ page {
   font-weight: bold;
   margin-bottom: 10px;
   color: #333;
-}
-
-.debug-info {
-  display: flex;
-  flex-direction: column;
-  font-size: 12px;
-  margin-bottom: 10px;
-  color: #666;
-}
-
-.debug-info text {
-  margin-bottom: 5px;
 }
 
 .debug-buttons {

@@ -6,7 +6,7 @@
       <text class="icon">🏆</text>
       <text class="title-text">擂台模式排行榜</text>
     </view>
-    <view class="header-subtitle">每月1号0时更新排名</view>
+    <view class="header-subtitle">每月1号0时更新排名 • 积分实时同步</view>
   </view>
   
   <!-- 切换标签 -->
@@ -129,9 +129,5 @@
     </view>
   </view>
   
-  <!-- 刷新按钮 -->
-  <view class="refresh-btn" bindtap="refreshRankings">
-    <text class="refresh-icon">🔄</text>
-    <text class="refresh-text">刷新排行</text>
-  </view>
-</view> 
+
+</view>

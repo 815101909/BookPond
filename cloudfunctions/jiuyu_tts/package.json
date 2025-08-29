@@ -1,0 +1,15 @@
+{
+  "name": "jiuyu_tts",
+  "version": "1.0.0",
+  "description": "九语小程序的TTS文本转语音云函数",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^0.26.1",
+    "wx-server-sdk": "~2.6.3"
+  }
+} 

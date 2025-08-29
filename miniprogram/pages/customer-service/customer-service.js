@@ -3,79 +3,55 @@ Page({
   data: {
     // 客服信息
     serviceInfo: {
-      email: 'xiao_shi_jie@126.com'
+      email: 'xiaoxiaovision@foxmail.com',
+      wechat: 'xiaovisiontogether' // 示例客服微信号
     },
-    // 客服微信二维码图片路径
-    qrCodeServiceUrl: '', // 空字符串，预留端口，将从后台加载
-    // 公众号二维码图片路径
-    qrCodeOfficialUrl: '', // 空字符串，预留端口，将从后台加载
-    // 是否正在加载二维码
-    isLoading: false
+    // 二维码相关数据
+    qrCodeOfficialUrl: '', // 公众号二维码临时链接
+    isLoading: true // 加载状态
   },
   
+  // 页面加载时执行
   onLoad: function() {
-    // 预留接口，从后台加载二维码
-    // this.fetchQrCodes();
+    this.loadQRCode();
   },
-  
-  // 从后台获取二维码数据 - 预留接口
-  fetchQrCodes: function() {
+
+  // 加载二维码
+  loadQRCode: async function() {
     const that = this;
+    const qrCodeCloudPath = 'cloud://cloud1-1gsyt78b92c539ef.636c-cloud1-1gsyt78b92c539ef-1370520707/wx_QR/20250810-155526.png';
     
-    // 显示加载提示
-    that.setData({
-      isLoading: true
-    });
-    
-    wx.showLoading({
-      title: '加载二维码...',
-    });
-    
-    // 实际项目中，从后台获取二维码URL的示例代码
-    /*
-    wx.request({
-      url: 'https://api.example.com/qrcodes',
-      method: 'GET',
-      success: function(res) {
-        if (res.statusCode === 200 && res.data) {
-          // 设置二维码URL
+    // 获取临时链接
+     // 跨环境创建 Cloud 实例
+      const cloudInstance = new wx.cloud.Cloud({
+        identityless: true,
+        resourceAppid: 'wx85d92d28575a70f4',
+        resourceEnv: 'cloud1-1gsyt78b92c539ef',
+      });
+      await cloudInstance.init();
+
+      await cloudInstance.getTempFileURL({
+      fileList: [qrCodeCloudPath],
+      success: res => {
+        console.log('获取临时链接成功:', res);
+        if (res.fileList && res.fileList.length > 0) {
           that.setData({
-            qrCodeServiceUrl: res.data.serviceQrCode || '',
-            qrCodeOfficialUrl: res.data.officialQrCode || '',
+            qrCodeOfficialUrl: res.fileList[0].tempFileURL,
             isLoading: false
           });
         } else {
-          that.handleFetchError();
+          console.error('获取临时链接失败');
+          that.setData({
+            isLoading: false
+          });
         }
       },
-      fail: function(err) {
-        that.handleFetchError();
-      },
-      complete: function() {
-        wx.hideLoading();
+      fail: err => {
+        console.error('获取临时链接失败:', err);
+        that.setData({
+          isLoading: false
+        });
       }
-    });
-    */
-    
-    // 演示用，可在后台上传后替换
-    setTimeout(function() {
-      wx.hideLoading();
-      that.setData({
-        isLoading: false
-        // 二维码URL将从后台获取
-      });
-    }, 1000);
-  },
-  
-  // 处理获取二维码失败
-  handleFetchError: function() {
-    this.setData({
-      isLoading: false
-    });
-    
-    wx.showToast({
-      title: '获取二维码失败',
-      icon: 'none'
     });
   },
   
@@ -90,5 +66,34 @@ Page({
         });
       }
     });
+  },
+
+  // 复制微信到剪贴板
+  copyWeChat: function() {
+    wx.setClipboardData({
+      data: this.data.serviceInfo.wechat,
+      success: function() {
+        wx.showToast({
+          title: '微信号已复制',
+          icon: 'success'
+        });
+      }
+    });
+  },
+
+  // 预览二维码
+  previewQRCode: function() {
+    const qrCodeUrl = this.data.qrCodeOfficialUrl;
+    if (qrCodeUrl) {
+      wx.previewImage({
+        current: qrCodeUrl, // 当前显示图片的http链接
+        urls: [qrCodeUrl] // 需要预览的图片http链接列表
+      });
+    } else {
+      wx.showToast({
+        title: '二维码未加载',
+        icon: 'none'
+      });
+    }
   }
-}) 
+})

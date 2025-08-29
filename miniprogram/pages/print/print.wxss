@@ -16,6 +16,9 @@
   background: rgba(255, 255, 255, 0.95);
   padding: 20rpx 30rpx;
   box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .language-picker {
@@ -37,6 +40,16 @@
 .picker-arrow {
   font-size: 20rpx;
   color: #666;
+}
+
+/* 页码指示器 */
+.page-indicator {
+  font-size: 28rpx;
+  color: #666;
+  padding: 10rpx 20rpx;
+  background: #F8FFF8;
+  border-radius: 30rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
 }
 
 /* 主要内容区域 */
@@ -72,6 +85,88 @@
   width: 100%;
   height: 100%;
   display: block;
+  transition: opacity 0.2s ease;
+}
+
+.print-image:active {
+  opacity: 0.8;
+}
+
+/* 无打印内容提示 */
+.no-print-content {
+  width: 100%;
+  height: 100%;
+  min-height: 1060rpx;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 40rpx;
+  box-sizing: border-box;
+  background: linear-gradient(to bottom, #ffffff, #f8f8f8);
+}
+
+.empty-illustration {
+  width: 280rpx;
+  height: 280rpx;
+  margin-bottom: 40rpx;
+}
+
+.no-print-message {
+  font-size: 36rpx;
+  color: #333;
+  font-weight: 500;
+  margin-bottom: 24rpx;
+  text-align: center;
+  position: relative;
+  padding-bottom: 30rpx;
+}
+
+.no-print-message::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60rpx;
+  height: 4rpx;
+  background: linear-gradient(to right, #8cc751, #a0d468);
+  border-radius: 4rpx;
+}
+
+.no-print-tip {
+  font-size: 28rpx;
+  color: #888;
+  text-align: center;
+  line-height: 1.5;
+  margin-top: 10rpx;
+  animation: fadeInUp 0.8s ease forwards;
+  opacity: 0;
+  transform: translateY(20rpx);
+  animation-delay: 0.3s;
+}
+
+/* 图片导航按钮 */
+.image-nav {
+  display: flex;
+  justify-content: space-between;
+  width: 80%;
+  margin-top: -20rpx;
+}
+
+.nav-button {
+  padding: 15rpx 40rpx;
+  background: #F8FFF8;
+  color: #666;
+  font-size: 28rpx;
+  border-radius: 30rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+}
+
+.nav-button:active {
+  background: #E8F5E9;
+  transform: scale(0.98);
 }
 
 /* 底部文字区域 */

@@ -1,6 +1,7 @@
 {
   "description": "项目配置文件",
   "miniprogramRoot": "miniprogram/",
+  "cloudfunctionRoot": "cloudfunctions/",
   "compileType": "miniprogram",
   "setting": {
     "useCompilerPlugins": [
@@ -32,7 +33,8 @@
     "condition": false,
     "swc": false,
     "disableSWC": true,
-    "disableUseStrict": false
+    "disableUseStrict": false,
+    "useCloudFunction": true
   },
   "simulatorType": "wechat",
   "simulatorPluginLibVersion": {},
@@ -47,5 +49,7 @@
     "ignore": [],
     "include": []
   },
-  "appid": "wxc261eb8a2ae237f1"
+  "appid": "wxe178865217b0c046",
+  "cloudfunctionTemplateRoot": "cloudfunctionTemplate/",
+  "cloudbaseRoot": "cloudbase/"
 }

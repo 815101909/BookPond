@@ -1,4 +1,7 @@
 // 排行榜页面
+// 引入跨环境云函数调用工具
+const { pointsAPI } = require('../../utils/cloud-api.js');
+
 Page({
   data: {
     // 当前选中的标签页
@@ -25,7 +28,10 @@ Page({
     monthlyRankings: [],
     
     // 虚拟用户数据
-    virtualUsers: []
+    virtualUsers: [],
+    
+    // 本地存储监听定时器
+    storageListener: null
   },
 
   onLoad: function() {
@@ -59,9 +65,22 @@ Page({
       // 每次页面显示时刷新数据
       this.loadUserPoints();
       this.loadRankingData();
+      
+      // 启动本地存储监听
+      this.startStorageListener();
     } catch (error) {
       console.error('排行榜页面显示错误:', error);
     }
+  },
+  
+  onHide: function() {
+    // 停止本地存储监听
+    this.stopStorageListener();
+  },
+  
+  onUnload: function() {
+    // 停止本地存储监听
+    this.stopStorageListener();
   },
   
   // 下拉刷新
@@ -76,27 +95,32 @@ Page({
   
   // 加载用户积分数据
   loadUserPoints: function() {
-    wx.getStorage({
-      key: 'user_points',
-      success: (res) => {
-        const pointsData = res.data;
-        
-        if (pointsData) {
-          this.setData({
-            todayPoints: pointsData.todayPoints || 0,
-            monthPoints: pointsData.monthPoints || 0
-          });
-          console.log('加载到的用户积分:', pointsData);
-        }
-      },
-      fail: () => {
-        // 如果没有存储数据，使用默认值
-        this.setData({
-          todayPoints: 0,
-          monthPoints: 0
-        });
-        console.log('未找到积分数据，使用默认值0');
+    // 从听一听页面的本地存储中读取今日积分
+    const todayListenPoints = wx.getStorageSync('todayListenPoints') || 0;
+    
+    // 从云端获取总积分作为月积分的基础
+    pointsAPI.getUserPoints().then(res => {
+      console.log('获取用户积分结果:', res);
+      let monthPoints = 0;
+      if (res.result && res.result.code === 0 && res.result.data) {
+        const userData = res.result.data;
+        monthPoints = userData.listen_points || 0; // 使用总积分作为月积分
       }
+      
+      this.setData({
+        todayPoints: todayListenPoints, // 今日积分从听一听本地存储获取
+        monthPoints: monthPoints // 月积分使用总积分
+      });
+      
+      console.log('加载到的用户积分:', { todayPoints: todayListenPoints, monthPoints: monthPoints });
+    }).catch(err => {
+      console.error('获取用户积分出错', err);
+      // 如果云函数调用失败，至少显示今日积分
+      this.setData({
+        todayPoints: todayListenPoints,
+        monthPoints: 0
+      });
+      console.log('云函数调用失败，使用本地今日积分:', todayListenPoints);
     });
   },
   
@@ -107,6 +131,9 @@ Page({
       wx.showLoading({
         title: '加载排行数据',
       });
+      
+      // 获取最新的积分数据
+      const currentTodayPoints = wx.getStorageSync('todayListenPoints') || 0;
       
       // 生成虚拟用户
       const virtualUsers = this.generateVirtualUsers(100);
@@ -130,7 +157,7 @@ Page({
         nickName: this.data.userInfo.nickName || '晓学者',
         avatarUrl: this.data.userInfo.avatarUrl || '',
         avatarColor: this.data.userInfo.avatarColor || '#4ECDC4',
-        points: this.data.todayPoints,
+        points: currentTodayPoints, // 使用最新的今日积分
         isMe: true
       });
       
@@ -150,7 +177,7 @@ Page({
         nickName: this.data.userInfo.nickName || '晓学者',
         avatarUrl: this.data.userInfo.avatarUrl || '',
         avatarColor: this.data.userInfo.avatarColor || '#4ECDC4',
-        points: this.data.monthPoints,
+        points: this.data.monthPoints || 0, // 使用当前的月积分
         isMe: true
       });
       
@@ -197,6 +224,38 @@ Page({
   // 生成虚拟用户数据
   generateVirtualUsers: function(count) {
     try {
+      const today = new Date();
+      
+      // 为日积分生成基于日期的种子（每天刷新）
+      const dailyDateString = `${today.getFullYear()}-${today.getMonth()}-${today.getDate()}`;
+      let dailySeed = 0;
+      for (let i = 0; i < dailyDateString.length; i++) {
+        dailySeed = ((dailySeed << 5) - dailySeed + dailyDateString.charCodeAt(i)) & 0xffffffff;
+      }
+      
+      // 为月积分生成基于月份的种子（每月刷新）
+      const monthlyDateString = `${today.getFullYear()}-${today.getMonth()}`;
+      let monthlySeed = 0;
+      for (let i = 0; i < monthlyDateString.length; i++) {
+        monthlySeed = ((monthlySeed << 5) - monthlySeed + monthlyDateString.charCodeAt(i)) & 0xffffffff;
+      }
+      
+      // 基于日期种子的伪随机数生成器（用于日积分）
+      const dailySeededRandom = (function(seed) {
+        return function() {
+          seed = (seed * 9301 + 49297) % 233280;
+          return seed / 233280;
+        };
+      })(Math.abs(dailySeed));
+      
+      // 基于月份种子的伪随机数生成器（用于月积分）
+      const monthlySeededRandom = (function(seed) {
+        return function() {
+          seed = (seed * 9301 + 49297) % 233280;
+          return seed / 233280;
+        };
+      })(Math.abs(monthlySeed));
+      
       // 用户名列表 - 多样化的名字
       const usernames = [
         // 英文名/网名
@@ -285,10 +344,10 @@ Page({
       const usedNames = new Set(); // 防止名称重复
       
       for (let i = 0; i < count; i++) {
-        // 随机选择用户名
+        // 使用月份种子选择用户名（确保每月用户名固定）
         let username;
         do {
-          const randomNameIndex = Math.floor(Math.random() * usernames.length);
+          const randomNameIndex = Math.floor(monthlySeededRandom() * usernames.length);
           username = usernames[randomNameIndex];
         } while (usedNames.has(username) && usedNames.size < usernames.length);
         
@@ -306,22 +365,22 @@ Page({
           if (pattern === 0) {
             // 3的倍数 (0-108)
             const max = Math.floor(110 / 3);
-            const multiplier = Math.floor(Math.random() * (max + 1));
+            const multiplier = Math.floor(dailySeededRandom() * (max + 1));
             points = multiplier * 3;
           } else if (pattern === 1) {
             // 5的倍数 (0-110)
             const max = Math.floor(110 / 5);
-            const multiplier = Math.floor(Math.random() * (max + 1));
+            const multiplier = Math.floor(dailySeededRandom() * (max + 1));
             points = multiplier * 5;
           } else if (pattern === 2) {
             // 8的倍数 (0-104)
             const max = Math.floor(110 / 8);
-            const multiplier = Math.floor(Math.random() * (max + 1));
+            const multiplier = Math.floor(dailySeededRandom() * (max + 1));
             points = multiplier * 8;
           } else {
             // 7的倍数 (0-105)
             const max = Math.floor(110 / 7);
-            const multiplier = Math.floor(Math.random() * (max + 1));
+            const multiplier = Math.floor(dailySeededRandom() * (max + 1));
             points = multiplier * 7;
           }
           
@@ -339,25 +398,25 @@ Page({
             // 找到550和3550之间的3的倍数范围
             const minMultiplier = Math.ceil(550 / 3);
             const maxMultiplier = Math.floor(3550 / 3);
-            const multiplier = Math.floor(Math.random() * (maxMultiplier - minMultiplier + 1)) + minMultiplier;
+            const multiplier = Math.floor(monthlySeededRandom() * (maxMultiplier - minMultiplier + 1)) + minMultiplier;
             points = multiplier * 3;
           } else if (pattern === 1) {
             // 5的倍数 (550-3550)
             const minMultiplier = Math.ceil(550 / 5);
             const maxMultiplier = Math.floor(3550 / 5);
-            const multiplier = Math.floor(Math.random() * (maxMultiplier - minMultiplier + 1)) + minMultiplier;
+            const multiplier = Math.floor(monthlySeededRandom() * (maxMultiplier - minMultiplier + 1)) + minMultiplier;
             points = multiplier * 5;
           } else if (pattern === 2) {
             // 8的倍数 (552-3544)
             const minMultiplier = Math.ceil(550 / 8);
             const maxMultiplier = Math.floor(3550 / 8);
-            const multiplier = Math.floor(Math.random() * (maxMultiplier - minMultiplier + 1)) + minMultiplier;
+            const multiplier = Math.floor(monthlySeededRandom() * (maxMultiplier - minMultiplier + 1)) + minMultiplier;
             points = multiplier * 8;
             } else {
             // 7的倍数 (553-3549)
             const minMultiplier = Math.ceil(550 / 7);
             const maxMultiplier = Math.floor(3550 / 7);
-            const multiplier = Math.floor(Math.random() * (maxMultiplier - minMultiplier + 1)) + minMultiplier;
+            const multiplier = Math.floor(monthlySeededRandom() * (maxMultiplier - minMultiplier + 1)) + minMultiplier;
             points = multiplier * 7;
           }
           
@@ -369,7 +428,7 @@ Page({
         monthlyPoints = generateMonthlyPoints();
         
         // 随机颜色
-        const colorIndex = Math.floor(Math.random() * colors.length);
+        const colorIndex = Math.floor(monthlySeededRandom() * colors.length);
         
         // 为每个虚拟用户存储日积分和月积分
         users.push({
@@ -388,12 +447,15 @@ Page({
     } catch (error) {
       console.error('生成虚拟用户错误:', error);
       // 返回一组基本的虚拟用户，确保即使出错也有数据显示
+      // 使用简单的基于日期的随机数
+      const today = new Date();
+      const simpleSeed = today.getDate() + today.getMonth() * 31;
       return Array(20).fill(null).map((_, i) => ({
         userId: `virtual_user_backup_${i}`,
         nickName: `用户${i+1}`,
         avatarUrl: '',
         avatarColor: '#4ECDC4',
-        points: Math.floor(Math.random() * 100) + 1,
+        points: ((simpleSeed + i * 7) % 100) + 1,
         isMe: false
       }));
     }
@@ -477,5 +539,49 @@ Page({
       console.error('刷新排行榜错误:', error);
       wx.hideLoading();
     }
+  },
+  
+  // 启动本地存储监听
+   startStorageListener: function() {
+     // 清除之前的监听器
+     if (this.data.storageListener) {
+       clearInterval(this.data.storageListener);
+     }
+     
+     // 设置定时器监听本地存储变化
+     const listener = setInterval(() => {
+       try {
+         // 检查今日积分是否有变化
+         const currentTodayPoints = wx.getStorageSync('todayListenPoints') || 0;
+         
+         if (currentTodayPoints !== this.data.todayPoints) {
+           console.log('检测到今日积分变化:', currentTodayPoints, '之前:', this.data.todayPoints);
+           
+           // 立即更新页面显示的积分
+           this.setData({
+             todayPoints: currentTodayPoints
+           });
+           
+           // 更新排行榜数据，确保列表中的积分也同步
+           this.loadRankingData();
+         }
+       } catch (error) {
+         console.error('本地存储监听错误:', error);
+       }
+     }, 1000); // 每1秒检查一次，提高响应速度
+     
+     this.setData({
+       storageListener: listener
+     });
+   },
+  
+  // 停止本地存储监听
+  stopStorageListener: function() {
+    if (this.data.storageListener) {
+      clearInterval(this.data.storageListener);
+      this.setData({
+        storageListener: null
+      });
+    }
   }
-}) 
+})

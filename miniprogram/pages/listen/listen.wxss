@@ -1313,6 +1313,8 @@ page {
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
+  text-align: center;
+  margin-top: 40rpx;
 }
 
 /* 控制区域 */
@@ -1969,4 +1971,38 @@ page {
   text-align: center;
   line-height: 1.4;
   font-weight: normal;
+}
+
+/* 没有内容提示样式 */
+.no-content-tip {
+  background-color: #FFFFFF;
+  border-radius: 16rpx;
+  padding: 60rpx 24rpx;
+  margin-top: 16rpx;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.08);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 300rpx;
+}
+
+.no-content-icon {
+  font-size: 80rpx;
+  margin-bottom: 20rpx;
+  color: #BDBDBD;
+}
+
+.no-content-text {
+  font-size: 32rpx;
+  color: #757575;
+  font-weight: bold;
+  margin-bottom: 16rpx;
+  text-align: center;
+}
+
+.no-content-subtext {
+  font-size: 28rpx;
+  color: #9E9E9E;
+  text-align: center;
 }

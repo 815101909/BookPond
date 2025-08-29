@@ -81,6 +81,16 @@
   background-color: rgba(156, 39, 176, 0.1);
 }
 
+/* 已复习标记样式 */
+.reviewed-tag {
+  font-size: 24rpx;
+  color: #4caf50;
+  background-color: rgba(76, 175, 80, 0.1);
+  padding: 4rpx 12rpx;
+  border-radius: 8rpx;
+  margin-left: 10rpx;
+}
+
 .error-date {
   font-size: 24rpx;
   color: #999;

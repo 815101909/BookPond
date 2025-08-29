@@ -6,11 +6,38 @@ Page({
   },
 
   onLoad: function(options) {
-    const messageId = options.id;
-    this.loadMessageById(messageId);
+    if (options.messageData) {
+      try {
+        const message = JSON.parse(decodeURIComponent(options.messageData));
+        this.loadMessage(message);
+      } catch (error) {
+        console.error('解析消息数据失败:', error);
+        this.showErrorAndGoBack();
+      }
+    } else if (options.id) {
+      // 兼容旧的方式，从本地存储查找
+      this.loadMessageById(options.id);
+    } else {
+      this.showErrorAndGoBack();
+    }
   },
 
-  // 加载指定ID的消息
+  // 加载消息数据
+  loadMessage: function(message) {
+    // 格式化日期显示
+    const timestamp = message.timestamp || Date.now();
+    const dateObj = new Date(timestamp);
+    const formattedDate = `${dateObj.getFullYear()}年${dateObj.getMonth() + 1}月${dateObj.getDate()}日 ${dateObj.getHours()}:${String(dateObj.getMinutes()).padStart(2, '0')}`;
+    
+    message.formattedDate = formattedDate;
+    
+    this.setData({
+      message: message,
+      loading: false
+    });
+  },
+
+  // 加载指定ID的消息（兼容旧方式）
   loadMessageById: function(messageId) {
     // 获取所有消息
     const allMessages = wx.getStorageSync('messengerStationMessages') || [];
@@ -19,32 +46,28 @@ Page({
     const message = allMessages.find(msg => msg.id === messageId);
     
     if (message) {
-      // 格式化日期显示
-      const dateObj = new Date(message.timestamp);
-      const formattedDate = `${dateObj.getFullYear()}年${dateObj.getMonth() + 1}月${dateObj.getDate()}日 ${dateObj.getHours()}:${String(dateObj.getMinutes()).padStart(2, '0')}`;
-      
-      message.formattedDate = formattedDate;
-      
-      this.setData({
-        message: message,
-        loading: false
-      });
+      this.loadMessage(message);
     } else {
-      this.setData({
-        loading: false
-      });
-      
-      wx.showToast({
-        title: '找不到该消息',
-        icon: 'none',
-        duration: 2000
-      });
-      
-      // 延迟返回上一页
-      setTimeout(() => {
-        wx.navigateBack();
-      }, 2000);
+      this.showErrorAndGoBack();
     }
+  },
+
+  // 显示错误并返回
+  showErrorAndGoBack: function() {
+    this.setData({
+      loading: false
+    });
+    
+    wx.showToast({
+      title: '找不到该消息',
+      icon: 'none',
+      duration: 2000
+    });
+    
+    // 延迟返回上一页
+    setTimeout(() => {
+      wx.navigateBack();
+    }, 2000);
   },
 
   // 返回上一页
@@ -85,4 +108,4 @@ Page({
       }
     });
   }
-}); 
+});

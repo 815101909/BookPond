@@ -1124,7 +1124,7 @@ picker .tab {
   font-size: 80rpx;
   color: rgba(0,0,0,0.03);
   white-space: pre;
-  content: "晓世界\A xiaoshijie";
+  content: "小舟摇书池\A xiaoshijie";
   font-family: "Source Han Serif", "Noto Serif SC", "思源宋体", serif;
   line-height: 1.2;
   pointer-events: none;

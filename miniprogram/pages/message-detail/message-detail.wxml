@@ -1,13 +1,17 @@
 <!-- 消息详情页面 -->
 <view class="container">
-  <!-- 顶部返回栏 -->
+  <!-- 顶部导航栏 -->
   <view class="header">
+    <view class="header-placeholder"></view>
+    <view class="header-title">消息详情</view>
+  </view>
+
+  <!-- 返回按钮区域 -->
+  <view class="back-section">
     <view class="back-btn" bindtap="goBack">
       <text class="back-icon">←</text>
       <text class="back-text">返回</text>
     </view>
-    <view class="header-title">写作详情</view>
-    <view class="delete-btn" bindtap="deleteMessage">删除</view>
   </view>
 
   <!-- 加载中 -->
@@ -22,7 +26,7 @@
     <view class="message-meta">
       <view class="message-title">{{message.title || '我的写作'}}</view>
       <view class="message-time">{{message.formattedDate}}</view>
-      <view class="message-type">{{message.source || '写作分享'}}</view>
+      <view class="message-type">{{message.source === 'time_capsule' ? '时光宝盒' : '写作宝箱'}}</view>
     </view>
 
     <!-- 分隔线 -->
@@ -30,7 +34,7 @@
 
     <!-- 消息内容 -->
     <view class="message-content">
-      <text class="content-text">{{message.content}}</text>
+      <text class="content-text">{{message.content || '暂无内容'}}</text>
     </view>
 
     <!-- 相关文章（如果有） -->
@@ -38,7 +42,7 @@
       <view class="related-title">写作来源</view>
       <view class="article-card">
         <view class="article-title">《{{message.title}}》</view>
-        <view class="article-date">{{message.date}}</view>
+        <view class="article-date">{{message.formattedDate}}</view>
       </view>
     </view>
   </view>
@@ -48,4 +52,4 @@
     <image class="empty-icon" src="/images/empty.png" mode="aspectFit"></image>
     <text class="empty-text">找不到该消息</text>
   </view>
-</view> 
+</view>

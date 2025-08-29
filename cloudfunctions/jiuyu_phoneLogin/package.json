@@ -1,0 +1,9 @@
+{
+  "name": "jiuyu_phoneLogin",
+  "version": "1.0.0",
+  "description": "九鱼小程序手机号登录云函数",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}

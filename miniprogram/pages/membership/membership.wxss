@@ -5,7 +5,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  background-color: #FFFFFF;
+  background-color: #FFFBE6;
   position: relative;
   overflow: hidden;
   padding: 0;
@@ -24,7 +24,7 @@
 /* A4宣传区域样式 - 放大 */
 .promo-area {
   width: 100%;
-  height: 65vh;
+  height: 80vh;
   background-color: #F8F8F8;
   overflow: hidden;
 }
@@ -61,7 +61,7 @@
 .bottom-section {
   width: 100%;
   padding: 25rpx 30rpx 30rpx;
-  background-color: #FFFFFF;
+  background-color: #FFFBE6;
   border-top-left-radius: 30rpx;
   border-top-right-radius: 30rpx;
   box-shadow: 0 -4rpx 20rpx rgba(0, 0, 0, 0.05);
@@ -131,6 +131,15 @@
   font-weight: 600;
   color: #FF87B5;
   margin-bottom: 8rpx; /* 减小间距 */
+  text-align: center;
+}
+
+.original-price {
+  font-size: 22rpx;
+  color: #999;
+  text-decoration: line-through;
+  margin-top: -5rpx; /* 调整与当前价格的间距 */
+  margin-bottom: 5rpx;
   text-align: center;
 }
 
@@ -243,7 +252,7 @@
   padding: 10rpx 40rpx;
   border-radius: 30rpx;
   border: none;
-} 
+}
  
  
  

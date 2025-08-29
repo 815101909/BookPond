@@ -279,7 +279,7 @@ app.post('/api/admin/users/:id/reset-password', (req, res) => {
 app.get('/api/admin/settings', (req, res) => {
   // 模拟系统配置数据
   const settings = {
-    appName: '九域语言学习',
+    appName: '小舟摇书池语言学习',
     siteLogo: '/images/logo.png',
     supportedLanguages: [
       { code: 'zh-CN', name: '中文（简体）', isDefault: true },
@@ -306,7 +306,7 @@ app.put('/api/admin/settings', (req, res) => {
     success: true,
     message: '系统设置已更新',
     settings: {
-      appName: appName || '九域语言学习',
+      appName: appName || '小舟摇书池语言学习',
       siteLogo: siteLogo || '/images/logo.png',
       defaultPageSize: defaultPageSize || 10,
       enableUserRegistration: enableUserRegistration !== undefined ? enableUserRegistration : true,

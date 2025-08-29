@@ -1,3 +1,74 @@
+// 通用临时链接处理函数
+async function getTemporaryFileUrl(fileUrl, type = 'file') {
+  if (!fileUrl) {
+    console.log(`${type}链接为空，使用占位内容`);
+    return getPlaceholderUrl(type);
+  }
+
+  try {
+    if (fileUrl.startsWith('cloud://')) {
+      try {
+        // 确保全局 wx.cloud 已初始化
+        if (!wx.cloud._initialized) {
+          await new Promise((resolve) => {
+            wx.cloud.init({
+              env: 'cloud1-1gsyt78b92c539ef',
+              traceUser: true
+            });
+            setTimeout(resolve, 1000); // 等待初始化完成
+          });
+        }
+
+        // 跨环境创建 Cloud 实例
+        const cloudInstance = new wx.cloud.Cloud({
+          identityless: true,
+          resourceAppid: 'wx85d92d28575a70f4',
+          resourceEnv: 'cloud1-1gsyt78b92c539ef',
+        });
+        await cloudInstance.init();
+
+        const result = await cloudInstance.getTempFileURL({
+          fileList: [fileUrl],
+        });
+
+        if (result.fileList?.[0]?.tempFileURL) {
+          return result.fileList[0].tempFileURL;
+        } else {
+          console.error(`${type}云链接转换失败:`, result);
+          return getPlaceholderUrl('error_' + type);
+        }
+      } catch (err) {
+        console.error(`${type}云链接转换异常:`, err);
+        return getPlaceholderUrl('error_' + type);
+      }
+    }
+
+    if (fileUrl.startsWith('http')) {
+      console.log(`${type}链接为HTTP地址:`, fileUrl);
+      return fileUrl;
+    }
+
+    console.log(`${type}链接格式未知，使用占位内容。原始链接:`, fileUrl);
+    return getPlaceholderUrl(type);
+  } catch (error) {
+    console.error(`处理${type}链接时出错:`, error);
+    return getPlaceholderUrl('error_' + type);
+  }
+}
+
+// 占位符链接生成函数
+function getPlaceholderUrl(type) {
+  if (type.includes('image')) {
+    return `https://via.placeholder.com/800x600.png?text=${type}`;
+  } else if (type.includes('audio')) {
+    return `https://dummyimage.com/600x100/cccccc/000000&text=Audio+Placeholder`;
+  } else if (type.includes('video')) {
+    return `https://dummyimage.com/800x450/aaaaaa/000000&text=Video+Placeholder`;
+  } else {
+    return `https://dummyimage.com/600x100/999999/ffffff&text=File+${type}`;
+  }
+}
+
 // 文章详情页逻辑
 Page({
   /**
@@ -73,7 +144,7 @@ Page({
 
       // 根据ID获取文章
       const article = articleData[that.data.articleId];
-      
+
       if (article) {
         that.setData({
           article: article,
@@ -100,7 +171,7 @@ Page({
       const favorites = wx.getStorageSync('favoriteArticles') || [];
       // 检查当前文章是否在收藏列表中
       const isFavorite = favorites.some(item => item.id === this.data.articleId);
-      
+
       this.setData({
         isFavorite: isFavorite
       });
@@ -114,15 +185,15 @@ Page({
    */
   toggleFavorite: function () {
     if (!this.data.article) return;
-    
+
     try {
       // 获取当前收藏列表
       let favorites = wx.getStorageSync('favoriteArticles') || [];
       const articleId = this.data.article.id;
-      
+
       // 检查是否已收藏
       const index = favorites.findIndex(item => item.id === articleId);
-      
+
       if (index > -1) {
         // 已收藏，取消收藏
         favorites.splice(index, 1);
@@ -151,7 +222,7 @@ Page({
           icon: 'success'
         });
       }
-      
+
       // 保存更新后的收藏列表
       wx.setStorageSync('favoriteArticles', favorites);
     } catch (e) {
@@ -188,4 +259,4 @@ Page({
       path: '/pages/read/read'
     };
   }
-}) 
+})

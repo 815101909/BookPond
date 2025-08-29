@@ -39,7 +39,7 @@
             range-key="name"
           >
             <view class="picker">
-              <text wx:if="{{selectedLanguage1}}">{{selectedLanguage1.flag}} {{selectedLanguage1.name}}</text>
+              <text wx:if="{{selectedLanguage1}}">{{selectedLanguage1.name}}</text>
               <text wx:else>请选择语言</text>
             </view>
           </picker>
@@ -53,7 +53,7 @@
             range-key="name"
           >
             <view class="picker">
-              <text wx:if="{{selectedLanguage2}}">{{selectedLanguage2.flag}} {{selectedLanguage2.name}}</text>
+              <text wx:if="{{selectedLanguage2}}">{{selectedLanguage2.name}}</text>
               <text wx:else>请选择语言</text>
             </view>
           </picker>
@@ -63,8 +63,14 @@
 
     <!-- 当日新闻展示区 -->
     <view class="daily-news-showcase">
-      <view class="daily-news-image" bindtap="onNewsTap" data-id="{{dailyNews.id}}">
-        <image src="{{dailyNews.cover}}" mode="aspectFill"></image>
+      <view class="daily-news-image" bindtap="onNewsTap" data-id="{{dailyNews._id}}">
+        <image 
+          src="{{dailyNews.cover_url}}" 
+          mode="aspectFill"
+          binderror="handleImageError"
+          data-type="daily"
+          data-index="-1"
+        ></image>
         <view class="daily-news-marquee">
           <view class="marquee-label">今日动态</view>
           <view class="marquee-divider">|</view>
@@ -85,14 +91,29 @@
       <view class="news-content" wx:if="{{currentTab === 'daily'}}">
         <view class="section-subtitle" style="transform: translateY(-8rpx);">文章列表｜文化速递，世界窗口</view>
         <scroll-view class="news-scroll" scroll-y enable-flex>
-          <view class="news-item" wx:for="{{newsList}}" wx:key="id" bindtap="onNewsTap" data-id="{{item.id}}">
-            <image class="news-cover" src="{{item.cover}}" mode="aspectFill"></image>
+          <!-- 空数据提示 -->
+          <view class="empty-hint" wx:if="{{!loading && newsList.length === 0}}">
+            <view class="empty-icon">📭</view>
+            <view class="empty-text">暂无文章数据</view>
+            <view class="empty-subtext">请稍后再试或更换筛选条件</view>
+          </view>
+          
+          <view class="news-item" wx:for="{{newsList}}" wx:key="id" bindtap="onNewsTap" data-id="{{item._id}}">
+            <image 
+              class="news-cover" 
+              src="{{item.cover_url}}" 
+              mode="aspectFill"
+              binderror="handleImageError"
+              data-type="list"
+              data-index="{{index}}"
+            ></image>
             <view class="news-info">
+              <!-- 只显示中文标题 -->
               <view class="news-title">{{item.title}}</view>
+              
               <view class="news-meta">
                 <text class="news-category">{{item.category}}</text>
-                <text class="news-country">{{item.country}}</text>
-                <text class="news-date">{{item.date}}</text>
+                <text class="news-date">{{item.create_time}}</text>
               </view>
             </view>
           </view>

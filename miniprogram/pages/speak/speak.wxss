@@ -691,12 +691,15 @@ page {
   border-radius: 16rpx;
   box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
   margin-top: 30rpx;  /* 从10rpx增加到30rpx */
+  flex-wrap: wrap;
+  gap: 8rpx;
 }
 
 /* 统一的按钮样式，确保完全相同的尺寸 */
 .record-control,
 .playback-control,
-.save-button {
+.save-button,
+.subtitle-button {
   width: 120rpx !important;
   height: 90rpx !important; /* 从100rpx减小到90rpx，使整体更紧凑 */
   min-width: 120rpx !important;
@@ -1045,14 +1048,14 @@ page {
 
 .flowers-swiper {
   width: 100%;
-  height: 350rpx; /* 增加高度适应新花朵标记 */
+  height: 400rpx; /* 增加高度适应花语显示 */
   padding: 10rpx 0;
 }
 
 /* 轮播中的花朵项样式 */
 .flowers-swiper .flower-item {
   width: 90%;
-  height: 280rpx;
+  height: 320rpx;
   margin: 0 auto;
   background-color: rgba(255, 255, 255, 0.9);
   border-radius: 20rpx;
@@ -1061,9 +1064,9 @@ page {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
   position: relative;
-  overflow: hidden;
+  overflow: visible;
   transition: all 0.3s ease;
   transform: scale(0.95);
   animation: gentle-glow 3s infinite ease-in-out;
@@ -1089,16 +1092,34 @@ page {
   margin-bottom: 10rpx;
 }
 
+/* 花语容器样式 */
+.flowers-swiper .flower-meaning-container {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1rpx solid rgba(255, 135, 181, 0.3);
+  border-radius: 12rpx;
+  padding: 12rpx 16rpx;
+  margin-top: 8rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.1);
+  animation: fade-in 0.5s ease-in;
+}
+
 .flowers-swiper .flower-meaning {
   font-size: 24rpx;
   color: #666;
   display: block;
   line-height: 1.5;
-  max-height: 100rpx;
-  overflow: hidden;
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
+  text-align: center;
+  letter-spacing: 0.5rpx;
+  text-shadow: 0 1rpx 2rpx rgba(0, 0, 0, 0.1);
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+/* 花语淡入动画 */
+@keyframes fade-in {
+  0% { opacity: 0; transform: translateY(10rpx); }
+  100% { opacity: 1; transform: translateY(0); }
 }
 
 /* 轮播指示点自定义样式 */

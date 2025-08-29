@@ -14,7 +14,9 @@
           <!-- 顶部控制区域 -->
           <view class="top-controls">
             <!-- 来信内容标题 -->
-            <text class="materials-title">来信内容</text>
+            <view class="title-container">
+              <text class="materials-title">来信内容</text>
+            </view>
             
             <!-- 日期选择器 -->
             <view class="date-picker-container">
@@ -30,34 +32,40 @@
 
           <!-- 轮播文章列表区域 -->
           <view class="news-carousel-section">
-            <swiper class="news-swiper" autoplay="{{true}}" interval="3000" circular="{{true}}" indicator-dots="{{true}}" indicator-color="rgba(0, 0, 0, 0.2)" indicator-active-color="#4CAF50">
-              <!-- 萌芽岛文章 (只显示第一篇) -->
-              <swiper-item wx:if="{{sproutNews.length > 0}}" bindtap="onNewsSelect" data-id="{{sproutNews[0].id}}" data-level="sprout">
-                <view class="news-card">
-                  <view class="difficulty-badge">
-                    <text class="badge-icon">🌱</text>
-                    <text class="badge-text">萌芽岛</text>
+            <swiper class="news-swiper" autoplay="{{false}}" interval="3000" circular="{{true}}" indicator-dots="{{true}}" indicator-color="rgba(0, 0, 0, 0.2)" indicator-active-color="#4CAF50">
+              <!-- 萌芽岛文章 -->
+              <block wx:for="{{sproutNews}}" wx:key="_id">
+                <swiper-item bindtap="onNewsSelect" data-level="sprout" data-index="{{index}}">
+                  <view class="news-card">
+                    <view class="difficulty-badge">
+                      <text class="badge-icon">🌱</text>
+                      <text class="badge-text">萌芽岛</text>
+                    </view>
+                    <image class="news-image" src="{{item.cover_url}}" mode="aspectFill"></image>
+                    <view class="news-info">
+                      <text class="news-title">{{item.title}}</text>
+                      <text class="news-date" wx:if="{{item.formattedDate}}">{{item.formattedDate}}</text>
+                    </view>
                   </view>
-                  <image class="news-image" src="{{sproutNews[0].cover}}" mode="aspectFill"></image>
-                  <view class="news-info">
-                    <text class="news-title">{{sproutNews[0].title}}</text>
-                  </view>
-                </view>
-              </swiper-item>
+                </swiper-item>
+              </block>
               
-              <!-- 森林谷文章 (只显示第一篇) -->
-              <swiper-item wx:if="{{forestNews.length > 0}}" bindtap="onNewsSelect" data-id="{{forestNews[0].id}}" data-level="forest">
-                <view class="news-card">
-                  <view class="difficulty-badge">
-                    <text class="badge-icon">🌳</text>
-                    <text class="badge-text">森林谷</text>
+              <!-- 森林谷文章 -->
+              <block wx:for="{{forestNews}}" wx:key="_id">
+                <swiper-item bindtap="onNewsSelect" data-level="forest" data-index="{{index}}">
+                  <view class="news-card">
+                    <view class="difficulty-badge">
+                      <text class="badge-icon">🌳</text>
+                      <text class="badge-text">森林谷</text>
+                    </view>
+                    <image class="news-image" src="{{item.cover_url}}" mode="aspectFill"></image>
+                    <view class="news-info">
+                      <text class="news-title">{{item.title}}</text>
+                      <text class="news-date" wx:if="{{item.formattedDate}}">{{item.formattedDate}}</text>
+                    </view>
                   </view>
-                  <image class="news-image" src="{{forestNews[0].cover}}" mode="aspectFill"></image>
-                  <view class="news-info">
-                    <text class="news-title">{{forestNews[0].title}}</text>
-                  </view>
-                </view>
-              </swiper-item>
+                </swiper-item>
+              </block>
               
               <!-- 空状态展示 -->
               <swiper-item wx:if="{{sproutNews.length === 0 && forestNews.length === 0}}">
@@ -80,7 +88,7 @@
                   <view class="language-picker">
                     <picker bindchange="onCompareChange1" value="{{compareIndex1}}" range="{{languageOptions}}" range-key="name">
                       <view class="picker">
-                        <text wx:if="{{selectedLanguage1}}" class="language-text">{{selectedLanguage1.flag}} {{selectedLanguage1.shortName}}</text>
+                        <text wx:if="{{selectedLanguage1}}" class="language-text">{{selectedLanguage1.shortName}}</text>
                         <text wx:else class="language-text">选择语言</text>
                       </view>
                     </picker>
@@ -130,17 +138,11 @@
                         <!-- 使用vocabularyList数组动态生成词汇项 -->
                         <view class="prompt-item" wx:for="{{vocabularyList}}" wx:key="index" catchtap="showTranslation" data-index="{{index}}">
                           {{item.text}}
-                          <!-- 翻译面板 -->
+                          <!-- 翻译面板：只显示当前选中语言的翻译 -->
                           <view class="translation-panel" wx:if="{{currentTranslationIndex === index}}" catchtap="stopPropagation">
-                            <!-- 只在选择了非中文语言时显示翻译 -->
-                            <view class="translation-item" wx:if="{{selectedLanguage1 && selectedLanguage1.code !== 'zh'}}">
+                            <view class="translation-item">
                               <text class="translation-lang">{{selectedLanguage1.name}}:</text>
-                              <text class="translation-text">{{item.translations[selectedLanguage1.code] || '暂无翻译'}}</text>
-                            </view>
-                            <!-- 如果没有选择语言或选择了中文，则显示英语翻译作为默认 -->
-                            <view class="translation-item" wx:if="{{!selectedLanguage1 || selectedLanguage1.code === 'zh'}}">
-                              <text class="translation-lang">英语:</text>
-                              <text class="translation-text">{{item.translations.en}}</text>
+                              <text class="translation-text">{{item.translation}}</text>
                             </view>
                           </view>
                         </view>
@@ -164,7 +166,8 @@
                         show-confirm-bar="{{false}}" 
                         adjust-keyboard-to="{{false}}" 
                         style="height: 100%; width: 100%; box-sizing: border-box;"
-                        auto-height="true">
+                        auto-height="true"
+                        maxlength="2000">
                       </textarea>
                     </view>
                   </scroll-view>

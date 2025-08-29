@@ -73,6 +73,90 @@ page {
   font-size: 40rpx;
 }
 
+/* 打卡激励规则 */
+.incentive-rules {
+  background: white;
+  padding: 30rpx;
+  border-radius: 15rpx;
+  margin-bottom: 20rpx;
+  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
+}
+
+.rules-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 20rpx;
+  text-align: center;
+}
+
+.rules-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15rpx;
+}
+
+.rule-item {
+  display: flex;
+  align-items: center;
+  padding: 20rpx;
+  border-radius: 12rpx;
+  background-color: #f8f9fa;
+  border: 2rpx solid #e9ecef;
+  transition: all 0.3s ease;
+}
+
+.rule-item.achieved {
+  background-color: #e8f5e9;
+  border-color: #4caf50;
+}
+
+.rule-icon {
+  font-size: 40rpx;
+  margin-right: 20rpx;
+}
+
+.rule-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.rule-text {
+  font-size: 28rpx;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 5rpx;
+}
+
+.rule-reward {
+  font-size: 24rpx;
+  color: #666;
+}
+
+.rule-status {
+  display: flex;
+  align-items: center;
+}
+
+.status-achieved {
+  font-size: 24rpx;
+  color: #4caf50;
+  font-weight: bold;
+  padding: 8rpx 16rpx;
+  background-color: rgba(76, 175, 80, 0.1);
+  border-radius: 20rpx;
+}
+
+.status-progress {
+  font-size: 24rpx;
+  color: #ff9800;
+  font-weight: bold;
+  padding: 8rpx 16rpx;
+  background-color: rgba(255, 152, 0, 0.1);
+  border-radius: 20rpx;
+}
+
 /* 日历控制 */
 .calendar-header {
   background: white;
@@ -201,6 +285,7 @@ page {
   display: flex;
   justify-content: center;
   margin-top: 20rpx;
+  margin-bottom: 100rpx; /* 增加底部空白 */
 }
 
 .today-btn {
@@ -220,4 +305,4 @@ page {
 .today-btn.disabled {
   background: #b2dfdb;
   color: white;
-} 
+}

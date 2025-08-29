@@ -1,0 +1,74 @@
+.agreement-container {
+  min-height: 100vh;
+  background-color: #e0ffe0;
+  padding: 30rpx;
+  font-family: "Source Han Serif", "思源宋体", "Noto Serif SC", serif;
+}
+
+.header {
+  margin-bottom: 30rpx;
+}
+
+.title {
+  font-size: 34rpx;
+  font-weight: bold;
+  color: #2e7d32;
+  text-align: center;
+  margin-bottom: 10rpx;
+}
+
+.update-time {
+  font-size: 22rpx;
+  color: #999;
+  text-align: center;
+}
+
+.content {
+  background-color: white;
+  border-radius: 16rpx;
+  padding: 30rpx;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.05);
+}
+
+.loading {
+  text-align: center;
+  padding: 40rpx 0;
+  color: #999;
+  font-size: 26rpx;
+}
+
+.section {
+  margin-bottom: 30rpx;
+}
+
+.section:last-child {
+  margin-bottom: 0;
+}
+
+.section-title {
+  font-size: 28rpx;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 16rpx;
+}
+
+.section-content {
+  font-size: 24rpx;
+  color: #666;
+  line-height: 1.6;
+}
+
+.paragraph {
+  margin-bottom: 16rpx;
+  text-align: justify;
+}
+
+.paragraph:last-child {
+  margin-bottom: 0;
+}
+ 
+ 
+ 
+ 
+ 
+ 

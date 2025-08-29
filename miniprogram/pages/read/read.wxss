@@ -260,7 +260,7 @@ page {
   padding: 4rpx 6rpx;
   backdrop-filter: blur(10px);
   border: 1px solid rgba(76, 175, 80, 0.2);
-  min-height: 50rpx;
+  min-height: 40rpx;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -349,19 +349,27 @@ page {
   padding-top: 5rpx;  /* 添加顶部内边距 */
 }
 
-.news-scroll::-webkit-scrollbar {
-  width: 6rpx;
+.news-scroll::-webkit-scrollbar,
+.classics-scroll::-webkit-scrollbar {
+  width: 0;
+  display: none;
   background: transparent;
 }
 
-.news-scroll::-webkit-scrollbar-thumb {
-  border-radius: 3rpx;
-  background-color: rgba(76, 175, 80, 0.3);
+.news-scroll::-webkit-scrollbar-thumb,
+.classics-scroll::-webkit-scrollbar-thumb {
+  display: none;
 }
 
-.news-scroll::-webkit-scrollbar-track {
-  border-radius: 3rpx;
-  background-color: rgba(0, 0, 0, 0.05);
+.news-scroll::-webkit-scrollbar-track,
+.classics-scroll::-webkit-scrollbar-track {
+  display: none;
+}
+
+/* 添加消除所有滚动条的通用样式 */
+::-webkit-scrollbar {
+  width: 0;
+  display: none;
 }
 
 .news-item {
@@ -406,6 +414,20 @@ page {
   overflow: hidden;
 }
 
+/* 新闻标题翻译 */
+.news-title-translation {
+  font-size: 24rpx;
+  color: #666;
+  line-height: 1.3;
+  margin-top: 4rpx;
+  margin-bottom: 6rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
 .news-meta {
   display: flex;
   align-items: center;
@@ -444,18 +466,17 @@ page {
 }
 
 .classics-scroll::-webkit-scrollbar {
-  width: 6rpx;
+  width: 0;
+  display: none;
   background: transparent;
 }
 
 .classics-scroll::-webkit-scrollbar-thumb {
-  border-radius: 3rpx;
-  background-color: rgba(76, 175, 80, 0.3);
+  display: none;
 }
 
 .classics-scroll::-webkit-scrollbar-track {
-  border-radius: 3rpx;
-  background-color: rgba(0, 0, 0, 0.05);
+  display: none;
 }
 
 .classics-item {
@@ -785,4 +806,38 @@ page {
 .daily-news-date {
   color: rgba(255, 255, 255, 0.8);
   font-size: 24rpx;
+} 
+
+/* 添加空数据提示的样式 */
+.empty-hint {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60rpx 20rpx;
+  background: rgba(255, 255, 255, 0.8);
+  margin: 20rpx;
+  border-radius: 20rpx;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(76, 175, 80, 0.1);
+}
+
+.empty-icon {
+  font-size: 64rpx;
+  margin-bottom: 20rpx;
+  color: #7CB342;
+}
+
+.empty-text {
+  font-size: 30rpx;
+  color: #4CAF50;
+  font-weight: 600;
+  margin-bottom: 12rpx;
+}
+
+.empty-subtext {
+  font-size: 24rpx;
+  color: #7CB342;
+  text-align: center;
+  opacity: 0.8;
 } 

@@ -8,8 +8,11 @@
   <view class="message-list">
     <block wx:if="{{messages.length > 0}}">
       <view class="message-item" wx:for="{{messages}}" wx:key="id">
-        <view class="message-content">
-          <image class="avatar" src="{{item.avatar}}" mode="aspectFill"></image>
+        <view class="message-content" bindtap="markAsRead" data-id="{{item.id}}" data-source="{{item.source}}">
+          <!-- 使用自定义头像，显示"宝"字 -->
+          <view class="treasure-avatar" style="background-color: {{item.avatarColor || '#4ECDC4'}}">
+            <text class="treasure-text">宝</text>
+          </view>
           <view class="message-info">
             <view class="message-header">
               <text class="username">{{item.username}}</text>
@@ -19,7 +22,7 @@
             <view class="message-footer">
               <view class="message-type-container">
                 <text class="message-type">{{item.type}}</text>
-                <text class="writing-date">2025年4月12日</text>
+                <text class="writing-date">{{item.date}}</text>
               </view>
               <view class="unread-badge" wx:if="{{item.unread > 0}}">{{item.unread}}</view>
             </view>

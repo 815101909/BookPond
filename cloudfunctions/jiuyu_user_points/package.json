@@ -1,0 +1,9 @@
+{
+  "name": "jiuyu_user_points",
+  "version": "1.0.0",
+  "description": "九域用户积分与花朵管理云函数",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "latest"
+  }
+} 

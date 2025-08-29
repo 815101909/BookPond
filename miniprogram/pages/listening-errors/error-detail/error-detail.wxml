@@ -1,88 +1,110 @@
-<!-- 错题详情页面 -->
-<view class="detail-container">
-  <!-- 顶部导航栏 -->
-  <view class="nav-bar">
+<view class="container">
+  <view class="header">
     <view class="back-btn" bindtap="goBack">
       <text class="back-icon">←</text>
+      <text>返回</text>
     </view>
-    <view class="page-title">听力习题详情</view>
-    <view style="width: 70rpx;"></view> <!-- 平衡布局 -->
+    <text class="title">错题详情</text>
   </view>
-  
-  <!-- 习题信息 -->
-  <view class="exercise-card">
-    <!-- 习题头部信息 -->
-    <view class="exercise-header">
-      <!-- 题型 -->
-      <view class="exercise-meta">
-        <text class="audio-type">{{exerciseItem.audioType === 'podcast' ? '热点「晓」播客' : '名著「晓」喇叭'}}</text>
-        
-        <!-- 难度标签 -->
-        <view class="difficulty sprout" wx:if="{{exerciseItem.difficulty === 'sprout'}}">
-          <text class="difficulty-icon">🌱</text>
-          <text class="difficulty-name">萌芽岛</text>
-        </view>
-        <view class="difficulty cocoon" wx:elif="{{exerciseItem.difficulty === 'cocoon'}}">
-          <text class="difficulty-icon">🦋</text>
-          <text class="difficulty-name">破茧谷</text>
-        </view>
-        <view class="difficulty soar" wx:elif="{{exerciseItem.difficulty === 'soar'}}">
-          <text class="difficulty-icon">🦅</text>
-          <text class="difficulty-name">翱翔峰</text>
-        </view>
-      </view>
-      
-      <!-- 日期 -->
-      <text class="date">{{exerciseItem.date}}</text>
+
+  <view class="exercise-card" wx:if="{{mistake}}">
+    <!-- 问题部分 -->
+    <view class="question-section">
+      <view class="question-text">{{mistake.exercise.question}}</view>
     </view>
     
-    <!-- 习题内容 -->
-    <view class="exercise-content">
-      <!-- 问题 -->
-      <view class="question">
-        <text class="question-text">{{exerciseItem.question}}</text>
-      </view>
-      
-      <!-- 单选/多选题选项 -->
-      <view class="options" wx:if="{{exerciseItem.difficulty === 'sprout' || exerciseItem.difficulty === 'cocoon'}}">
-        <view class="option-title">
-          <text wx:if="{{exerciseItem.difficulty === 'sprout'}}">单选题选项</text>
-          <text wx:elif="{{exerciseItem.difficulty === 'cocoon'}}">多选题选项</text>
+    <!-- 选项部分 -->
+    <view class="options-section" wx:if="{{mistake.exercise.type === 'single' || mistake.exercise.type === 'multiple'}}">
+      <block wx:for="{{mistake.exercise.options}}" wx:key="index">
+        <view class="option-item {{mistake.exercise.answer === index || (Array.isArray(mistake.exercise.answer) && mistake.exercise.answer.includes(index)) ? 'correct' : ''}} {{(mistake.user_answer === index) || (Array.isArray(mistake.user_answer) && mistake.user_answer.includes(index)) ? 'selected' : ''}}">
+          <text class="option-letter">{{optionLetters[index]}}</text>
+          <text class="option-text">{{item}}</text>
+          <text class="option-mark" wx:if="{{mistake.exercise.answer === index || (Array.isArray(mistake.exercise.answer) && mistake.exercise.answer.includes(index))}}">✓</text>
+          <text class="option-mark wrong" wx:elif="{{(mistake.user_answer === index) || (Array.isArray(mistake.user_answer) && mistake.user_answer.includes(index))}}">✗</text>
         </view>
-        <block wx:for="{{exerciseItem.options}}" wx:for-item="option" wx:for-index="idx" wx:key="idx">
-          <view class="option-item {{exerciseItem.difficulty === 'sprout' && exerciseItem.answer === idx ? 'correct' : ''}} {{exerciseItem.difficulty === 'cocoon' && exerciseItem.answer.includes(idx) ? 'correct' : ''}}">
-            <text class="option-letter">{{optionLetters[idx]}}</text>
-            <text class="option-text">{{option}}</text>
-            <text class="correct-mark" wx:if="{{exerciseItem.difficulty === 'sprout' && exerciseItem.answer === idx || exerciseItem.difficulty === 'cocoon' && exerciseItem.answer.includes(idx)}}">✓</text>
-          </view>
-        </block>
+      </block>
+    </view>
+    
+    <!-- 解析部分 -->
+    <view class="explanation-section">
+      <view class="section-title">解析</view>
+      <view class="explanation-text">{{mistake.exercise.explanation || '暂无解析'}}</view>
+    </view>
+    
+    <!-- 用户答案与正确答案对比 -->
+    <view class="answer-comparison">
+      <view class="section-title">答案对比</view>
+      
+      <view class="comparison-row">
+        <view class="label">正确答案:</view>
+        <view class="value correct">
+          <block wx:if="{{mistake.exercise.type === 'single'}}">
+            {{optionLetters[mistake.exercise.answer]}}
+          </block>
+          <block wx:elif="{{mistake.exercise.type === 'multiple'}}">
+            <block wx:for="{{mistake.exercise.answer}}" wx:key="*this">
+              {{optionLetters[item]}}{{index < mistake.exercise.answer.length-1 ? ', ' : ''}}
+            </block>
+          </block>
+        </view>
       </view>
       
-      <!-- 填空题答案 -->
-      <view class="fill-blank" wx:if="{{exerciseItem.difficulty === 'soar'}}">
-        <view class="answer-title">正确答案：</view>
-        <view class="answer-content">{{exerciseItem.answer}}</view>
-      </view>
-      
-      <!-- 习题解析 -->
-      <view class="explanation">
-        <view class="explanation-title">解析：</view>
-        <view class="explanation-content">{{exerciseItem.explanation || '暂无解析'}}</view>
-      </view>
-
-      <!-- 添加正确/错误状态显示 -->
-      <view class="result-status {{exerciseItem.isCorrect ? 'correct' : 'wrong'}}">
-        <text class="status-icon">{{exerciseItem.isCorrect ? '✓' : '✗'}}</text>
-        <text class="status-text">{{exerciseItem.isCorrect ? '答对了' : '答错了'}}</text>
+      <view class="comparison-row">
+        <view class="label">你的答案:</view>
+        <view class="value incorrect">
+          <block wx:if="{{mistake.exercise.type === 'single'}}">
+            {{mistake.user_answer !== null && mistake.user_answer !== undefined ? optionLetters[mistake.user_answer] : '未作答'}}
+          </block>
+          <block wx:elif="{{mistake.exercise.type === 'multiple'}}">
+            <block wx:if="{{mistake.user_answer && mistake.user_answer.length > 0}}">
+              <block wx:for="{{mistake.user_answer}}" wx:key="*this">
+                {{optionLetters[item]}}{{index < mistake.user_answer.length-1 ? ', ' : ''}}
+              </block>
+            </block>
+            <block wx:else>未作答</block>
+          </block>
+        </view>
       </view>
     </view>
+    
+    <!-- 音频控制部分 -->
+    <view class="audio-section">
+      <view class="audio-controls">
+        <view class="play-btn {{isPlaying ? 'playing' : ''}}" bindtap="togglePlay">
+          <text class="play-icon">{{isPlaying ? '❚❚' : '▶'}}</text>
+        </view>
+        
+        <view class="speed-controls">
+          <text class="speed-label">速度:</text>
+          <view class="speed-options">
+            <view class="speed-btn {{playbackSpeed === 0.8 ? 'active' : ''}}" bindtap="setPlaybackSpeed" data-speed="0.8">0.8x</view>
+            <view class="speed-btn {{playbackSpeed === 1.0 ? 'active' : ''}}" bindtap="setPlaybackSpeed" data-speed="1.0">1.0x</view>
+            <view class="speed-btn {{playbackSpeed === 1.25 ? 'active' : ''}}" bindtap="setPlaybackSpeed" data-speed="1.25">1.25x</view>
+            <view class="speed-btn {{playbackSpeed === 1.5 ? 'active' : ''}}" bindtap="setPlaybackSpeed" data-speed="1.5">1.5x</view>
+          </view>
+        </view>
+      </view>
+      
+      <view class="audio-status" wx:if="{{!audioLoaded}}">
+        <text>音频加载中...</text>
+      </view>
+    </view>
+  </view>
+  
+  <view class="empty-state" wx:else>
+    <text class="empty-icon">🔍</text>
+    <text class="empty-text">错题数据不存在</text>
   </view>
   
   <!-- 底部操作栏 -->
-  <view class="action-bar">
-    <view class="listen-again-btn" bindtap="listenAgain">
-      <text class="listen-icon">🎧</text>
-      <text class="listen-text">再听一遍</text>
+  <view class="bottom-actions" wx:if="{{mistake}}">
+    <view class="action-btn review {{mistake.is_reviewed ? 'disabled' : ''}}" bindtap="markAsReviewed" wx:if="{{!mistake.is_reviewed}}">
+      <text class="action-icon">✓</text>
+      <text class="action-text">标记为已复习</text>
+    </view>
+    <view class="action-btn practice" bindtap="startPractice">
+      <text class="action-icon">▶</text>
+      <text class="action-text">开始练习</text>
     </view>
   </view>
 </view> 

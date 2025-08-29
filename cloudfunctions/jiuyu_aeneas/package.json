@@ -1,0 +1,16 @@
+{
+  "name": "jiuyu_aeneas",
+  "version": "1.0.0",
+  "description": "九语aeneas音频文本对齐云函数",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3",
+    "axios": "^1.6.0",
+    "form-data": "^4.0.0"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC"
+}

@@ -1,3 +1,6 @@
+// 引入统一的云函数调用工具
+const { checkinAPI } = require('../../utils/cloud-api.js');
+
 // 日历打卡页面
 Page({
   /**
@@ -33,33 +36,127 @@ Page({
       });
     }
     
-    // 从本地存储获取打卡记录
-    this.loadCheckInRecords();
+    // 从云端获取打卡记录
+    this.loadCheckInRecords(year, month);
     
     // 加载日历
     this.setData({
       year,
       month
     });
-    this.generateCalendar(year, month);
   },
   
   /**
    * 加载打卡记录
    */
-  loadCheckInRecords: function() {
-    // 从本地存储获取打卡记录，实际应用中应从服务器获取
-    const checkInRecords = wx.getStorageSync('checkInRecords') || [];
-    
-    this.setData({
-      checkInRecords
+  loadCheckInRecords: function(year, month) {
+    wx.showLoading({
+      title: '加载中...',
+      mask: true
     });
     
-    // 检查今天是否已打卡
+    // 先检查用户是否存在，如果不存在则创建
+    checkinAPI.checkAndCreateUser().then(res => {
+      if (res.result && res.result.code === 0) {
+        console.log('用户检查/创建成功:', res.result);
+        
+        // 继续获取打卡记录
+        this.fetchCheckInRecords(year, month);
+      } else {
+        wx.hideLoading();
+        console.error('用户检查/创建失败:', res);
+        
+        wx.showToast({
+          title: '加载失败，请重试',
+          icon: 'none'
+        });
+      }
+    }).catch(err => {
+      wx.hideLoading();
+      console.error('用户检查/创建失败:', err);
+      
+      wx.showToast({
+        title: '加载失败，请重试',
+        icon: 'none'
+      });
+    });
+  },
+  
+  /**
+   * 获取打卡记录
+   */
+  fetchCheckInRecords: function(year, month) {
+    // 调用云函数获取打卡记录
+    checkinAPI.getCheckinRecords(year, month).then(res => {
+      wx.hideLoading();
+      
+      if (res.result && res.result.code === 0) {
+        const data = res.result.data;
+        
+        // 格式化打卡记录，便于日历使用
+        const checkInRecords = data.records.map(record => ({
+          date: record.date,
+          timestamp: record.timestamp
+        }));
+        
+        // 更新页面数据
+        this.setData({
+          checkInRecords,
+          checkinDays: data.checkinDays,
+          totalCheckinDays: data.totalCheckinDays
+        });
+        
+        // 检查今天是否已打卡
+        this.checkTodayStatus();
+        
+        // 生成日历
+        this.generateCalendar(this.data.year, this.data.month);
+      } else {
+        console.error('获取打卡记录失败:', res);
+        // 使用空数组初始化
+        this.setData({
+          checkInRecords: []
+        });
+        
+        // 检查今天是否已打卡
+        this.checkTodayStatus();
+        
+        // 生成日历
+        this.generateCalendar(this.data.year, this.data.month);
+      }
+    }).catch(err => {
+      wx.hideLoading();
+      console.error('调用云函数失败:', err);
+      
+      // 使用空数组初始化
+      this.setData({
+        checkInRecords: []
+      });
+      
+      // 检查今天是否已打卡
+      this.checkTodayStatus();
+      
+      // 生成日历
+      this.generateCalendar(this.data.year, this.data.month);
+      
+      wx.showToast({
+        title: '加载失败，请重试',
+        icon: 'none'
+      });
+    });
+  },
+  
+  /**
+   * 检查今天是否已打卡
+   */
+  checkTodayStatus: function() {
+    // 获取北京时间
     const today = new Date();
-    const todayStr = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
+    const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
     
-    const todayChecked = checkInRecords.some(record => record.date === todayStr);
+    console.log('检查今日打卡状态:', todayStr, this.data.checkInRecords);
+    
+    const todayChecked = this.data.checkInRecords.some(record => record.date === todayStr);
     
     this.setData({
       canCheckInToday: !todayChecked
@@ -104,7 +201,7 @@ Page({
       const isToday = year === currentYear && month === currentMonth && i === currentDay;
       
       // 检查是否已打卡
-      const dateStr = `${year}-${month}-${i}`;
+      const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
       const isChecked = this.data.checkInRecords.some(record => record.date === dateStr);
       
       days.push({
@@ -155,7 +252,8 @@ Page({
       month
     });
     
-    this.generateCalendar(year, month);
+    // 重新加载打卡记录
+    this.loadCheckInRecords(year, month);
   },
 
   /**
@@ -176,7 +274,8 @@ Page({
       month
     });
     
-    this.generateCalendar(year, month);
+    // 重新加载打卡记录
+    this.loadCheckInRecords(year, month);
   },
 
   /**
@@ -193,6 +292,15 @@ Page({
     const selectedDate = new Date(year, month - 1, day);
     const today = new Date();
     
+    console.log('点击日期:', {
+      selectedDate: selectedDate.toISOString(),
+      today: today.toISOString(),
+      year, month, day,
+      currentYear: today.getFullYear(),
+      currentMonth: today.getMonth() + 1,
+      currentDay: today.getDate()
+    });
+    
     // 如果日期是未来的，不允许打卡
     if (selectedDate > today) {
       wx.showToast({
@@ -203,7 +311,7 @@ Page({
     }
     
     // 检查是否已经打卡
-    const dateStr = `${year}-${month}-${day}`;
+    const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
     const isChecked = this.data.checkInRecords.some(record => record.date === dateStr);
     
     if (isChecked) {
@@ -219,6 +327,8 @@ Page({
       const isSameDay = selectedDate.getDate() === today.getDate() &&
                         selectedDate.getMonth() === today.getMonth() &&
                         selectedDate.getFullYear() === today.getFullYear();
+      
+      console.log('是否是当天:', isSameDay);
       
       if (isSameDay) {
         this.checkInToday();
@@ -249,49 +359,83 @@ Page({
       content: '确定要完成今日打卡吗？',
       success: (res) => {
         if (res.confirm) {
-          // 创建打卡记录
-          const today = new Date();
-          const todayStr = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
-          
-          const newRecord = {
-            date: todayStr,
-            timestamp: today.getTime()
-          };
-          
-          // 更新打卡记录
-          const checkInRecords = [...this.data.checkInRecords, newRecord];
-          
-          // 保存到本地存储
-          wx.setStorageSync('checkInRecords', checkInRecords);
-          
-          // 更新统计数据
-          const checkinDays = this.data.checkinDays + 1;
-          const totalCheckinDays = this.data.totalCheckinDays + 1;
-          
-          this.setData({
-            checkInRecords,
-            checkinDays,
-            totalCheckinDays,
-            canCheckInToday: false
+          wx.showLoading({
+            title: '打卡中...',
+            mask: true
           });
           
-          // 更新父页面数据
-          const pages = getCurrentPages();
-          const prevPage = pages[pages.length - 2];
-          if (prevPage) {
-            prevPage.setData({
-              checkinDays,
-              totalCheckinDays
+          // 调用云函数进行打卡
+          checkinAPI.checkIn(0).then(res => {
+            wx.hideLoading();
+            
+            if (res.result && res.result.code === 0) {
+              const data = res.result.data;
+              
+              // 更新页面数据
+              this.setData({
+                checkinDays: data.checkinDays,
+                totalCheckinDays: data.totalCheckinDays,
+                canCheckInToday: false
+              });
+              
+              // 添加新的打卡记录到本地数组
+              const newRecord = data.record;
+              const checkInRecords = [...this.data.checkInRecords, newRecord];
+              
+              this.setData({
+                checkInRecords
+              });
+              
+              // 更新父页面数据
+              const pages = getCurrentPages();
+              const prevPage = pages[pages.length - 2];
+              if (prevPage) {
+                prevPage.setData({
+                  checkinDays: data.checkinDays,
+                  totalCheckinDays: data.totalCheckinDays
+                });
+              }
+              
+              // 重新生成日历以更新视图
+              this.generateCalendar(this.data.year, this.data.month);
+              
+              // 检查是否有激励奖励
+              if (data.incentive && data.incentive.achievedMilestone) {
+                // 显示激励奖励弹窗
+                wx.showModal({
+                  title: '🎉 恭喜获得奖励！',
+                  content: data.incentive.message,
+                  showCancel: false,
+                  confirmText: '太棒了',
+                  success: () => {
+                    // 显示打卡成功提示
+                    wx.showToast({
+                      title: '打卡成功',
+                      icon: 'success'
+                    });
+                  }
+                });
+              } else {
+                // 显示普通打卡成功提示
+                wx.showToast({
+                  title: res.result.msg || '打卡成功',
+                  icon: 'success'
+                });
+              }
+            } else {
+              console.error('打卡失败:', res);
+              wx.showToast({
+                title: res.result?.msg || '打卡失败',
+                icon: 'none'
+              });
+            }
+          }).catch(err => {
+            wx.hideLoading();
+            console.error('调用云函数失败:', err);
+            wx.showToast({
+              title: '打卡失败，请重试',
+              icon: 'none'
             });
-          }
-          
-          // 重新生成日历以更新视图
-          this.generateCalendar(this.data.year, this.data.month);
-          
-          // 显示成功提示
-          wx.showToast({
-            title: '打卡成功',
-            icon: 'success'
           });
         }
       }
@@ -366,4 +510,4 @@ Page({
       confirmText: '知道了'
     });
   }
-}) 
+})

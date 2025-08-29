@@ -1,15 +1,121 @@
-// 我的主页页面逻辑
+// Profile页面逻辑
 console.log('Profile页面JS文件加载');
+
+const { authAPI, checkinAPI, messengerAPI, sentencesAPI, writingAPI } = require('../../utils/cloud-api.js');
+
+// 本地存储键名
+const READ_MESSAGES_KEY = 'read_messages';
+
+// 本地存储辅助函数
+function getReadMessages() {
+  try {
+    const readMessages = wx.getStorageSync(READ_MESSAGES_KEY);
+    return readMessages ? JSON.parse(readMessages) : [];
+  } catch (error) {
+    console.error('读取已读消息失败:', error);
+    return [];
+  }
+}
+
+function saveReadMessages(readMessages) {
+  try {
+    wx.setStorageSync(READ_MESSAGES_KEY, JSON.stringify(readMessages));
+  } catch (error) {
+    console.error('保存已读消息失败:', error);
+  }
+}
+
+function markMessageAsReadLocal(messageId) {
+  const readMessages = getReadMessages();
+  if (!readMessages.includes(messageId)) {
+    readMessages.push(messageId);
+    saveReadMessages(readMessages);
+  }
+}
+
+// 通用临时链接处理函数
+async function getTemporaryFileUrl(fileUrl, type = 'file') {
+  if (!fileUrl) {
+    console.log(`${type}链接为空，使用占位内容`);
+    return getPlaceholderUrl(type);
+  }
+
+  try {
+    if (fileUrl.startsWith('cloud://')) {
+      try {
+        // 确保全局 wx.cloud 已初始化
+        if (!wx.cloud._initialized) {
+          await new Promise((resolve) => {
+            wx.cloud.init({
+              env: 'cloud1-1gsyt78b92c539ef',
+              traceUser: true
+            });
+            setTimeout(resolve, 1000); // 等待初始化完成
+          });
+        }
+        
+        // 跨环境创建 Cloud 实例
+        const cloudInstance = new wx.cloud.Cloud({
+          identityless: true,
+          resourceAppid: 'wx85d92d28575a70f4',
+          resourceEnv: 'cloud1-1gsyt78b92c539ef',
+        });
+        await cloudInstance.init();
+
+        const result = await cloudInstance.getTempFileURL({
+          fileList: [fileUrl],
+        });
+
+        if (result.fileList?.[0]?.tempFileURL) {
+          return result.fileList[0].tempFileURL;
+        } else {
+          console.error(`${type}云链接转换失败:`, result);
+          return getPlaceholderUrl('error_' + type);
+        }
+      } catch (err) {
+        console.error(`${type}云链接转换异常:`, err);
+        return getPlaceholderUrl('error_' + type);
+      }
+    }
+
+    if (fileUrl.startsWith('http')) {
+      console.log(`${type}链接为HTTP地址:`, fileUrl);
+      return fileUrl;
+    }
+
+    console.log(`${type}链接格式未知，使用占位内容。原始链接:`, fileUrl);
+    return getPlaceholderUrl(type);
+  } catch (error) {
+    console.error(`处理${type}链接时出错:`, error);
+    return getPlaceholderUrl('error_' + type);
+  }
+}
+
+// 占位符链接生成函数
+function getPlaceholderUrl(type) {
+  if (type.includes('image')) {
+    return `https://via.placeholder.com/800x600.png?text=${type}`;
+  } else if (type.includes('audio')) {
+    return `https://dummyimage.com/600x100/cccccc/000000&text=Audio+Placeholder`;
+  } else if (type.includes('video')) {
+    return `https://dummyimage.com/800x450/aaaaaa/000000&text=Video+Placeholder`;
+  } else {
+    return `https://dummyimage.com/600x100/999999/ffffff&text=File+${type}`;
+  }
+}
 
 // 添加全局计时器变量
 let statsRefreshTimer = null;
 
 Page({
   data: {
+    // 是否已登录
+    isLoggedIn: false,
+    
     // 用户信息
     userInfo: {
       avatarUrl: '',
-      nickName: '晓学者',
+      nickName: '小舟学者',
       level: 3,
       signature: '每天进步一点点，离梦想更近一步',
       avatarColor: '' // 用于存储默认头像的颜色
@@ -31,54 +137,18 @@ Page({
     rippleLeft: 0,
     
     // 学习打卡天数
-    checkinDays: 21,
-    totalCheckinDays: 45,
+    checkinDays: 0,
+    totalCheckinDays: 0,
     
     // 未读消息数
-    unreadMessages: 5,
+    unreadMessages: 0,
     
     // 抽签相关
     showFortuneModal: false,
     fortuneContent: '',
     
     // 系统消息
-    systemMessages: [
-      {
-        id: 1,
-        title: '系统维护通知',
-        content: '亲爱的用户，我们将于2023年12月25日凌晨2:00-4:00进行系统维护，届时可能无法正常使用app，请您错峰使用。',
-        date: '2023-12-23',
-        read: false
-      },
-      {
-        id: 2,
-        title: '新功能上线通知',
-        content: '【AI口语评测】功能已正式上线！快去"说一说"模块体验实时口语评分和发音指导吧！',
-        date: '2023-12-20',
-        read: false
-      },
-      {
-        id: 3,
-        title: '学习提醒',
-        content: '您已经连续学习21天，继续保持每日学习习惯，英语能力提升会更快哦！',
-        date: '2023-12-18',
-        read: false
-      },
-      {
-        id: 4,
-        title: '会员优惠活动',
-        content: '年末感恩回馈，VIP会员限时8折优惠，有效期至2023年12月31日。',
-        date: '2023-12-15',
-        read: false
-      },
-      {
-        id: 5,
-        title: '账号安全提醒',
-        content: '我们发现您的账号在新设备上登录，如非本人操作，请及时修改密码。',
-        date: '2023-12-10',
-        read: false
-      }
-    ],
+    systemMessages: [],
     
     // 读一读统计数据
     readStats: {
@@ -105,11 +175,21 @@ Page({
     },
     
     // 添加总学习时间计数器
-    totalStudyTime: 0
+    totalStudyTime: 0,
+
+    // 个人主页
+    writings: [], // 写作列表
+    loading: false,
+    page: 1,
+    pageSize: 10,
+    hasMore: true
   },
   
   onLoad: function() {
     console.log('Profile页面加载');
+    
+    // 检查登录状态
+    this.checkLoginStatus();
     
     // 获取本地存储的用户信息
     const userInfo = wx.getStorageSync('userInfo');
@@ -123,7 +203,7 @@ Page({
       const randomColorIndex = Math.floor(Math.random() * this.data.avatarColors.length);
       const defaultUserInfo = {
         avatarUrl: '',
-        nickName: '晓学者',
+        nickName: '小舟学者',
         level: 3,
         signature: '每天进步一点点，离梦想更近一步',
         avatarColor: this.data.avatarColors[randomColorIndex]
@@ -145,19 +225,8 @@ Page({
       });
     }
     
-    // 获取本地存储的系统消息
-    const messages = wx.getStorageSync('systemMessages');
-    if (messages) {
-      this.setData({
-        systemMessages: messages
-      });
-      
-      // 计算未读消息数
-      this.calculateUnreadMessages();
-    } else {
-      // 如果本地没有存储，则使用默认值并保存到本地
-      wx.setStorageSync('systemMessages', this.data.systemMessages);
-    }
+    // 加载系统消息
+    this.loadSystemMessages();
 
     // 加载用户学习统计数据
     this.loadStudyStats();
@@ -167,11 +236,100 @@ Page({
 
     // 测试心灵抽签功能是否正常
     console.log('心灵抽签功能状态：', typeof this.onFortuneDraw === 'function');
+
+    // 加载写作列表
+    this.loadWritings();
+  },
+
+  // 导航到登录页面
+  navigateToLogin: function() {
+    wx.reLaunch({
+      url: '/pages/login/login'
+    });
+  },
+
+  // 复制用户ID
+  copyUserId: function() {
+    if (!this.data.userInfo.userId) {
+      wx.showToast({
+        title: '用户ID不存在',
+        icon: 'none'
+      });
+      return;
+    }
+    
+    wx.setClipboardData({
+      data: this.data.userInfo.userId,
+      success: function() {
+        wx.showToast({
+          title: '用户ID已复制',
+          icon: 'success'
+        });
+      },
+      fail: function() {
+        wx.showToast({
+          title: '复制失败',
+          icon: 'none'
+        });
+      }
+    });
+  },
+
+  // 退出登录
+  logout: function() {
+    // 清除本地存储的用户数据
+    wx.removeStorageSync('userInfo');
+    wx.removeStorageSync('membershipInfo');
+    wx.clearStorageSync(); // 清除所有本地存储
+    
+    // 更新页面数据
+    this.setData({
+      isLoggedIn: false,
+      userInfo: {
+        avatarUrl: '',
+        nickName: '小舟学者',
+        signature: '每天进步一点点，离梦想更近一步',
+        avatarColor: this.data.avatarColors[Math.floor(Math.random() * this.data.avatarColors.length)]
+      },
+      membershipInfo: {
+        isMember: false,
+        startDate: '',
+        endDate: ''
+      }
+    });
+    
+    // 导航到登录页面
+    wx.reLaunch({
+      url: '/pages/login/login'
+    });
   },
 
   onShow: function() {
+    // 清理旧的本地存储数据（一次性操作）
+    try {
+      wx.removeStorageSync('readSystemMessages');
+    } catch (e) {
+      // 忽略错误
+    }
+    
+    // 每次页面显示时检查登录状态
+    this.checkLoginStatus().then(() => {
+      // 如果用户未登录，确保清除本地存储的用户信息和会员信息
+      if (!this.data.isLoggedIn) {
+        wx.removeStorageSync('userInfo');
+        wx.removeStorageSync('membershipInfo');
+        this.setData({
+          userInfo: {},
+          membershipInfo: {}
+        });
+      }
+    });
+    
     // 每次页面显示时更新学习统计数据
     this.loadStudyStats();
+    
+    // 重新加载系统消息
+    this.loadSystemMessages();
     
     // 重新启动统计数据刷新计时器
     this.startStatsRefreshTimer();
@@ -185,6 +343,91 @@ Page({
   onUnload: function() {
     // 当页面卸载时停止刷新计时器
     this.stopStatsRefreshTimer();
+  },
+
+  // 检查登录状态
+  async checkLoginStatus() {
+    try {
+      const result = await authAPI.checkSession();
+
+      if (result.result && result.result.code === 0) {
+        // 已登录，更新用户信息
+        const userData = result.result.data;
+        
+        // 处理头像URL，如果是云存储链接则转换为临时链接
+        let avatarUrl = userData.avatar || '';
+        if (avatarUrl && avatarUrl.startsWith('cloud://')) {
+          try {
+            avatarUrl = await getTemporaryFileUrl(avatarUrl, 'avatar');
+          } catch (error) {
+            console.error('头像临时链接转换失败:', error);
+            avatarUrl = '';
+          }
+        }
+        
+        // 构建用户信息
+        const userInfo = {
+          avatarUrl: avatarUrl,
+          nickName: userData.nickname || '小舟学者',
+          level: userData.level || 1,
+          signature: userData.signature || '每天进步一点点，离梦想更近一步',
+          avatarColor: this.data.avatarColors[Math.floor(Math.random() * this.data.avatarColors.length)],
+          userId: userData.userId || '' // 添加userId字段
+        };
+
+        // 构建会员信息
+        const membershipInfo = userData.membershipInfo || {
+          isMember: false,
+          startDate: '',
+          endDate: ''
+        };
+
+        // 格式化日期
+        if (membershipInfo.startDate) {
+          membershipInfo.startDate = this.formatDate(membershipInfo.startDate);
+        }
+        if (membershipInfo.endDate) {
+          membershipInfo.endDate = this.formatDate(membershipInfo.endDate);
+        }
+
+        // 设置页面数据
+        this.setData({
+          isLoggedIn: true,
+          userInfo: userInfo,
+          membershipInfo: membershipInfo,
+          checkinDays: userData.checkinDays || 0,
+          totalCheckinDays: userData.totalCheckinDays || 0
+        });
+
+        // 保存到本地存储
+        wx.setStorageSync('userInfo', userInfo);
+        wx.setStorageSync('membershipInfo', membershipInfo);
+
+        console.log('用户数据更新成功:', userInfo);
+      } else {
+        // 未登录或登录失效
+        this.setData({
+          isLoggedIn: false,
+          userInfo: {},
+          membershipInfo: {}
+        });
+        // 清除本地存储的用户数据
+        wx.removeStorageSync('userInfo');
+        wx.removeStorageSync('membershipInfo');
+        console.log('用户未登录或登录已失效');
+      }
+    } catch (error) {
+      console.error('检查登录状态失败:', error);
+      // 发生错误时，设置为未登录状态
+      this.setData({
+        isLoggedIn: false,
+        userInfo: {},
+        membershipInfo: {}
+      });
+      // 清除本地存储的用户数据
+      wx.removeStorageSync('userInfo');
+      wx.removeStorageSync('membershipInfo');
+    }
   },
   
   // 启动周期性刷新统计数据的计时器
@@ -210,11 +453,21 @@ Page({
   loadStudyStats: function() {
     // 获取当前日期
     const today = new Date();
-    const dateStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+    const todayDateString = today.toDateString();
     
-    // 从本地存储获取学习统计数据
-    const studyStats = wx.getStorageSync('studyStats') || {};
-    const todayStats = studyStats[dateStr] || {
+    // 尝试从新格式获取今日统计数据
+    const newFormatStats = wx.getStorageSync(`studyStats_${todayDateString}`) || {
+      readTime: 0,
+      writeTime: 0,
+      listenTime: 0,
+      speakTime: 0,
+      totalTime: 0
+    };
+    
+    // 兼容旧格式数据
+    const dateStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+    const oldFormatStats = wx.getStorageSync('studyStats') || {};
+    const oldTodayStats = oldFormatStats[dateStr] || {
       read: 0,
       write: 0,
       listen: 0,
@@ -225,8 +478,20 @@ Page({
       speakExercises: 0
     };
     
-    // 获取总统计数据
-    const totalStats = studyStats.total || {
+    // 合并新旧格式数据，优先使用新格式
+    const todayStats = {
+      read: newFormatStats.readTime || oldTodayStats.read || 0,
+      write: newFormatStats.writeTime || oldTodayStats.write || 0,
+      listen: newFormatStats.listenTime || oldTodayStats.listen || 0,
+      speak: newFormatStats.speakTime || oldTodayStats.speak || 0,
+      readArticles: oldTodayStats.readArticles || 0,
+      writeArticles: oldTodayStats.writeArticles || 0,
+      listenAudios: oldTodayStats.listenAudios || 0,
+      speakExercises: oldTodayStats.speakExercises || 0
+    };
+    
+    // 获取总统计数据（仍从旧格式获取）
+    const totalStats = oldFormatStats.total || {
       readArticles: 0,
       writeArticles: 0,
       listenAudios: 0,
@@ -238,18 +503,23 @@ Page({
     
     // 更新页面数据
     this.setData({
-      'readStats.today': todayStats.read || 0,
-      'writeStats.today': todayStats.write || 0,
-      'listenStats.today': todayStats.listen || 0,
-      'speakStats.today': todayStats.speak || 0,
-      'readStats.articles': totalStats.readArticles || 0,
-      'writeStats.articles': totalStats.writeArticles || 0,
-      'listenStats.audios': totalStats.listenAudios || 0,
-      'speakStats.exercises': totalStats.speakExercises || 0,
+      'readStats.today': todayStats.read,
+      'writeStats.today': todayStats.write,
+      'listenStats.today': todayStats.listen,
+      'speakStats.today': todayStats.speak,
+      'readStats.articles': totalStats.readArticles,
+      'writeStats.articles': totalStats.writeArticles,
+      'listenStats.audios': totalStats.listenAudios,
+      'speakStats.exercises': totalStats.speakExercises,
       'totalStudyTime': totalStudyTime
     });
     
-    console.log('学习统计数据已加载', todayStats, '总学习时间:', totalStudyTime);
+    console.log('学习统计数据已加载', {
+      新格式: newFormatStats,
+      旧格式今日: oldTodayStats,
+      合并后: todayStats,
+      总学习时间: totalStudyTime
+    });
   },
   
   // 更新学习统计数据（供其他页面调用）
@@ -323,48 +593,114 @@ Page({
     
     // 如果总时长达到特定标准，自动触发打卡
     if (totalStudyTime >= 30 && !studyStats[dateStr].checkedIn) {
-      // 自动打卡
-      const currentDay = today.getDate();
-      this.checkInToday(currentDay);
+      // 不再自动打卡，只标记为已完成学习目标
       studyStats[dateStr].checkedIn = true;
       wx.setStorageSync('studyStats', studyStats);
+      
+      // 提示用户可以手动打卡
+      wx.showToast({
+        title: '已达到学习目标，可以打卡啦',
+        icon: 'none',
+        duration: 2000
+      });
     }
   },
   
   // 点击头像上传
-  uploadAvatar() {
+  async uploadAvatar() {
+    if (!this.data.isLoggedIn) {
+      this.navigateToLogin();
+      return;
+    }
     const that = this;
     wx.chooseImage({
       count: 1,
       sizeType: ['compressed'],
       sourceType: ['album', 'camera'],
-      success(res) {
+      success: async (res) => {
         // 获取选中图片的临时路径
         const tempFilePath = res.tempFilePaths[0];
         
-        // 更新本地显示
-        const userInfo = that.data.userInfo;
-        userInfo.avatarUrl = tempFilePath;
-        
-        that.setData({
-          userInfo: userInfo
+        // 显示上传中
+        wx.showLoading({
+          title: '上传中...',
+          mask: true
         });
+
+        // 上传图片到云存储
+        const cloudPath = `avatars/${that.data.userInfo.nickName || 'user'}_${Date.now()}${tempFilePath.match(/\.[^.]+?$/)[0]}`;
         
-        // 存储到本地
-        wx.setStorageSync('userInfo', userInfo);
-        
-        // 实际项目中这里应该调用API上传图片到服务器
-        wx.showToast({
-          title: '头像更新成功',
-          icon: 'success',
-          duration: 2000
-        });
+        try {     
+          // 跨环境创建 Cloud 实例
+          const cloudInstance = new wx.cloud.Cloud({
+            identityless: true,
+            resourceAppid: 'wx85d92d28575a70f4',
+            resourceEnv: 'cloud1-1gsyt78b92c539ef',
+          });
+          await cloudInstance.init();
+          
+          const uploadResult = await cloudInstance.uploadFile({
+            cloudPath: cloudPath,
+            filePath: tempFilePath,
+          });
+          
+          // 获取图片的云存储地址
+          const fileID = uploadResult.fileID;
+          
+          try {
+            // 调用云函数更新用户头像
+            const result = await authAPI.updateUserInfo('avatar', fileID);
+
+              if (result.result.code === 0) {
+                // 转换云存储链接为临时链接用于显示
+                let displayAvatarUrl = fileID;
+                try {
+                  displayAvatarUrl = await getTemporaryFileUrl(fileID, 'avatar');
+                } catch (error) {
+                  console.error('头像临时链接转换失败:', error);
+                }
+                
+                // 更新本地显示
+                const userInfo = that.data.userInfo;
+                userInfo.avatarUrl = displayAvatarUrl;
+                that.setData({
+                  userInfo: userInfo
+                });
+                wx.setStorageSync('userInfo', userInfo);
+                
+                wx.showToast({
+                  title: '头像更新成功',
+                  icon: 'success'
+                });
+            } else {
+              throw new Error(result.result.msg);
+            }
+          } catch (error) {
+            console.error('更新头像失败:', error);
+            wx.showToast({
+              title: '更新失败',
+              icon: 'error'
+            });
+          }
+        } catch (uploadError) {
+          console.error('上传图片失败:', uploadError);
+          wx.showToast({
+            title: '上传失败',
+            icon: 'error'
+          });
+        } finally {
+          wx.hideLoading();
+        }
       }
     });
   },
   
   // 编辑个人资料
   editProfile() {
+    if (!this.data.isLoggedIn) {
+      this.navigateToLogin();
+      return;
+    }
     const that = this;
     wx.showActionSheet({
       itemList: ['修改头像', '修改昵称', '修改个性签名'],
@@ -379,22 +715,41 @@ Page({
             editable: true,
             placeholderText: '请输入新的昵称',
             content: that.data.userInfo.nickName || '',
-            success: function(res) {
+            success: async function(res) {
               if (res.confirm && res.content) {
-                const userInfo = that.data.userInfo;
-                userInfo.nickName = res.content;
-                that.setData({
-                  userInfo: userInfo
+                wx.showLoading({
+                  title: '更新中...',
+                  mask: true
                 });
-                // 保存到本地存储
-                wx.setStorageSync('userInfo', userInfo);
-                
-                // 显示成功提示
-                wx.showToast({
-                  title: '昵称已更新',
-                  icon: 'success',
-                  duration: 2000
-                });
+
+                try {
+                  // 调用云函数更新昵称
+                  const result = await authAPI.updateUserInfo('nickname', res.content);
+
+                  if (result.result.code === 0) {
+                    const userInfo = that.data.userInfo;
+                    userInfo.nickName = res.content;
+                    that.setData({
+                      userInfo: userInfo
+                    });
+                    wx.setStorageSync('userInfo', userInfo);
+                    
+                    wx.showToast({
+                      title: '昵称已更新',
+                      icon: 'success'
+                    });
+                  } else {
+                    throw new Error(result.result.msg);
+                  }
+                } catch (error) {
+                  console.error('更新昵称失败:', error);
+                  wx.showToast({
+                    title: '更新失败',
+                    icon: 'error'
+                  });
+                } finally {
+                  wx.hideLoading();
+                }
               }
             }
           });
@@ -405,22 +760,41 @@ Page({
             editable: true,
             placeholderText: '请输入新的个性签名',
             content: that.data.userInfo.signature || '',
-            success: function(res) {
+            success: async function(res) {
               if (res.confirm && res.content) {
-                const userInfo = that.data.userInfo;
-                userInfo.signature = res.content;
-                that.setData({
-                  userInfo: userInfo
+                wx.showLoading({
+                  title: '更新中...',
+                  mask: true
                 });
-                // 保存到本地存储
-                wx.setStorageSync('userInfo', userInfo);
-                
-                // 显示成功提示
-                wx.showToast({
-                  title: '签名已更新',
-                  icon: 'success',
-                  duration: 2000
-                });
+
+                try {
+                  // 调用云函数更新个性签名
+                  const result = await authAPI.updateUserInfo('signature', res.content);
+
+                  if (result.result.code === 0) {
+                    const userInfo = that.data.userInfo;
+                    userInfo.signature = res.content;
+                    that.setData({
+                      userInfo: userInfo
+                    });
+                    wx.setStorageSync('userInfo', userInfo);
+                    
+                    wx.showToast({
+                      title: '签名已更新',
+                      icon: 'success'
+                    });
+                  } else {
+                    throw new Error(result.result.msg);
+                  }
+                } catch (error) {
+                  console.error('更新签名失败:', error);
+                  wx.showToast({
+                    title: '更新失败',
+                    icon: 'error'
+                  });
+                } finally {
+                  wx.hideLoading();
+                }
               }
             }
           });
@@ -527,14 +901,102 @@ Page({
   showAboutUs() {
     wx.showModal({
       title: '关于我们',
-      content: '晓学习 v1.0.0\n\n晓学习通过语言重构思维，以听说读写为支点，撬动跨文化思辨、逻辑推演与创意表达。和我们一起晓世界！\n\n©2025 晓学习团队',
+      content: '摇小舟 v1.0.0\n\n摇小舟通过语言重构思维，以听说读写为支点，撬动跨文化思辨、逻辑推演与创意表达。和我们一起小舟摇书池！\n\n©2025 摇小舟团队',
       showCancel: false,
       confirmText: '了解更多'
     });
   },
 
+  // 加载系统消息
+  async loadSystemMessages() {
+    if (!this.data.isLoggedIn) {
+      // 未登录时使用默认消息
+      this.calculateUnreadMessages();
+      return;
+    }
+
+    try {
+      const result = await messengerAPI.getSystemMessages(1, 50);
+
+      if (result.result && result.result.code === 0) {
+        const messages = result.result.data.list || [];
+        
+        // 从本地存储读取已读状态
+        const readMessages = getReadMessages();
+        
+        // 转换消息格式，使用本地存储的已读状态
+        const formattedMessages = messages.map(msg => ({
+            id: msg._id,
+            title: msg.title,
+            content: msg.content,
+            date: this.formatDate(msg.date || msg.createdAt),
+            read: readMessages.includes(msg._id)
+          }));
+
+        this.setData({
+          systemMessages: formattedMessages
+        });
+        
+        // 计算未读消息数
+        this.calculateUnreadMessages();
+      } else {
+        console.error('获取系统消息失败:', result.result?.msg);
+        // 失败时使用默认消息
+        this.calculateUnreadMessages();
+      }
+    } catch (error) {
+      console.error('加载系统消息出错:', error);
+      // 出错时使用默认消息
+      this.calculateUnreadMessages();
+    }
+  },
+
+  // 格式化日期
+  formatDate(timestamp) {
+    if (!timestamp) return '';
+    
+    // 处理时间戳格式
+    const date = new Date(timestamp);
+    if (isNaN(date.getTime())) return '';
+    
+    const now = new Date();
+    const diff = now - date;
+    const oneDay = 24 * 60 * 60 * 1000;
+    
+    // 自定义时间格式化，确保0点显示为0而不是12
+    // 只返回日期部分，不包含时间
+    const year = date.getFullYear();
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const day = date.getDate().toString().padStart(2, '0');
+    return `${year}年${month}月${day}日`;
+    
+  },
+
+  // 标记消息为已读
+  markMessageAsRead(messageId, index) {
+    // 标记消息为本地已读
+    markMessageAsReadLocal(messageId);
+    
+    // 更新本地数据
+    let updatedMessages = [...this.data.systemMessages];
+    updatedMessages[index].read = true;
+    
+    this.setData({
+      systemMessages: updatedMessages
+    });
+    
+    // 重新计算未读消息数并更新tabbar红点
+    this.calculateUnreadMessages();
+    
+    console.log('消息已标记为已读');
+  },
+
   // 导航到系统消息页面
   navigateToMessages() {
+    if (!this.data.isLoggedIn) {
+      this.navigateToLogin();
+      return;
+    }
     const that = this;
     
     if (that.data.unreadMessages > 0) {
@@ -567,10 +1029,7 @@ Page({
   // 显示消息对话框
   showMessageDialog(index) {
     if (index >= this.data.systemMessages.length) {
-      // 所有消息都已显示，更新本地存储
-      wx.setStorageSync('systemMessages', this.data.systemMessages);
-      
-      // 计算剩余未读消息
+      // 所有消息都已显示
       this.calculateUnreadMessages();
       
       // 如果没有未读消息了，显示提示
@@ -592,24 +1051,18 @@ Page({
       cancelText: '标为已读',
       confirmText: '下一条',
       success: function(res) {
-        // 标记当前消息为已读
-        let updatedMessages = [...that.data.systemMessages];
-        updatedMessages[index].read = true;
-        
-        that.setData({
-          systemMessages: updatedMessages
-        });
+        // 标记消息为已读
+        that.markMessageAsRead(message.id, index);
         
         if (res.confirm) {
           // 用户点击"下一条"，显示下一条未读消息
-          const nextUnreadIndex = updatedMessages.findIndex((msg, idx) => !msg.read && idx > index);
+          const nextUnreadIndex = that.data.systemMessages.findIndex((msg, idx) => !msg.read && idx > index);
           
           if (nextUnreadIndex !== -1) {
             // 有下一条未读消息
             that.showMessageDialog(nextUnreadIndex);
           } else {
             // 没有下一条未读消息了
-            wx.setStorageSync('systemMessages', updatedMessages);
             that.calculateUnreadMessages();
             
             wx.showToast({
@@ -619,7 +1072,6 @@ Page({
           }
         } else {
           // 用户点击"标为已读"，结束查看
-          wx.setStorageSync('systemMessages', updatedMessages);
           that.calculateUnreadMessages();
         }
       }
@@ -633,6 +1085,17 @@ Page({
     this.setData({
       unreadMessages: unreadCount
     });
+    
+    // 根据未读消息数量控制tabbar红点
+    if (unreadCount > 0) {
+      wx.showTabBarRedDot({
+        index: 2 // profile页面在tabbar中的索引
+      });
+    } else {
+      wx.hideTabBarRedDot({
+        index: 2
+      });
+    }
   },
 
   // 导航到学习打卡页面
@@ -645,77 +1108,140 @@ Page({
   
   // 生成日历数据
   generateCalendarData(year, month, currentDay) {
-    // 获取当月天数
-    const daysInMonth = new Date(year, month, 0).getDate();
-    
-    // 获取当月第一天是星期几
-    const firstDayOfMonth = new Date(year, month - 1, 1).getDay();
-    
-    // 构建日历数据
-    const calendarDays = [];
-    
-    // 填充前面的空白
-    for (let i = 0; i < firstDayOfMonth; i++) {
-      calendarDays.push({
-        day: 0,
-        isCurrentMonth: false,
-        isToday: false,
-        isChecked: false
-      });
-    }
-    
-    // 填充当月日期
-    for (let i = 1; i <= daysInMonth; i++) {
-      // 模拟已打卡日期，实际应从后端获取
-      // 这里假设本月currentDay之前的日期都已打卡
-      const isChecked = i < currentDay;
+    return new Promise((resolve, reject) => {
+      // 获取当月第一天是星期几
+      const firstDay = new Date(year, month - 1, 1).getDay();
       
-      calendarDays.push({
-        day: i,
-        isCurrentMonth: true,
-        isToday: i === currentDay,
-        isChecked: isChecked
+      // 获取当月天数
+      const daysInMonth = new Date(year, month, 0).getDate();
+      
+      // 获取上个月天数
+      const daysInPrevMonth = new Date(year, month - 1, 0).getDate();
+      
+      // 构建日历数据
+      let days = [];
+      
+      // 添加上个月的最后几天
+      for (let i = 0; i < firstDay; i++) {
+        const day = daysInPrevMonth - firstDay + i + 1;
+        days.push({
+          day,
+          isCurrentMonth: false,
+          isToday: false,
+          isChecked: false
+        });
+      }
+      
+      // 添加当月的日期
+      for (let i = 1; i <= daysInMonth; i++) {
+        const isToday = i === currentDay;
+        days.push({
+          day: i,
+          isCurrentMonth: true,
+          isToday,
+          isChecked: false // 先默认为未打卡，后续通过API获取打卡记录后再更新
+        });
+      }
+      
+      // 添加下个月的前几天
+      const remainingCells = 42 - days.length;
+      for (let i = 1; i <= remainingCells; i++) {
+        days.push({
+          day: i,
+          isCurrentMonth: false,
+          isToday: false,
+          isChecked: false
+        });
+      }
+      
+      // 调用云函数获取打卡记录
+      checkinAPI.getCheckinRecords(year, month).then(res => {
+        if (res.result && res.result.code === 0) {
+          const records = res.result.data.records;
+          
+          // 更新打卡记录
+          records.forEach(record => {
+            const dateParts = record.date.split('-');
+            const day = parseInt(dateParts[2]);
+            
+            // 找到对应的日期，标记为已打卡
+            const dayIndex = firstDay + day - 1;
+            if (dayIndex >= 0 && dayIndex < days.length && days[dayIndex].isCurrentMonth) {
+              days[dayIndex].isChecked = true;
+            }
+          });
+        }
+        
+        // 构建日历数据对象
+        const calendarData = {
+          year,
+          month,
+          days,
+          checkinDays: this.data.checkinDays,
+          totalCheckinDays: this.data.totalCheckinDays
+        };
+        
+        resolve(calendarData);
+      }).catch(err => {
+        console.error('获取打卡记录失败:', err);
+        
+        // 构建日历数据对象（无打卡记录）
+        const calendarData = {
+          year,
+          month,
+          days,
+          checkinDays: this.data.checkinDays,
+          totalCheckinDays: this.data.totalCheckinDays
+        };
+        
+        resolve(calendarData);
       });
+    });
+  },
+
+  // 显示日历对话框
+  async showCalendarDialog(calendarData, currentDay) {
+    // 构建日历视图
+    let calendarView = `${calendarData.year}年${calendarData.month}月\n\n`;
+    calendarView += '日 一 二 三 四 五 六\n';
+    
+    // 将日期数据按每行7个进行分组
+    for (let i = 0; i < calendarData.days.length; i += 7) {
+      const weekDays = calendarData.days.slice(i, i + 7);
+      let weekRow = '';
+      
+      weekDays.forEach(day => {
+        // 当前月份的日期
+        if (day.isCurrentMonth) {
+          if (day.isToday) {
+            // 今天
+            weekRow += day.isChecked ? '◉' : '○';
+          } else {
+            // 其他日期
+            weekRow += day.isChecked ? '●' : '·';
+          }
+        } else {
+          // 非当前月份
+          weekRow += ' ';
+        }
+        weekRow += ' ';
+      });
+      
+      calendarView += weekRow + '\n';
     }
     
-    return {
-      year,
-      month,
-      days: calendarDays
-    };
-  },
-  
-  // 显示日历对话框
-  showCalendarDialog(calendarData, currentDay) {
-    // 构建日历HTML模板
-    let dialogContent = `
-      <view style="font-size: 18px; font-weight: bold; text-align: center; margin-bottom: 10px;">
-        ${calendarData.year}年${calendarData.month}月
-      </view>
-      <view style="display: flex; justify-content: space-around; margin-bottom: 10px;">
-        <view style="width: 14.28%; text-align: center;">日</view>
-        <view style="width: 14.28%; text-align: center;">一</view>
-        <view style="width: 14.28%; text-align: center;">二</view>
-        <view style="width: 14.28%; text-align: center;">三</view>
-        <view style="width: 14.28%; text-align: center;">四</view>
-        <view style="width: 14.28%; text-align: center;">五</view>
-        <view style="width: 14.28%; text-align: center;">六</view>
-      </view>
-    `;
+    // 添加打卡统计
+    calendarView += `\n连续打卡: ${calendarData.checkinDays}天`;
+    calendarView += `\n总打卡: ${calendarData.totalCheckinDays}天`;
     
-    // 使用 wx.showActionSheet 显示日历选项
-    const dateOptions = ['今日打卡', '查看本月打卡记录', '返回'];
-    
-    wx.showActionSheet({
-      itemList: dateOptions,
+    // 显示日历对话框
+    wx.showModal({
+      title: '打卡日历',
+      content: calendarView,
+      confirmText: '查看详情',
+      cancelText: '关闭',
       success: (res) => {
-        const tapIndex = res.tapIndex;
-        
-        if (tapIndex === 0) {
-          // 用户选择今日打卡
-          this.checkInToday(currentDay);
-        } else if (tapIndex === 1) {
-          // 查看本月打卡记录
+        if (res.confirm) {
           this.showMonthlyCheckinRecord(calendarData);
         }
       }
@@ -726,6 +1252,8 @@ Page({
   checkInToday(day) {
     const today = new Date();
     const currentDay = today.getDate();
+    
+    console.log('执行今日打卡:', { day, currentDay });
     
     if (day !== currentDay) {
       wx.showToast({
@@ -741,96 +1269,206 @@ Page({
       confirmText: '确定打卡',
       success: (res) => {
         if (res.confirm) {
-          // 模拟打卡成功
-          wx.showToast({
-            title: '打卡成功',
-            icon: 'success'
-          });
-          
-          // 更新数据
-          this.setData({
-            checkinDays: this.data.checkinDays + 1,
-            totalCheckinDays: this.data.totalCheckinDays + 1
-          });
-          
-          // 实际应用中这里应该调用API保存打卡记录
-          // 这里只是模拟，实际应从后端获取并保存数据
-        }
-      }
-    });
-  },
-  
-  // 显示本月打卡记录
-  showMonthlyCheckinRecord(calendarData) {
-    // 获取已打卡的日期
-    const checkedDays = calendarData.days
-      .filter(day => day.isCurrentMonth && day.isChecked)
-      .map(day => day.day);
-    
-    // 将日期分组显示
-    const dayGroups = [];
-    let currentGroup = [];
-    
-    checkedDays.sort((a, b) => a - b).forEach(d => {
-      if (currentGroup.length === 0) {
-        currentGroup.push(d);
-      } else if (d === currentGroup[currentGroup.length - 1] + 1) {
-        currentGroup.push(d);
-      } else {
-        dayGroups.push(currentGroup);
-        currentGroup = [d];
-      }
-    });
-    
-    if (currentGroup.length > 0) {
-      dayGroups.push(currentGroup);
-    }
-    
-    // 生成打卡记录描述
-    let checkinRecord = `${calendarData.year}年${calendarData.month}月打卡记录：\n\n`;
-    
-    if (dayGroups.length === 0) {
-      checkinRecord += '本月暂无打卡记录';
-    } else {
-      dayGroups.forEach(group => {
-        if (group.length === 1) {
-          checkinRecord += `${calendarData.month}月${group[0]}日\n`;
-        } else {
-          checkinRecord += `${calendarData.month}月${group[0]}日至${calendarData.month}月${group[group.length - 1]}日\n`;
-        }
-      });
-    }
-    
-    // 显示打卡记录
-    wx.showModal({
-      title: '本月打卡记录',
-      content: checkinRecord,
-      showCancel: false,
-      confirmText: '我知道了',
-      success: (res) => {
-        // 如果当天还未打卡，提示用户
-        const today = new Date();
-        const currentDay = today.getDate();
-        
-        if (!checkedDays.includes(currentDay)) {
-          wx.showModal({
-            title: '今日打卡',
-            content: '您今天还未完成打卡，是否现在打卡？',
-            confirmText: '立即打卡',
-            cancelText: '稍后再说',
-            success: (res) => {
-              if (res.confirm) {
-                this.checkInToday(currentDay);
-              }
-            }
-          });
+          this.performCheckIn();
         }
       }
     });
   },
 
+  // 执行打卡操作
+  performCheckIn() {
+    if (!this.data.isLoggedIn) {
+      wx.showToast({
+        title: '请先登录',
+        icon: 'none'
+      });
+      return;
+    }
+    
+    wx.showLoading({
+      title: '打卡中...',
+      mask: true
+    });
+    
+    // 先检查用户是否存在，如果不存在则创建
+    checkinAPI.checkAndCreateUser().then(res => {
+      if (res.result && res.result.code === 0) {
+        console.log('用户检查/创建成功:', res.result);
+        
+        // 继续执行打卡操作
+        this.executeCheckIn();
+      } else {
+        wx.hideLoading();
+        console.error('用户检查/创建失败:', res);
+        
+        wx.showToast({
+          title: '打卡失败，请重试',
+          icon: 'none'
+        });
+      }
+    }).catch(err => {
+      wx.hideLoading();
+      console.error('用户检查/创建失败:', err);
+      
+      wx.showToast({
+        title: '打卡失败，请重试',
+        icon: 'none'
+      });
+    });
+  },
+  
+  // 执行打卡
+  executeCheckIn() {
+    // 调用云函数进行打卡
+    checkinAPI.checkIn(this.data.totalStudyTime || 0).then(res => {
+      wx.hideLoading();
+      
+      if (res.result && res.result.code === 0) {
+        const data = res.result.data;
+        
+        // 更新页面数据
+        this.setData({
+          checkinDays: data.checkinDays,
+          totalCheckinDays: data.totalCheckinDays
+        });
+        
+        // 显示成功提示
+        wx.showToast({
+          title: '打卡成功',
+          icon: 'success'
+        });
+      } else {
+        console.error('打卡失败:', res);
+        wx.showToast({
+          title: res.result?.msg || '打卡失败',
+          icon: 'none'
+        });
+      }
+    }).catch(err => {
+      wx.hideLoading();
+      console.error('调用云函数失败:', err);
+      wx.showToast({
+        title: '打卡失败，请重试',
+        icon: 'none'
+      });
+    });
+  },
+  
+  // 显示本月打卡记录
+  showMonthlyCheckinRecord(calendarData) {
+    wx.showLoading({
+      title: '加载中...',
+      mask: true
+    });
+    
+    // 调用云函数获取月度打卡统计
+    checkinAPI.getCheckinRecords(calendarData.year, calendarData.month).then(res => {
+      wx.hideLoading();
+      
+      if (res.result && res.result.code === 0) {
+        const records = res.result.data.records;
+        
+        if (records.length === 0) {
+          wx.showModal({
+            title: '本月打卡记录',
+            content: `${calendarData.year}年${calendarData.month}月暂无打卡记录`,
+            showCancel: false,
+            confirmText: '我知道了'
+          });
+          return;
+        }
+        
+        // 获取已打卡的日期
+        const checkedDays = records.map(record => {
+          const dateParts = record.date.split('-');
+          return parseInt(dateParts[2]);
+        }).sort((a, b) => a - b);
+        
+        // 将日期分组显示
+        const dayGroups = [];
+        let currentGroup = [];
+        
+        checkedDays.forEach(d => {
+          if (currentGroup.length === 0) {
+            currentGroup.push(d);
+          } else if (d === currentGroup[currentGroup.length - 1] + 1) {
+            currentGroup.push(d);
+          } else {
+            dayGroups.push(currentGroup);
+            currentGroup = [d];
+          }
+        });
+        
+        if (currentGroup.length > 0) {
+          dayGroups.push(currentGroup);
+        }
+        
+        // 生成打卡记录描述
+        let checkinRecord = `${calendarData.year}年${calendarData.month}月打卡记录：\n\n`;
+        
+        dayGroups.forEach(group => {
+          if (group.length === 1) {
+            checkinRecord += `${calendarData.month}月${group[0]}日\n`;
+          } else {
+            checkinRecord += `${calendarData.month}月${group[0]}日至${calendarData.month}月${group[group.length - 1]}日\n`;
+          }
+        });
+        
+        // 显示打卡记录
+        wx.showModal({
+          title: '本月打卡记录',
+          content: checkinRecord,
+          showCancel: false,
+          confirmText: '我知道了',
+          success: (res) => {
+            // 如果当天还未打卡，提示用户
+            const today = new Date();
+            const currentDay = today.getDate();
+            const currentMonth = today.getMonth() + 1;
+            const currentYear = today.getFullYear();
+            
+            // 只有当前月才提示打卡
+            if (calendarData.year === currentYear && calendarData.month === currentMonth && !checkedDays.includes(currentDay)) {
+              wx.showModal({
+                title: '今日打卡',
+                content: '您今天还未完成打卡，是否现在打卡？',
+                confirmText: '立即打卡',
+                cancelText: '稍后再说',
+                success: (res) => {
+                  if (res.confirm) {
+                    this.checkInToday(currentDay);
+                  }
+                }
+              });
+            }
+          }
+        });
+      } else {
+        wx.showModal({
+          title: '获取打卡记录失败',
+          content: '无法获取本月打卡记录，请稍后再试',
+          showCancel: false,
+          confirmText: '我知道了'
+        });
+      }
+    }).catch(err => {
+      wx.hideLoading();
+      console.error('获取打卡记录失败:', err);
+      wx.showModal({
+        title: '获取打卡记录失败',
+        content: '无法获取本月打卡记录，请稍后再试',
+        showCancel: false,
+        confirmText: '我知道了'
+      });
+    });
+  },
+
   // 导航到会员页面
   navigateToMembership() {
+    if (!this.data.isLoggedIn) {
+      this.navigateToLogin();
+      return;
+    }
     wx.navigateTo({
       url: '/pages/membership/membership'
     });
@@ -1029,70 +1667,49 @@ Page({
     // 先刷新一次统计数据，确保显示最新的学习时间
     this.loadStudyStats();
     
-    // 句子库 - 更丰富多样
-    const sentences = [
-      // 中文古诗词
+    // 调用云函数获取随机句子
+    sentencesAPI.getRandomSentence().then(res => {
+      console.log('云函数调用成功:', res);
+      
+      if (res.result && res.result.success && res.result.data) {
+        const sentence = res.result.data;
+        
+        // 延迟显示，增加仪式感
+        setTimeout(() => {
+          wx.hideLoading();
+          
+          // 显示自定义弹窗
+          this.setData({
+            showFortuneModal: true,
+            fortuneContent: `${sentence.text}\n\n—— ${sentence.source}`
+          });
+        }, 800);
+      } else {
+        console.error('云函数返回数据格式错误:', res);
+        this.showFallbackSentence();
+      }
+    }).catch(err => {
+      console.error('云函数调用失败:', err);
+      this.showFallbackSentence();
+    });
+  },
+  
+  // 备用句子显示（当云函数调用失败时）
+  showFallbackSentence: function() {
+    const fallbackSentences = [
       { text: '天行健，君子以自强不息。', source: '《周易》' },
       { text: '千里之行，始于足下。', source: '老子' },
       { text: '学而不思则罔，思而不学则殆。', source: '孔子' },
       { text: '路漫漫其修远兮，吾将上下而求索。', source: '屈原《离骚》' },
-      { text: '宝剑锋从磨砺出，梅花香自苦寒来。', source: '古谚语' },
-      { text: '不经一番寒彻骨，怎得梅花扑鼻香。', source: '黄櫱《励学篇》' },
-      { text: '纸上得来终觉浅，绝知此事要躬行。', source: '陆游' },
-      { text: '业精于勤，荒于嬉；行成于思，毁于随。', source: '韩愈' },
-      { text: '三人行，必有我师焉。', source: '孔子' },
-      { text: '知之者不如好之者，好之者不如乐之者。', source: '孔子' },
-      
-      // 英文经典
-      { text: 'The journey of a thousand miles begins with a single step.', source: 'Lao Tzu' },
-      { text: 'What we think, we become.', source: 'Buddha' },
-      { text: 'Be the change that you wish to see in the world.', source: 'Gandhi' },
-      { text: 'You miss 100% of the shots you don\'t take.', source: 'Wayne Gretzky' },
-      { text: 'If you want to live a happy life, tie it to a goal, not to people or things.', source: 'Albert Einstein' },
-      { text: 'The only way to do great work is to love what you do.', source: 'Steve Jobs' },
-      
-      // 其他语言
-      { text: 'Lo que no te mata, te hace más fuerte.', source: '西班牙语 (意为：不能杀死你的，会使你更强大)' },
-      { text: 'La vie est un défi à relever, un bonheur à mériter, une aventure à tenter.', source: '法语 (意为：生活是一个挑战，一种幸福，一场冒险)' },
-      { text: 'Der Weg ist das Ziel.', source: '德语 (意为：道路即目标)' },
-      { text: 'Sii il cambiamento che vuoi vedere nel mondo.', source: '意大利语 (意为：成为你想在世界上看到的改变)' }
+      { text: 'The journey of a thousand miles begins with a single step.', source: 'Lao Tzu' }
     ];
     
-    // 从本地存储获取上次显示的句子索引
-    let lastIndex = wx.getStorageSync('lastFortuneIndex');
-    if (lastIndex === '') lastIndex = -1;
+    const randomIndex = Math.floor(Math.random() * fallbackSentences.length);
+    const sentence = fallbackSentences[randomIndex];
     
-    // 获取已显示过的句子历史
-    let shownHistory = wx.getStorageSync('fortuneShownHistory') || [];
-    // 保留最近10次的历史
-    if (shownHistory.length > 10) {
-      shownHistory = shownHistory.slice(-10);
-    }
-    
-    // 过滤出没有最近显示过的句子
-    let availableSentences = sentences.filter((_, index) => !shownHistory.includes(index));
-    
-    // 如果所有句子都显示过了，重置可用句子
-    if (availableSentences.length === 0) {
-      availableSentences = sentences;
-      shownHistory = [];
-    }
-    
-    // 随机选择一条句子
-    const randomIndex = Math.floor(Math.random() * availableSentences.length);
-    const realIndex = sentences.indexOf(availableSentences[randomIndex]);
-    const sentence = sentences[realIndex];
-    
-    // 更新显示历史
-    shownHistory.push(realIndex);
-    wx.setStorageSync('fortuneShownHistory', shownHistory);
-    wx.setStorageSync('lastFortuneIndex', realIndex);
-    
-    // 延迟显示，增加仪式感
     setTimeout(() => {
       wx.hideLoading();
       
-      // 显示自定义弹窗
       this.setData({
         showFortuneModal: true,
         fortuneContent: `${sentence.text}\n\n—— ${sentence.source}`
@@ -1118,6 +1735,11 @@ Page({
 
   // 导航到文章收藏页面
   navigateToArticleFavorites() {
+    if (!this.data.isLoggedIn) {
+      this.navigateToLogin();
+      return;
+    }
+    
     wx.navigateTo({
       url: '/pages/article-favorites/article-favorites'
     });
@@ -1132,6 +1754,10 @@ Page({
 
   // 导航到听力错题页面
   navigateToListeningErrors() {
+    if (!this.data.isLoggedIn) {
+      this.navigateToLogin();
+      return;
+    }
     wx.navigateTo({
       url: '/pages/listening-errors/listening-errors'
     });
@@ -1139,8 +1765,71 @@ Page({
 
   // 导航到录音仓库页面
   navigateToRecordingRepository() {
+    if (!this.data.isLoggedIn) {
+      this.navigateToLogin();
+      return;
+    }
     wx.navigateTo({
       url: '/pages/recording-repository/recording-repository'
     });
+  },
+
+  // 加载写作列表
+  async loadWritings() {
+    if (this.data.loading || !this.data.hasMore) return;
+
+    this.setData({ loading: true });
+
+    try {
+      const result = await writingAPI.getWritingHistory(this.data.page, this.data.pageSize);
+
+      if (result.result.code === 0) {
+        const { list, total } = result.result.data;
+        
+        this.setData({
+          writings: this.data.page === 1 ? list : [...this.data.writings, ...list],
+          hasMore: list.length === this.data.pageSize,
+          page: this.data.page + 1
+        });
+      } else {
+        throw new Error(result.result.msg || '获取写作列表失败');
+      }
+    } catch (error) {
+      console.error('加载写作列表失败:', error);
+      wx.showToast({
+        title: '加载失败',
+        icon: 'none'
+      });
+    } finally {
+      this.setData({ loading: false });
+    }
+  },
+
+  // 下拉刷新
+  onPullDownRefresh: function() {
+    this.setData({
+      page: 1,
+      hasMore: true,
+      writings: []
+    }, () => {
+      this.loadWritings().then(() => {
+        wx.stopPullDownRefresh();
+      });
+    });
+  },
+
+  // 上拉加载更多
+  onReachBottom: function() {
+    if (this.data.hasMore) {
+      this.loadWritings();
+    }
+  },
+
+  // 点击写作项
+  onWritingTap: function(e) {
+    const id = e.currentTarget.dataset.id;
+    wx.navigateTo({
+      url: `../writing-detail/writing-detail?id=${id}`
+    });
   }
-}); 
+});

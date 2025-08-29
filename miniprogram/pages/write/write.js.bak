@@ -722,7 +722,7 @@ Page({
   onShareAppMessage: function() {
     const title = this.data.currentArticle ? 
       `我基于"${this.data.currentArticle.title}"的写作` : 
-      '我在九域写的文章';
+      '我在小舟摇书池写的文章';
     
     return {
       title: title,
@@ -735,7 +735,7 @@ Page({
   onShareTimeline: function() {
     const title = this.data.currentArticle ? 
       `我基于"${this.data.currentArticle.title}"的写作` : 
-      '我在九域写的文章';
+      '我在小舟摇书池写的文章';
     
     return {
       title: title,
@@ -823,7 +823,7 @@ Page({
             ctx.fillStyle = '#4CAF50';
             ctx.font = '20px sans-serif';
             ctx.textAlign = 'center';
-            ctx.fillText('九域 · 写一写', width / 2, height - 25);
+            ctx.fillText('小舟摇书池 · 写一写', width / 2, height - 25);
             
             // 将画布内容转为图片
             wx.canvasToTempFilePath({

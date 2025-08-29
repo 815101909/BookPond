@@ -20,11 +20,11 @@
           
           <!-- 右侧：文章描述和元数据 -->
           <view class="article-info">
-            <view class="article-description">{{item.description}}</view>
+            <view class="article-description">{{item.highlights}}</view>
             
             <view class="article-meta">
               <view class="meta-group">
-                <text class="meta-label">日期：</text>
+                <text class="meta-label">收藏日期：</text>
                 <text class="article-date">{{item.date}}</text>
               </view>
             </view>

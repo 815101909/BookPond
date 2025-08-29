@@ -1,0 +1,12 @@
+{
+    "name": "app",
+    "version": "1.0.0",
+    "description": "定时发布城市卡片",
+    "main": "index.js",
+    "scripts": {},
+    "author": "",
+    "license": "ISC",
+    "dependencies": {
+      "@cloudbase/node-sdk": "latest"
+    }
+  }

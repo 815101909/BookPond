@@ -8,8 +8,8 @@
     <view class="nav-item" bindtap="decreaseFontSize">
       <text class="iconfont">A-</text>
     </view>
-    <view class="nav-item" bindtap="toggleMusic">
-      <text class="iconfont">{{isPlaying ? '🔊' : '🔈'}}</text>
+    <view class="nav-item" bindtap="toggleBgm">
+      <text class="iconfont">{{isBgmPlaying ? '🔊' : '🔈'}}</text>
     </view>
     <view class="nav-item" bindtap="toggleFavorite">
       <text class="iconfont">{{isFavorite ? '❤️' : '🤍'}}</text>
@@ -21,27 +21,42 @@
 
   <!-- 新闻头部信息 -->
   <view class="news-header-section">
-    <view class="news-header">
-      <view class="cover-container">
-        <image class="news-cover" src="{{newsDetail.coverUrl}}" mode="aspectFill"></image>
+  <!-- 标题信息 -->
+    <view class="news-info">
+      <!-- 中文标题 -->
+      <view class="news-title {{newsDetail.titleTranslations.length === 0 ? 'single-language' : ''}}">
+        {{newsDetail.title}}
       </view>
-      <view class="news-info">
-        <view class="news-title">{{newsDetail.title}}</view>
-        <!-- 标题翻译区域 -->
-        <view class="title-translations">
-          <!-- 第一选择语言标题翻译 -->
-          <view class="title-translation-line" wx:if="{{newsDetail.titleTranslations.length > 0}}">
-            <input class="title-translation-input" value="{{newsDetail.titleTranslations[0].text || ''}}" placeholder="标题翻译加载中..." style="font-size: 24rpx;" disabled="true"/>
-          </view>
-          <!-- 第二选择语言标题翻译 -->
-          <view class="title-translation-line" wx:if="{{newsDetail.titleTranslations.length > 1}}">
-            <input class="title-translation-input" value="{{newsDetail.titleTranslations[1].text || ''}}" placeholder="标题翻译加载中..." style="font-size: 24rpx;" disabled="true"/>
-          </view>
+      
+      <!-- 标题翻译区域 - 使用固定结构 -->
+      <view class="title-translations-container">
+        <!-- 英文翻译 -->
+        <view class="translation-item" wx:if="{{newsDetail.titleTranslations[0]}}">
+          <text class="translation-text">{{newsDetail.titleTranslations[0].text}}</text>
+        </view>
+        
+        <!-- 日文翻译 -->
+        <view class="translation-item" wx:if="{{newsDetail.titleTranslations[1]}}">
+          <text class="translation-text">{{newsDetail.titleTranslations[1].text}}</text>
+        </view>
+        
+        <!-- 其他翻译 -->
+        <view class="translation-item" wx:if="{{newsDetail.titleTranslations[2]}}">
+          <text class="translation-text">{{newsDetail.titleTranslations[2].text}}</text>
         </view>
       </view>
     </view>
+    <!-- 封面图片 -->
+    <view class="cover-container">
+      <image class="news-cover" src="{{newsDetail.cover_url}}" mode="aspectFill"></image>
+    </view>
+    
+    
+      
+      
+    
     <view class="highlights-box">
-      <view class="highlights-label">晓·看点</view>
+      <view class="highlights-label">小舟·看点</view>
       <view class="news-highlights">{{newsDetail.highlights}}</view>
     </view>
   </view>
@@ -49,15 +64,15 @@
   <!-- 新闻内容 -->
   <view class="news-content">
     <!-- 正文内容区域，可折叠 -->
-    <view class="article-content" wx:if="{{showContent}}">      
+    <view class="article-content {{!isMember ? 'member-locked' : ''}}" wx:if="{{showContent}}">      
       <!-- 语言对照功能 -->
       <view class="language-comparison">
         <!-- 语言标识栏 -->
         <view class="language-tabs">
           <!-- 中文标签始终显示 -->
-          <view class="tab {{currentLanguage === 'zh' ? 'active' : ''}}" 
+          <view class="tab {{currentLanguage === 'zh-CN' ? 'active' : ''}}" 
                 bindtap="handleTabClick" 
-                data-lang="zh"
+                data-lang="zh-CN"
                 data-index="0">中文</view>
           
           <!-- 动态显示选中的对照语言 -->
@@ -66,103 +81,173 @@
                   bindtap="handleTabClick" 
                   data-lang="{{item.code}}"
                   data-index="{{index + 1}}">
-              {{item.flag}} {{item.name}}
+              {{item.name}}
             </view>
           </block>
         </view>
         
         <!-- 音频播放器 -->
         <view class="audio-player">
-          <view class="audio-player-btn {{isContentPlaying ? 'playing' : ''}} {{currentLanguage === 'zh' ? 'zh-lang' : (currentIndex === 1 ? 'first-lang' : 'second-lang')}}" bindtap="toggleContentAudio">
+          <view class="audio-player-btn {{isContentPlaying ? 'playing' : ''}} {{currentLanguage === 'zh-CN' ? 'zh-lang' : (currentIndex === 1 ? 'first-lang' : 'second-lang')}}" bindtap="toggleContentAudio">
             <text class="player-icon {{isContentPlaying ? 'pause' : ''}}"></text>
             <text class="player-text">{{isContentPlaying ? '暂停' : '播放'}}朗读</text>
           </view>
           <view class="audio-progress-container">
-            <view class="audio-progress {{currentLanguage === 'zh' ? 'zh-lang' : (currentIndex === 1 ? 'first-lang' : 'second-lang')}}" style="width: {{audioProgress}}%"></view>
+            <view class="audio-progress {{currentLanguage === 'zh-CN' ? 'zh-lang' : (currentIndex === 1 ? 'first-lang' : 'second-lang')}}" style="width: {{audioProgress}}%"></view>
           </view>
+          <!-- 语速调节控件 -->
+          <view class="speed-control">
+            <view class="speed-btn" bindtap="toggleSpeedControl">
+              <text class="speed-icon">⚡</text>
+              <text class="speed-text">{{playbackRate}}x</text>
+            </view>
+            <!-- 语速选择面板 -->
+            <view class="speed-panel {{showSpeedControl ? 'show' : ''}}">
+              <view wx:for="{{playbackRates}}" wx:key="*this" 
+                    class="speed-option {{playbackRate === item ? 'active' : ''}}" 
+                    bindtap="setPlaybackRate" 
+                    data-rate="{{item}}">
+                {{item}}x
+              </view>
+            </view>
+          </view>
+          <!-- 语速面板遮罩 -->
+          <view class="speed-mask {{showSpeedControl ? 'show' : ''}}" bindtap="closeSpeedControl"></view>
         </view>
 
-        <!-- 语言内容滑动区 -->
-        <swiper class="language-swiper" 
-                current="{{currentIndex}}" 
-                bindchange="handleSwiperChange">
+        <!-- 语言内容区域 -->
+        <view class="language-content-container">
           <!-- 中文内容 -->
-          <swiper-item>
-            <scroll-view class="language-content zh" scroll-y>
-              <block wx:for="{{newsDetail.content}}" wx:for-item="item" wx:for-index="index" wx:key="index">
-                <view class="article-section" style="display: flex; align-items: flex-start;">
-                  <view class="article-text" style="font-size: {{fontSize}}rpx; flex: 1;">{{item}}</view>
-                </view>
-                <block wx:if="{{index == 0 || index == 2}}">
-                  <image src="{{newsDetail.coverUrl}}" mode="aspectFill" class="showcase-img-inline"></image>
-                </block>
-              </block>
-            </scroll-view>
-          </swiper-item>
+          <view class="language-content zh" wx:if="{{currentLanguage === 'zh-CN'}}">
+            <!-- 开头段落 -->
+            <view class="article-section paragraph-container">
+              <view class="paragraph-content">
+                <rich-text nodes="{{newsDetail.start}}" style="font-size: {{fontSize}}rpx;"></rich-text>
+              </view>
+            </view>
+            
+            <!-- 主体段落 -->
+            <view class="article-section paragraph-container">
+              <view class="paragraph-content">
+                <rich-text nodes="{{newsDetail.body}}" style="font-size: {{fontSize}}rpx;"></rich-text>
+              </view>
+            </view>
+            
+            <!-- 结尾段落 -->
+            <view class="article-section paragraph-container">
+              <view class="paragraph-content">
+                <rich-text nodes="{{newsDetail.ending}}" style="font-size: {{fontSize}}rpx;"></rich-text>
+              </view>
+            </view>
+            
+            <!-- 图片区域 -->
+            <view class="article-image" wx:if="{{newsDetail.image}}">
+              <image src="{{newsDetail.image}}" mode="widthFix" class="content-image"></image>
+            </view>
+            
+          </view>
+          
+          <!-- 会员锁定提示 -->
+          <view class="member-lock-overlay" wx:if="{{showMemberLock}}">
+            <view class="member-lock-content">
+              <view class="lock-icon">🔒</view>
+              <view class="lock-title">还不是会员无法解锁哦！</view>
+              <view class="lock-description">开通会员即可阅读完整文章内容</view>
+              <button class="unlock-btn" bindtap="navigateToMembership">立即开通会员</button>
+            </view>
+          </view>
 
-          <!-- 对照语言内容，结构与中文内容完全一致 -->
-          <swiper-item wx:for="{{compareLanguages}}" wx:key="code" wx:for-item="lang">
-            <scroll-view class="language-content" scroll-y>
-              <block wx:for="{{lang.content}}" wx:for-item="item" wx:for-index="index" wx:key="index">
-                <view class="article-section" style="display: flex; align-items: flex-start;">
-                  <view class="article-text" style="font-size: {{fontSize}}rpx; flex: 1;">{{item}}</view>
-                </view>
-                <block wx:if="{{index == 0 || index == 2}}">
-                  <image src="{{newsDetail.coverUrl}}" mode="aspectFill" class="showcase-img-inline"></image>
-                </block>
-              </block>
-            </scroll-view>
-          </swiper-item>
-        </swiper>
+          <!-- 对照语言内容 -->
+          <view wx:for="{{newsDetail.translations}}" wx:key="language" class="language-content" wx:if="{{currentLanguage === item.code}}">
+            <!-- 开头段落 -->
+            <view class="article-section paragraph-container">
+              <view class="paragraph-content">
+                <rich-text nodes="{{item.start}}" style="font-size: {{fontSize}}rpx;"></rich-text>
+              </view>
+            </view>
+            
+            <!-- 主体段落 -->
+            <view class="article-section paragraph-container">
+              <view class="paragraph-content">
+                <rich-text nodes="{{item.body}}" style="font-size: {{fontSize}}rpx;"></rich-text>
+              </view>
+            </view>
+            
+            <!-- 结尾段落 -->
+            <view class="article-section paragraph-container">
+              <view class="paragraph-content">
+                <rich-text nodes="{{item.ending}}" style="font-size: {{fontSize}}rpx;"></rich-text>
+              </view>
+            </view>
+            
+            <!-- 图片区域 -->
+            <view class="article-image" wx:if="{{newsDetail.image}}">
+              <image src="{{newsDetail.image}}" mode="widthFix" class="content-image"></image>
+            </view>
+            
+            <!-- 会员锁定提示（对照语言内容） -->
+            <view class="member-lock-overlay" wx:if="{{showMemberLock}}">
+              <view class="member-lock-content">
+                <view class="lock-icon">🔒</view>
+                <view class="lock-title">还不是会员无法解锁哦！</view>
+                <view class="lock-description">开通会员即可阅读完整文章内容</view>
+                <button class="unlock-btn" bindtap="navigateToMembership">立即开通会员</button>
+              </view>
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 打印区域 -->
+  <view class="print-area" wx:if="{{showPrintArea}}">
+    <!-- 打印控制栏 -->
+    <view class="print-controls">
+      <view class="language-selector">
+        <picker bindchange="handlePrintLanguageChange" value="{{printLanguageIndex}}" range="{{printLanguageOptions}}" range-key="name">
+          <view class="picker">
+            {{printLanguageOptions[printLanguageIndex].name}}
+          </view>
+        </picker>
+      </view>
+      <view class="print-actions">
+        <button class="print-btn" bindtap="handlePrint">打印</button>
+        <button class="close-btn" bindtap="closePrintArea">关闭</button>
+      </view>
+    </view>
+
+    <!-- A4打印区域 -->
+    <view class="a4-container">
+      <view class="a4-page">
+        <!-- 打印内容 -->
+        <view class="print-content">
+          <!-- 标题 -->
+          <view class="print-title">{{newsDetail.title}}</view>
+          
+          <!-- 标题翻译 -->
+          <view class="print-title-translation" wx:if="{{printLanguage !== 'zh'}}">
+            {{newsDetail.titleTranslations[printLanguageIndex-1].text}}
+          </view>
+
+          <!-- 正文内容 -->
+          <view class="print-body">
+            <!-- 开头段落 -->
+            <rich-text nodes="{{newsDetail.start}}" class="print-paragraph"></rich-text>
+            
+            <!-- 主体段落 -->
+            <rich-text nodes="{{newsDetail.body}}" class="print-paragraph"></rich-text>
+            
+            <!-- 结尾段落 -->
+            <rich-text nodes="{{newsDetail.ending}}" class="print-paragraph"></rich-text>
+            
+            <!-- 图片区域 -->
+            <view class="print-image" wx:if="{{newsDetail.image}}">
+              <image src="{{newsDetail.image}}" mode="widthFix" class="print-content-image"></image>
+            </view>
+          </view>
+        </view>
       </view>
     </view>
   </view>
 </view>
-
-<!-- 打印区域 -->
-<view class="print-area" wx:if="{{showPrintArea}}">
-  <!-- 打印控制栏 -->
-  <view class="print-controls">
-    <view class="language-selector">
-      <picker bindchange="handlePrintLanguageChange" value="{{printLanguageIndex}}" range="{{printLanguageOptions}}" range-key="name">
-        <view class="picker">
-          {{printLanguageOptions[printLanguageIndex].name}}
-        </view>
-      </picker>
-    </view>
-    <view class="print-actions">
-      <button class="print-btn" bindtap="handlePrint">打印</button>
-      <button class="close-btn" bindtap="closePrintArea">关闭</button>
-    </view>
-  </view>
-
-  <!-- A4打印区域 -->
-  <view class="a4-container">
-    <view class="a4-page">
-      <!-- 打印内容 -->
-      <view class="print-content">
-        <!-- 标题 -->
-        <view class="print-title">{{newsDetail.title}}</view>
-        
-        <!-- 标题翻译 -->
-        <view class="print-title-translation" wx:if="{{printLanguage !== 'zh'}}">
-          {{newsDetail.titleTranslations[printLanguageIndex-1].text}}
-        </view>
-
-        <!-- 正文内容 -->
-        <view class="print-body">
-          <block wx:if="{{printLanguage === 'zh'}}">
-            <view class="print-paragraph" wx:for="{{newsDetail.content}}" wx:key="index">
-              {{item}}
-            </view>
-          </block>
-          <block wx:else>
-            <view class="print-paragraph" wx:for="{{newsDetail.translations[printLanguage]}}" wx:key="index">
-              {{item}}
-            </view>
-          </block>
-        </view>
-      </view>
-    </view>
-  </view>
-</view> 

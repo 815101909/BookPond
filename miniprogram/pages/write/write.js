@@ -1,9 +1,16 @@
 // 写一写页面逻辑
 const api = require('../../utils/api.js');
+const { readAPI, writingAPI } = require('../../utils/cloud-api.js');
+
+// 写作计时相关变量
+let writingStartTime = null;
+let accumulatedWritingTime = 0;
+let writingTimer = null;
+let currentPage = null;
 
 Page({
   data: {
-    selectedType: 'news', // 默认选中热点信件
+    selectedType: 'daily', // 默认选中热点信件
     selectedDate: '', // 当前选择的日期
     formattedDate: '', // 格式化后的日期显示
     sproutNews: [], // 萌芽岛新闻
@@ -19,17 +26,18 @@ Page({
     selectedLanguage1: null, // 已选择的第一对照语言
     selectedLanguage2: null, // 已选择的第二对照语言
     languageMap: {
-      'zh-TW': { code: 'zh-TW', name: '中文（繁体）', shortName: '繁体', flag: '🇨🇳' },
-      'en': { code: 'en', name: '英语', shortName: '英语', flag: '🇬🇧' },
-      'fr': { code: 'fr', name: '法语', shortName: '法语', flag: '🇫🇷' },
-      'es': { code: 'es', name: '西班牙语', shortName: '西语', flag: '🇪🇸' },
-      'de': { code: 'de', name: '德语', shortName: '德语', flag: '🇩🇪' },
-      'it': { code: 'it', name: '意大利语', shortName: '意语', flag: '🇮🇹' },
-      'ja': { code: 'ja', name: '日语', shortName: '日语', flag: '🇯🇵' },
-      'pt-PT': { code: 'pt-PT', name: '葡萄牙语（葡萄牙）', shortName: '葡语', flag: '🇵🇹' },
-      'pt-BR': { code: 'pt-BR', name: '葡萄牙语（巴西）', shortName: '巴葡', flag: '🇧🇷' },
-      'ru': { code: 'ru', name: '俄语', shortName: '俄语', flag: '🇷🇺' },
-      'ko': { code: 'ko', name: '韩语', shortName: '韩语', flag: '🇰🇷' }
+      'zh-CN': { code: 'zh-CN', name: '中文简体', shortName: '简体' },
+      'zh-TW': { code: 'zh-TW', name: '中文繁体', shortName: '繁体' },
+      'en': { code: 'en', name: '英语', shortName: '英语' },
+      'fr': { code: 'fr', name: '法语', shortName: '法语' },
+      'es': { code: 'es', name: '西班牙语', shortName: '西语' },
+      'de': { code: 'de', name: '德语', shortName: '德语' },
+      'it': { code: 'it', name: '意大利语', shortName: '意语' },
+      'ja': { code: 'ja', name: '日语', shortName: '日语' },
+      'pt-PT': { code: 'pt-PT', name: '葡萄牙语（葡萄牙）', shortName: '葡语' },
+      'pt-BR': { code: 'pt-BR', name: '葡萄牙语（巴西）', shortName: '巴葡' },
+      'ru': { code: 'ru', name: '俄语', shortName: '俄语' },
+      'ko': { code: 'ko', name: '韩语', shortName: '韩语' }
     },
     languageOptions: [],
     writingContent: '', // 用户输入的写作内容
@@ -54,32 +62,47 @@ Page({
     customDate: '', // 自定义日期
     minDate: '', // 最小可选日期（明天）
     futureSelfMessage: '', // 给未来自己的留言
+    currentWritingId: null, // 当前保存的写作ID
   },
 
   onLoad: function() {
+    // 初始化写作计时
+    writingStartTime = null;
+    accumulatedWritingTime = 0;
+    writingTimer = null;
+    currentPage = this;
+    
+    // 清除上次同步的分钟数记录
+    wx.removeStorageSync('lastSyncedWriteMinutes');
+    
     // 初始化当前日期
     this.initCurrentDate();
     
     // 初始化语言选项
     this.initLanguageOptions();
     
-    // 获取各等级新闻数据
+    // 设置初始状态
+    this.setData({
+      currentArticle: null,
+      vocabularyList: [],
+      showPromptPanel: false,
+      currentTranslationIndex: -1
+    });
+    
+    // 获取文章数据
     this.getNewsData();
     
     // 初始化调试模式
     this.setData({
-      isDebugMode: false, // 默认不显示调试模式
+      isDebugMode: false,
       apiBaseUrl: api.BASE_URL || '未配置'
     });
     
-    // 检测是否要启用调试模式（连续点击标题5次可开启）
-    this.debugClickCount = 0;
-
     // 初始化时光宝盒相关日期
     this.initTimeCapsuleDates();
-
-    // 检查是否有到期的时光宝盒
-    this.checkExpiredTimeCapsules();
+    
+    // 开始计时
+    this.startWritingTimer();
   },
   
   // 轮播内容切换时更新当前难度等级
@@ -106,40 +129,68 @@ Page({
   
   // 初始化当前日期
   initCurrentDate: function() {
+    console.log('初始化日期...');
     const today = new Date();
     const year = today.getFullYear();
     const month = String(today.getMonth() + 1).padStart(2, '0');
     const day = String(today.getDate()).padStart(2, '0');
     
-    const formattedDate = `${year}-${month}-${day}`;
-    const displayDate = `${year}.${month}.${day}`;
-    
-    this.setData({
-      selectedDate: formattedDate,
-      formattedDate: displayDate
-    });
-  },
-  
-  // 日期变化处理
-  onDateChange: function(e) {
-    const date = e.detail.value; // 格式为 YYYY-MM-DD
-    
-    // 提取年份、月份和日期
-    const parts = date.split('-');
-    const year = parts[0];
-    const month = parts[1];
-    const day = parts[2];
+    // 格式为 YYYY-MM-DD
+    const dateString = `${year}-${month}-${day}`;
     
     // 格式化为显示格式
-    const formattedDate = `${year}.${month}.${day}`;
+    const formattedDate = `${year}年${month}月${day}日`;
     
-    this.setData({
-      selectedDate: date,
+    console.log('设置初始日期:', {
+      dateString: dateString,
       formattedDate: formattedDate
     });
     
-    // 根据新日期重新加载新闻数据
-    this.getNewsData();
+    this.setData({
+      selectedDate: dateString,
+      formattedDate: formattedDate
+    });
+  },
+  
+  // 日期选择变更处理
+  onDateChange: function(e) {
+    const selectedDate = e.detail.value;
+    console.log('用户选择了日期:', selectedDate);
+    
+    // 格式化显示日期
+    let formattedDate = '今日';
+    if (selectedDate) {
+      const date = new Date(selectedDate);
+      const year = date.getFullYear();
+      const month = date.getMonth() + 1;
+      const day = date.getDate();
+      formattedDate = `${year}年${month}月${day}日`;
+      console.log('格式化后的显示日期:', formattedDate);
+    }
+    
+    this.setData({
+      selectedDate,
+      formattedDate
+    }, () => {
+      console.log('日期状态已更新:', {
+        selectedDate: this.data.selectedDate,
+        formattedDate: this.data.formattedDate
+      });
+      // 重新获取数据
+      this.getNewsData();
+    });
+  },
+  
+  // 清除日期筛选
+  clearDateFilter: function() {
+    this.setData({
+      selectedDate: '',
+      formattedDate: '全部文章'
+    }, () => {
+      console.log('已清除日期筛选');
+      // 重新获取数据
+      this.getNewsData();
+    });
   },
   
   // 选择信件类型
@@ -167,58 +218,186 @@ Page({
   },
   
   // 获取各等级的新闻数据
-  getNewsData: function() {
+  async getNewsData() {
     wx.showLoading({
       title: '加载中...',
       mask: true
     });
     
     try {
-      // 使用模拟数据
-      const mockData = {
-        sprout: {
-          articles: [
-            {
-              id: 'sprout_1',
-              title: '春天的第一朵花',
-              cover: '/images/sprout_1.jpg',
-              content: '春天来了，第一朵花绽放了...'
-            },
-            {
-              id: 'sprout_2',
-              title: '小树苗的成长',
-              cover: '/images/sprout_2.jpg',
-              content: '小树苗在阳光和雨水的滋润下茁壮成长...'
-            }
-          ]
-        },
-        forest: {
-          articles: [
-            {
-              id: 'forest_1',
-              title: '森林的早晨',
-              cover: '/images/forest_1.jpg',
-              content: '清晨的阳光透过树叶洒落下来...'
-            },
-            {
-              id: 'forest_2',
-              title: '森林音乐会',
-              cover: '/images/forest_2.jpg',
-              content: '鸟儿在枝头歌唱，小溪在欢快地流淌...'
-            }
-          ]
-        }
-      };
-
-      // 设置数据
-      this.setData({
-        sproutNews: mockData.sprout.articles,
-        forestNews: mockData.forest.articles
+      console.log('开始获取文章数据...');
+      
+      // 首先获取萌芽岛文章
+      const sproutResult = await readAPI.getArticles({
+        level: 'sprout', // 明确指定level为sprout
+        page: 1,
+        pageSize: 20,
+        languages: []
       });
       
-      // 默认选择第一个新闻项
-      this.selectDefaultNewsItem();
+      // 然后获取森林谷文章
+      const forestResult = await readAPI.getArticles({
+        level: 'forest', // 明确指定level为forest
+        page: 1,
+        pageSize: 20,
+        languages: []
+      });
+
+      // 处理萌芽岛文章
+      let sproutNews = [];
+      if (sproutResult.result.code === 0) {
+        const { list } = sproutResult.result.data;
+        console.log('萌芽岛原始文章数量:', list.length);
+        
+        // 处理文章标题和日期
+        sproutNews = list.map(article => {
+          // 处理标题
+          if (article.titles && Array.isArray(article.titles) && article.titles.length > 0) {
+            const zhTitle = article.titles.find(t => t.language === 'zh-CN');
+            if (zhTitle && zhTitle.title) {
+              article.title = zhTitle.title;
+            }
+          }
+          
+          // 格式化日期
+          if (article.create_time) {
+            const date = new Date(article.create_time);
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            article.formattedDate = `${year}-${month}-${day}`;
+          }
+          
+          return article;
+        });
+      }
       
+      // 处理森林谷文章
+      let forestNews = [];
+      if (forestResult.result.code === 0) {
+        const { list } = forestResult.result.data;
+        console.log('森林谷原始文章数量:', list.length);
+        
+        // 处理文章标题和日期
+        forestNews = list.map(article => {
+          // 处理标题
+          if (article.titles && Array.isArray(article.titles) && article.titles.length > 0) {
+            const zhTitle = article.titles.find(t => t.language === 'zh-CN');
+            if (zhTitle && zhTitle.title) {
+              article.title = zhTitle.title;
+            }
+          }
+          
+          // 格式化日期
+          if (article.create_time) {
+            const date = new Date(article.create_time);
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            article.formattedDate = `${year}-${month}-${day}`;
+          }
+          
+          return article;
+        });
+      }
+      
+      console.log('处理后萌芽岛文章数量:', sproutNews.length);
+      console.log('处理后森林谷文章数量:', forestNews.length);
+      
+      // 根据选择的日期筛选文章
+      const selectedDate = this.data.selectedDate;
+      console.log('当前选择的日期:', selectedDate);
+      
+      // 先保存原始文章列表的副本
+      const allSproutNews = [...sproutNews];
+      const allForestNews = [...forestNews];
+      
+      if (selectedDate) {
+        // 筛选萌芽岛文章
+        const filteredSproutNews = sproutNews.filter(article => {
+          if (!article.formattedDate) return false;
+          return article.formattedDate === selectedDate;
+        });
+        
+        // 筛选森林谷文章
+        const filteredForestNews = forestNews.filter(article => {
+          if (!article.formattedDate) return false;
+          return article.formattedDate === selectedDate;
+        });
+        
+        console.log(`日期 ${selectedDate} 筛选后萌芽岛文章数量: ${filteredSproutNews.length}`);
+        console.log(`日期 ${selectedDate} 筛选后森林谷文章数量: ${filteredForestNews.length}`);
+        
+        // 如果筛选后有文章，使用筛选后的文章
+        if (filteredSproutNews.length > 0 || filteredForestNews.length > 0) {
+          // 至少有一种类型的文章找到了，使用筛选结果
+          sproutNews = filteredSproutNews;
+          forestNews = filteredForestNews;
+        } else {
+          // 两种类型的文章都没找到，尝试获取昨天的数据
+          console.log('所选日期无文章，尝试显示昨天的文章');
+          
+          // 计算昨天的日期
+          const currentDate = new Date(selectedDate);
+          const yesterday = new Date(currentDate);
+          yesterday.setDate(currentDate.getDate() - 1);
+          const year = yesterday.getFullYear();
+          const month = String(yesterday.getMonth() + 1).padStart(2, '0');
+          const day = String(yesterday.getDate()).padStart(2, '0');
+          const yesterdayStr = `${year}-${month}-${day}`;
+          
+          // 筛选昨天的文章
+          const yesterdaySproutNews = allSproutNews.filter(article => {
+            if (!article.formattedDate) return false;
+            return article.formattedDate === yesterdayStr;
+          });
+          
+          const yesterdayForestNews = allForestNews.filter(article => {
+            if (!article.formattedDate) return false;
+            return article.formattedDate === yesterdayStr;
+          });
+          
+          console.log(`昨天 ${yesterdayStr} 筛选后萌芽岛文章数量: ${yesterdaySproutNews.length}`);
+          console.log(`昨天 ${yesterdayStr} 筛选后森林谷文章数量: ${yesterdayForestNews.length}`);
+          
+          // 如果昨天有文章，使用昨天的文章
+          if (yesterdaySproutNews.length > 0 || yesterdayForestNews.length > 0) {
+            sproutNews = yesterdaySproutNews;
+            forestNews = yesterdayForestNews;
+            
+            // 显示提示
+            wx.showToast({
+              title: `所选日期无文章，显示昨天(${yesterdayStr})的文章`,
+              icon: 'none',
+              duration: 3000
+            });
+          } else {
+            // 昨天也没有文章，显示空数据
+            console.log('昨天也无文章，显示空数据');
+            sproutNews = [];
+            forestNews = [];
+            
+            // 显示提示
+            wx.showToast({
+              title: '近期无文章数据',
+              icon: 'none',
+              duration: 2000
+            });
+          }
+        }
+      }
+      
+      // 设置数据
+      this.setData({
+        sproutNews,
+        forestNews
+      });
+      
+      console.log('最终设置的文章数据:', {
+        sproutNews: sproutNews.length,
+        forestNews: forestNews.length
+      });
+
       wx.hideLoading();
     } catch (error) {
       console.error('获取数据时发生错误:', error);
@@ -253,127 +432,142 @@ Page({
     return this.getMockClassicsData(date);
   },
   
-  // 点击选择文章
-  onNewsSelect: function(e) {
-    const articleId = e.currentTarget.dataset.id;
-    const level = e.currentTarget.dataset.level;
-    
-    // 获取当前选中的新闻数据
-    let selectedNews;
-    if (level === 'sprout') {
-      selectedNews = this.data.sproutNews.find(item => item.id === articleId);
-    } else if (level === 'forest') {
-      selectedNews = this.data.forestNews.find(item => item.id === articleId);
-    }
-    
-    if (selectedNews) {
-      // 设置当前选中的文章
-      this.setData({
-        currentArticle: selectedNews
+  // 文章选择处理
+  async onNewsSelect(e) {
+    const { level, index } = e.currentTarget.dataset;
+    let selectedArticle;
+
+    // 根据难度等级和索引获取对应的文章
+    if (level === 'sprout' && this.data.sproutNews.length > 0) {
+      // 如果提供了索引，使用索引，否则使用第一篇文章
+      const articleIndex = index !== undefined ? parseInt(index) : 0;
+      selectedArticle = this.data.sproutNews[articleIndex];
+      console.log(`选择了萌芽岛文章 #${articleIndex}:`, {
+        id: selectedArticle._id,
+        title: selectedArticle.title,
+        date: selectedArticle.formattedDate
       });
-      
-      // 加载文章相关的词汇
-      this.loadArticleVocabulary(articleId);
-      
-      // 显示提示面板
-      this.setData({
-        showPromptPanel: true
-      });
-      
-      wx.showToast({
-        title: `已选择"${selectedNews.title}"`,
-        icon: 'none',
-        duration: 1500
+    } else if (level === 'forest' && this.data.forestNews.length > 0) {
+      // 如果提供了索引，使用索引，否则使用第一篇文章
+      const articleIndex = index !== undefined ? parseInt(index) : 0;
+      selectedArticle = this.data.forestNews[articleIndex];
+      console.log(`选择了森林谷文章 #${articleIndex}:`, {
+        id: selectedArticle._id,
+        title: selectedArticle.title,
+        date: selectedArticle.formattedDate
       });
     }
-  },
-  
-  // 加载文章相关词汇
-  loadArticleVocabulary: function(articleId) {
-    wx.showLoading({
-      title: '加载词汇...',
-      mask: true
-    });
-    
-    // 添加超时处理，但不使用模拟数据
-    let timeoutId = setTimeout(() => {
-      console.log('词汇加载超时');
-      
-      wx.hideLoading();
-      wx.showModal({
-        title: '加载超时',
-        content: '词汇数据加载超时，请检查网络连接并重试。',
-        showCancel: true,
-        cancelText: '取消',
-        confirmText: '重试',
-        success: (res) => {
-          if (res.confirm) {
-            // 用户点击重试，重新加载数据
-            this.loadArticleVocabulary(articleId);
+
+    if (selectedArticle) {
+      wx.showLoading({
+        title: '加载中...',
+        mask: true
+      });
+
+      try {
+        // 获取文章详情（包含词汇）
+        const result = await readAPI.getArticleDetail({
+          id: selectedArticle._id
+        });
+
+        if (result.result.code === 0) {
+          const articleDetail = result.result.data;
+          
+          // 确保使用中文标题
+          if (articleDetail.titles && Array.isArray(articleDetail.titles) && articleDetail.titles.length > 0) {
+            const zhTitle = articleDetail.titles.find(t => t.language === 'zh-CN');
+            if (zhTitle && zhTitle.title) {
+              articleDetail.title = zhTitle.title;
+              console.log(`文章详情使用中文标题: ${articleDetail.title}`);
+            }
           }
-        }
-      });
-      
-      // 标记为已超时，防止后续回调重复执行
-      timeoutId = null;
-    }, 10000); // 延长超时时间到10秒
-    
-    // 获取选定的语言数组
-    const selectedLanguages = [];
-    if (this.data.selectedLanguage1 && this.data.selectedLanguage1.code) {
-      selectedLanguages.push(this.data.selectedLanguage1.code);
-    }
-    if (this.data.selectedLanguage2 && this.data.selectedLanguage2.code) {
-      selectedLanguages.push(this.data.selectedLanguage2.code);
-    }
-    
-    console.log('加载词汇使用的语言:', selectedLanguages);
-    
-    // 尝试从本地存储或通过API加载文章词汇，同时传递语言参数
-    api.getArticleVocabulary(articleId, 'zh-CN', selectedLanguages)
-      .then(vocabulary => {
-        // 如果还未超时，处理返回的数据
-        if (timeoutId) {
-          clearTimeout(timeoutId);
           
-          this.setData({
-            vocabularyList: vocabulary || [],
-            showPromptPanel: true
-          });
+          // 获取当前选择的语言代码
+          const currentLangCode = this.data.selectedLanguage1 ? this.data.selectedLanguage1.code : 'zh-CN';
           
-          wx.hideLoading();
-        }
-      })
-      .catch(error => {
-        // 如果还未超时，处理错误情况
-        if (timeoutId) {
-          clearTimeout(timeoutId);
-          
-          console.error('加载文章词汇失败:', error);
-          
-          wx.hideLoading();
-          wx.showModal({
-            title: '词汇加载失败',
-            content: '无法从服务器获取词汇数据，请检查网络连接并重试。',
-            showCancel: true,
-            cancelText: '取消',
-            confirmText: '重试',
-            success: (res) => {
-              if (res.confirm) {
-                // 用户点击重试，重新加载数据
-                this.loadArticleVocabulary(articleId);
+          // 从contents中找到对应语言的内容
+          let vocabularyList = [];
+          if (articleDetail.contents && Array.isArray(articleDetail.contents)) {
+            // 优先查找当前选择的语言
+            const currentLangContent = articleDetail.contents.find(c => c.language === currentLangCode);
+            
+            // 如果找到了当前语言的内容，使用其vocabulary
+            if (currentLangContent && currentLangContent.vocabulary) {
+              vocabularyList = currentLangContent.vocabulary;
+              console.log(`找到${currentLangCode}语言的词汇列表，共${vocabularyList.length}个词汇`);
+            } 
+            // 如果没找到当前语言或当前语言没有词汇，尝试使用其他语言的词汇
+            else {
+              // 优先使用英语，其次是中文，最后是任何有词汇的语言
+              const engContent = articleDetail.contents.find(c => c.language === 'en');
+              const zhContent = articleDetail.contents.find(c => c.language === 'zh-CN');
+              const anyContent = articleDetail.contents.find(c => c.vocabulary && c.vocabulary.length > 0);
+              
+              if (engContent && engContent.vocabulary && engContent.vocabulary.length > 0) {
+                vocabularyList = engContent.vocabulary;
+                console.log('使用英语词汇列表');
+              } else if (zhContent && zhContent.vocabulary && zhContent.vocabulary.length > 0) {
+                vocabularyList = zhContent.vocabulary;
+                console.log('使用中文词汇列表');
+              } else if (anyContent) {
+                vocabularyList = anyContent.vocabulary;
+                console.log(`使用${anyContent.language}语言词汇列表`);
               }
             }
+          }
+          
+          this.setData({
+            currentArticle: articleDetail,
+            currentLevel: level,
+            vocabularyList: vocabularyList,
+            showPromptPanel: false // 关闭提示面板
           });
+
+          wx.showToast({
+            title: '已选择文章',
+            icon: 'success'
+          });
+        } else {
+          throw new Error(result.result.msg || '获取文章详情失败');
         }
-      })
-      .finally(() => {
-        // 确保加载指示器被隐藏，即使Promise链中有未捕获的错误
-        if (timeoutId) {
-          clearTimeout(timeoutId);
-          wx.hideLoading();
-        }
+      } catch (error) {
+        console.error('获取文章详情失败:', error);
+        wx.showToast({
+          title: '加载失败',
+          icon: 'none'
+        });
+      } finally {
+        wx.hideLoading();
+      }
+    }
+  },
+
+  // 加载文章相关词汇
+  async loadVocabulary(articleId) {
+    this.setData({ isLoadingVocabulary: true });
+
+    try {
+      // 调用云函数获取词汇
+      const result = await readAPI.getArticleDetail({
+        id: articleId
       });
+
+      if (result.result.code === 0) {
+        this.setData({
+          vocabularyList: result.result.data || []
+        });
+      } else {
+        throw new Error(result.result.msg);
+      }
+    } catch (error) {
+      console.error('加载词汇失败:', error);
+      wx.showToast({
+        title: '加载词汇失败',
+        icon: 'none'
+      });
+    } finally {
+      this.setData({ isLoadingVocabulary: false });
+    }
   },
   
   // 当语言选择改变时，重新加载词汇数据（使用选择的语言）
@@ -386,50 +580,60 @@ Page({
         selectedLanguage1: selectedLanguage
       });
       
-      // 如果当前已选择文章，则重新加载该文章的词汇（使用新选择的语言）
-      if (this.data.currentArticle && this.data.currentArticle.id) {
-        this.loadArticleVocabulary(this.data.currentArticle.id);
+      // 如果当前已选择文章，则更新该文章的词汇（使用新选择的语言）
+      if (this.data.currentArticle) {
+        this.updateVocabularyByLanguage(selectedLanguage.code);
       }
     }
+  },
+  
+  // 根据选择的语言更新词汇列表
+  updateVocabularyByLanguage: function(languageCode) {
+    const articleDetail = this.data.currentArticle;
+    if (!articleDetail || !articleDetail.contents || !Array.isArray(articleDetail.contents)) {
+      return;
+    }
+    
+    // 从contents中找到对应语言的内容
+    let vocabularyList = [];
+    
+    // 优先查找当前选择的语言
+    const currentLangContent = articleDetail.contents.find(c => c.language === languageCode);
+    
+    // 如果找到了当前语言的内容，使用其vocabulary
+    if (currentLangContent && currentLangContent.vocabulary && currentLangContent.vocabulary.length > 0) {
+      vocabularyList = currentLangContent.vocabulary;
+      console.log(`找到${languageCode}语言的词汇列表，共${vocabularyList.length}个词汇`);
+    } 
+    // 如果没找到当前语言或当前语言没有词汇，尝试使用其他语言的词汇
+    else {
+      // 优先使用英语，其次是中文，最后是任何有词汇的语言
+      const engContent = articleDetail.contents.find(c => c.language === 'en');
+      const zhContent = articleDetail.contents.find(c => c.language === 'zh-CN');
+      const anyContent = articleDetail.contents.find(c => c.vocabulary && c.vocabulary.length > 0);
+      
+      if (engContent && engContent.vocabulary && engContent.vocabulary.length > 0) {
+        vocabularyList = engContent.vocabulary;
+        console.log('使用英语词汇列表');
+      } else if (zhContent && zhContent.vocabulary && zhContent.vocabulary.length > 0) {
+        vocabularyList = zhContent.vocabulary;
+        console.log('使用中文词汇列表');
+      } else if (anyContent && anyContent.vocabulary) {
+        vocabularyList = anyContent.vocabulary;
+        console.log(`使用${anyContent.language}语言词汇列表`);
+      }
+    }
+    
+    // 更新词汇列表
+    this.setData({
+      vocabularyList: vocabularyList
+    });
   },
   
   // 初始化语言选项
   initLanguageOptions: function() {
     const languageOptions = Object.values(this.data.languageMap);
-    
-    // 从本地存储获取读一读页面选择的语言
-    const savedLanguages = wx.getStorageSync('selectedLanguages') || [];
-    console.log('写一写页面获取到的语言选择:', savedLanguages);
-    
-    // 如果有保存的语言选择，使用它们
-    let language1 = this.data.languageMap['zh-TW']; // 默认第一语言
-    let language2 = this.data.languageMap['en'];    // 默认第二语言
-    let index1 = 0;
-    let index2 = 1;
-    
-    if (savedLanguages.length > 0) {
-      // 找到第一个语言的索引
-      const lang1Code = savedLanguages[0];
-      language1 = this.data.languageMap[lang1Code] || language1;
-      index1 = languageOptions.findIndex(item => item.code === lang1Code);
-      if (index1 === -1) index1 = 0;
-    }
-    
-    if (savedLanguages.length > 1) {
-      // 找到第二个语言的索引
-      const lang2Code = savedLanguages[1];
-      language2 = this.data.languageMap[lang2Code] || language2;
-      index2 = languageOptions.findIndex(item => item.code === lang2Code);
-      if (index2 === -1) index2 = 1;
-    }
-    
-    this.setData({ 
-      languageOptions: languageOptions,
-      selectedLanguage1: language1,
-      selectedLanguage2: language2,
-      compareIndex1: index1,
-      compareIndex2: index2
-    });
+    this.setData({ languageOptions });
   },
   
   // 切换难度等级
@@ -502,71 +706,114 @@ Page({
   },
   
   // 提交写作内容 - 保存至我的主页
-  submitWriting: function() {
-    const content = this.data.writingContent;
-    
-    if (!content.trim()) {
+  async submitWriting() {
+    if (!this.data.writingContent.trim()) {
       wx.showToast({
-        title: '请先输入写作内容',
-        icon: 'none',
-        duration: 2000
+        title: '请输入写作内容',
+        icon: 'none'
       });
       return;
     }
-    
-    // 显示加载中提示
+
+    if (!this.data.currentArticle) {
+      wx.showToast({
+        title: '请选择一篇文章',
+        icon: 'none'
+      });
+      return;
+    }
+
     wx.showLoading({
-      title: '正在保存...',
+      title: '保存中...',
       mask: true
     });
-    
-    // 构建要保存的写作内容数据
-    const writingData = {
-      content: content,
-      date: this.data.formattedDate, // 已格式化的日期 YYYY.MM.DD
-      formattedDate: this.data.formattedDate, // 确保有专门的日期字段
-      type: this.data.selectedType,
-      title: this.data.currentArticle ? this.data.currentArticle.title : '我的写作',
-      language: this.data.selectedLanguage1 ? this.data.selectedLanguage1.code : 'zh'
-    };
-    
-    // 如果有关联文章，添加文章ID
-    if (this.data.currentArticle && this.data.currentArticle.id) {
-      writingData.articleId = this.data.currentArticle.id;
-    }
-    
-    // 保存到本地存储
+
     try {
+      // 获取当前日期
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const day = String(now.getDate()).padStart(2, '0');
+      const formattedDate = `${year}年${month}月${day}日`;
+
+      // 调用云函数保存到jiuyu_writings集合
+      const result = await writingAPI.saveWriting({
+         content: this.data.writingContent,
+         articleId: this.data.currentArticle._id,
+         type: this.data.selectedType,
+         level: this.data.currentLevel,
+         languages: this.data.selectedLanguage1 ? [this.data.selectedLanguage1.code] : [],
+         cover_url: this.data.currentArticle.cover_url || '' // 添加封面URL
+       });
+
+      if (result.result.code !== 0) {
+        throw new Error(result.result.msg || '保存失败');
+      }
+
+      // 获取保存的写作ID
+      const writingId = result.result.data;
+      this.setData({
+        currentWritingId: writingId
+      });
+
+      // 构建要保存的写作内容数据
+      const writingData = {
+        id: 'msg_' + Date.now().toString(),
+        content: this.data.writingContent,
+        timestamp: now.getTime(),
+        date: formattedDate,
+        read: false,
+        source: 'writing', // 使用writing作为来源标识
+        type: this.data.selectedType === 'daily' ? '「舟」见闻' : '「舟」经典',
+        level: this.data.currentLevel,
+        fullData: {
+          articleId: this.data.currentArticle._id,
+          title: this.data.currentArticle.title
+        },
+        cover_url: this.data.currentArticle.cover_url || '', // 添加封面URL
+        articleId: this.data.currentArticle._id,
+        title: this.data.currentArticle.title || '我的写作'
+      };
+
       // 获取已有的信使驿站消息列表
       const existingMessages = wx.getStorageSync('messengerStationMessages') || [];
-      
-      // 添加新的写作内容，并添加唯一ID和时间戳
-      writingData.id = Date.now().toString();
-      writingData.timestamp = new Date().getTime();
-      writingData.read = false; // 新消息默认未读
-      writingData.source = this.data.selectedType === 'news' ? '「晓」见闻' : '「晓」经典'; // 根据文章类型设置来源
-      
-      console.log('Saving writing data:', writingData); // 添加调试日志
       
       // 将新写作添加到列表开头
       existingMessages.unshift(writingData);
       
       // 保存更新后的列表
       wx.setStorageSync('messengerStationMessages', existingMessages);
-      
+
       wx.hideLoading();
       wx.showToast({
         title: '已存至信使驿站',
         icon: 'success',
         duration: 2000
       });
+
+      // 清空写作内容
+      this.setData({
+        writingContent: ''
+      });
+
+      // 可以选择跳转到信使驿站
+      wx.showModal({
+        title: '保存成功',
+        content: '是否查看信使驿站？',
+        success: (res) => {
+          if (res.confirm) {
+            wx.navigateTo({
+              url: '../messenger-station/messenger-station'
+            });
+          }
+        }
+      });
     } catch (error) {
       console.error('保存写作内容失败:', error);
       wx.hideLoading();
-      wx.showModal({
+      wx.showToast({
         title: '保存失败',
-        content: '无法保存到信使驿站，请稍后再试',
-        showCancel: false
+        icon: 'none'
       });
     }
   },
@@ -645,7 +892,7 @@ Page({
   onShareAppMessage: function() {
     const title = this.data.currentArticle ? 
       `我基于"${this.data.currentArticle.title}"的写作` : 
-      '我在九域写的文章';
+      '我在小舟摇书池写的文章';
     
     return {
       title: title,
@@ -658,7 +905,7 @@ Page({
   onShareTimeline: function() {
     const title = this.data.currentArticle ? 
       `我基于"${this.data.currentArticle.title}"的写作` : 
-      '我在九域写的文章';
+      '我在小舟摇书池写的文章';
     
     return {
       title: title,
@@ -746,7 +993,7 @@ Page({
             ctx.fillStyle = '#4CAF50';
             ctx.font = '20px sans-serif';
             ctx.textAlign = 'center';
-            ctx.fillText('九域 · 写一写', width / 2, height - 25);
+            ctx.fillText('小舟摇书池 · 写一写', width / 2, height - 25);
             
             // 将画布内容转为图片
             wx.canvasToTempFilePath({
@@ -853,41 +1100,20 @@ Page({
       if (this.data.sproutNews.length > 0) {
         this.setData({
           currentLevel: 'sprout',
-          currentLevelIndex: 0
+          currentLevelIndex: 0,
+          currentArticle: this.data.sproutNews[0]
         });
-        this.onNewsSelect({
-          currentTarget: {
-            dataset: {
-              id: this.data.sproutNews[0].id,
-              level: 'sprout'
-            }
-          }
-        });
-        return;
       } else if (this.data.forestNews.length > 0) {
         this.setData({
           currentLevel: 'forest',
-          currentLevelIndex: 1
+          currentLevelIndex: 1,
+          currentArticle: this.data.forestNews[0]
         });
-        this.onNewsSelect({
-          currentTarget: {
-            dataset: {
-              id: this.data.forestNews[0].id,
-              level: 'forest'
-            }
-          }
-        });
-        return;
       }
     } else if (newsList.length > 0) {
       // 选择当前难度等级的第一个新闻
-      this.onNewsSelect({
-        currentTarget: {
-          dataset: {
-            id: newsList[0].id,
-            level: this.data.currentLevel
-          }
-        }
+      this.setData({
+        currentArticle: newsList[0]
       });
     }
   },
@@ -982,54 +1208,68 @@ Page({
 
   // 格式化日期
   formatDate: function(date) {
-    const year = date.getFullYear().toString().slice(2);
-    const month = (date.getMonth() + 1).toString().padStart(2, '0');
-    const day = date.getDate().toString().padStart(2, '0');
-    return `${year}/${month}/${day}`;
+    // 处理多种输入类型：Date对象、字符串、时间戳
+    let dateObj;
+    if (date instanceof Date) {
+      dateObj = date;
+    } else if (typeof date === 'string' || typeof date === 'number') {
+      dateObj = new Date(date);
+    } else {
+      console.error('formatDate: 无效的日期参数', date);
+      return '无效日期';
+    }
+    
+    // 检查日期是否有效
+    if (isNaN(dateObj.getTime())) {
+      console.error('formatDate: 无法解析的日期', date);
+      return '无效日期';
+    }
+    
+    const year = dateObj.getFullYear();
+    const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+    const day = String(dateObj.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;  
   },
 
-  // 显示词汇翻译
+  // 格式化日期显示
+  formatDateForDisplay: function(date) {
+    // 处理多种输入类型：Date对象、字符串、时间戳
+    let dateObj;
+    if (date instanceof Date) {
+      dateObj = date;
+    } else if (typeof date === 'string' || typeof date === 'number') {
+      dateObj = new Date(date);
+    } else {
+      console.error('formatDateForDisplay: 无效的日期参数', date);
+      return '无效日期';
+    }
+    
+    // 检查日期是否有效
+    if (isNaN(dateObj.getTime())) {
+      console.error('formatDateForDisplay: 无法解析的日期', date);
+      return '无效日期';
+    }
+    
+    const year = dateObj.getFullYear();
+    const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+    const day = String(dateObj.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;  // 统一使用YYYY-MM-DD格式
+  },
+
+  // 显示翻译
   showTranslation: function(e) {
     const index = e.currentTarget.dataset.index;
     
-    // 如果点击的是当前已显示翻译的词汇，则隐藏翻译
+    // 如果点击的是当前显示的翻译，则关闭它
     if (this.data.currentTranslationIndex === index) {
       this.setData({
         currentTranslationIndex: -1
       });
     } else {
-      // 否则显示该词汇的翻译
+      // 否则显示新点击的翻译
       this.setData({
         currentTranslationIndex: index
       });
-      
-      // 获取用户选择的语言
-      const selectedLanguage = this.data.selectedLanguage1;
-      const selectedLangCode = selectedLanguage ? selectedLanguage.code : 'zh';
-      const vocabulary = this.data.vocabularyList[index];
-      
-      // 记录用户点击词汇的行为（可用于后台统计或提高词汇推荐效果）
-      console.log('用户点击词汇:', {
-        word: vocabulary.text,
-        selectedLanguage: selectedLangCode,
-        availableTranslation: vocabulary.translations[selectedLangCode] ? true : false
-      });
-      
-      // 如果选择的语言没有对应翻译，这里可以调用API获取翻译（在实际应用中）
-      if (selectedLanguage && !vocabulary.translations[selectedLangCode] && selectedLangCode !== 'zh') {
-        console.log('需要获取翻译：', vocabulary.text, '→', selectedLangCode);
-        
-        // 在实际应用中，可以在这里调用翻译API
-        // api.getTranslation(vocabulary.text, selectedLangCode)
-        //   .then(translation => {
-        //     // 更新词汇翻译
-        //     const updatedVocabulary = this.data.vocabularyList;
-        //     updatedVocabulary[index].translations[selectedLangCode] = translation;
-        //     this.setData({
-        //       vocabularyList: updatedVocabulary
-        //     });
-        //   });
-      }
     }
   },
 
@@ -1037,6 +1277,17 @@ Page({
   stopPropagation: function(e) {
     // 防止事件冒泡，避免关闭面板
     return;
+  },
+
+  // 页面点击事件处理
+  onTapPage: function(e) {
+    // 如果点击的不是面板按钮，则关闭提示面板
+    if (!e.target.dataset.isPanelButton) {
+      this.setData({
+        showPromptPanel: false,
+        currentTranslationIndex: -1
+      });
+    }
   },
 
   // 初始化时光宝盒相关日期
@@ -1097,14 +1348,17 @@ Page({
     if (option === 'week') {
       const date = new Date();
       date.setDate(date.getDate() + 7);
+      date.setHours(0, 0, 0, 0);  
       customDate = this.formatDate(date);
     } else if (option === 'month') {
       const date = new Date();
       date.setMonth(date.getMonth() + 1);
+      date.setHours(0, 0, 0, 0);  
       customDate = this.formatDate(date);
     } else if (option === 'halfYear') {
       const date = new Date();
       date.setMonth(date.getMonth() + 6);
+      date.setHours(0, 0, 0, 0);  
       customDate = this.formatDate(date);
     }
     
@@ -1118,7 +1372,7 @@ Page({
   onCustomDateChange: function(e) {
     const date = e.detail.value;
     this.setData({
-      customDate: date,
+      customDate: `${date}`,
       selectedTimeOption: 'custom' // 切换到自定义选项
     });
   },
@@ -1131,7 +1385,7 @@ Page({
   },
   
   // 创建时光宝盒
-  createTimeCapsule: function() {
+  async createTimeCapsule() {
     if (!this.data.customDate) {
       wx.showToast({
         title: '请选择开启日期',
@@ -1139,52 +1393,51 @@ Page({
       });
       return;
     }
-    
-    // 获取写作内容和相关信息
-    const capsuleData = {
-      id: 'tc_' + Date.now(),
-      content: this.data.writingContent,
-      message: this.data.futureSelfMessage || '记录当下，见证成长',
-      createdAt: new Date().toISOString(),
-      openAt: new Date(this.data.customDate).toISOString(),
-      article: this.data.currentArticle ? {
-        id: this.data.currentArticle.id,
-        title: this.data.currentArticle.title,
-        cover: this.data.currentArticle.cover
-      } : null,
-      language: this.data.selectedLanguage1 ? {
-        code: this.data.selectedLanguage1.code,
-        name: this.data.selectedLanguage1.name,
-        flag: this.data.selectedLanguage1.flag
-      } : null,
-      vocabularyUsed: this.data.vocabularyList.map(item => item.text) // 记录写作中使用的词汇
-    };
-    
-    try {
-      // 从存储中获取已有的时光宝盒
-      const existingCapsules = wx.getStorageSync('timeCapsules') || [];
-      
-      // 添加新的时光宝盒
-      existingCapsules.push(capsuleData);
-      
-      // 保存到存储
-      wx.setStorageSync('timeCapsules', existingCapsules);
-      
-      // 设置开启提醒
-      this.scheduleTimeCapsuleReminder(capsuleData);
-      
-      // 保存成功提示
+
+    if (!this.data.writingContent.trim()) {
       wx.showToast({
-        title: '时光宝盒已创建',
-        icon: 'success',
-        duration: 2000
+        title: '请先输入写作内容',
+        icon: 'none'
       });
-      
-      // 关闭模态框
-      this.hideTimeCapsuleModal();
-      
-      // 显示成功动画
-      this.showSuccessAnimation(capsuleData);
+      return;
+    }
+
+    wx.showLoading({
+      title: '保存中...',
+      mask: true
+    });
+
+    try {
+      const result = await writingAPI.saveTimeCapsule({
+        content: this.data.writingContent,
+        message: this.data.futureSelfMessage,
+        openDate: this.data.customDate,
+        articleId: this.data.currentArticle ? this.data.currentArticle._id : null,
+        language: this.data.selectedLanguage1 ? {
+          code: this.data.selectedLanguage1.code,
+          name: this.data.selectedLanguage1.name,
+          flag: this.data.selectedLanguage1.flag
+        } : null,
+        vocabularyUsed: this.data.vocabularyList.map(item => item.text)
+      });
+
+      if (result.result.code === 0) {
+        wx.showToast({
+          title: '时光宝盒已创建',
+          icon: 'success'
+        });
+        this.setData({
+          showTimeCapsuleModal: false,
+          futureSelfMessage: '',
+          selectedTimeOption: 'month'
+        });
+        // 设置开启提醒
+        this.scheduleTimeCapsuleReminder(result.result.data);
+        // 显示成功动画
+        this.showSuccessAnimation(result.result.data);
+      } else {
+        throw new Error(result.result.msg);
+      }
     } catch (error) {
       console.error('保存时光宝盒失败:', error);
       wx.showModal({
@@ -1192,6 +1445,8 @@ Page({
         content: '无法创建时光宝盒，请稍后再试',
         showCancel: false
       });
+    } finally {
+      wx.hideLoading();
     }
   },
   
@@ -1215,47 +1470,97 @@ Page({
   
   // 显示时光宝盒创建成功动画
   showSuccessAnimation: function(capsuleData) {
-    // 可以添加一个成功动画效果
-    // 这里简单使用一个提示框展示胶囊信息
-    const openDate = new Date(capsuleData.openAt);
+    // 将开启日期格式化为 YYYY年MM月DD日
+    const openDate = this.data.customDate;
+    const [year, month, day] = openDate.split('-');
+    const formattedDate = `${year}年${month}月${day}日`;
     
     wx.showModal({
       title: '时光宝盒已启程',
-      content: `您的写作内容已被封存，将在 ${this.formatDateForDisplay(openDate)} 重新开启，届时我们会提醒您查看。`,
+      content: `您的写作内容已被封存，将在 ${formattedDate} 重新开启，届时我们会提醒您查看。`,
       showCancel: false,
       confirmText: '知道了'
     });
   },
   
-  // 检查是否有到期的时光宝盒
-  checkExpiredTimeCapsules: function() {
-    const capsules = wx.getStorageSync('timeCapsules') || [];
-    const now = new Date();
-    const expiredCapsules = capsules.filter(capsule => {
-      const openDate = new Date(capsule.openAt);
-      return openDate <= now && !capsule.opened;
-    });
-    
-    if (expiredCapsules.length > 0) {
-      // 显示有胶囊可以开启的提示
+ // 检查到期的时光宝盒
+async checkExpiredTimeCapsules() {
+  try {
+    const result = await writingAPI.checkExpiredTimeCapsules();
+
+    if (result.result.code === 0 && result.result.data.expiredCapsules && result.result.data.expiredCapsules.length > 0) {
+      const expiredCapsules = result.result.data.expiredCapsules;
+      
+      // 将时光宝盒内容保存到驿站
+      this.saveTimeCapsulesToMessenger(expiredCapsules);
+      
+      // 构建提示信息（只显示留言）
+      let messageContent = `你有 ${expiredCapsules.length} 个时光宝盒已经到期：\n\n`;
+      expiredCapsules.forEach((capsule, index) => {
+        messageContent += `${index + 1}. `;
+        if (capsule.message) {
+          messageContent += `留言：${capsule.message}\n`;
+        } else {
+          messageContent += `无留言\n`;
+        }
+        messageContent += `   创建时间：${this.formatDate(capsule.create_time)}\n\n`;
+      });
+      
+      // 显示提示
       wx.showModal({
         title: '时光宝盒提醒',
-        content: `您有 ${expiredCapsules.length} 个时光宝盒已经可以开启！是否现在查看？`,
-        confirmText: '立即查看',
-        cancelText: '稍后再说',
+        content: messageContent,
         success: (res) => {
           if (res.confirm) {
-            // 跳转到时光宝盒页面
-            this.navigateToTimeCapsulePage();
+            // 跳转到信使驿站
+            wx.navigateTo({
+              url: '/pages/messenger-station/messenger-station'
+            });
           }
         }
       });
+    }
+  } catch (error) {
+    console.error('检查时光宝盒失败:', error);
+  }
+},
+  // 将时光宝盒内容保存到驿站
+  saveTimeCapsulesToMessenger: function(expiredCapsules) {
+    try {
+      // 获取现有的驿站消息 - 使用正确的存储键
+      const existingMessages = wx.getStorageSync('messengerStationMessages') || [];
       
-      // 标记时光宝盒为已提醒
-      this.markCapsulesAsNotified(expiredCapsules);
+      // 将时光宝盒转换为驿站消息格式
+      const timeCapsuleMessages = expiredCapsules.map((capsule, index) => ({
+        id: `timeCapsule_${Date.now()}_${index}`,
+        type: 'timeCapsule',
+        title: `时光宝盒 #${index + 1}`,
+        content: capsule.content,
+        message: capsule.message || '',
+        createTime: capsule.create_time,
+        openDate: capsule.openDate,
+        articleId: capsule.articleId,
+        language: capsule.language,
+        vocabularyUsed: capsule.vocabularyUsed || [],
+        read: false, // 使用 read 而不是 isRead，与驿站格式保持一致
+        source: '时光宝盒',
+        timestamp: new Date(capsule.create_time).getTime(),
+        date: this.formatDate(capsule.create_time)
+      }));
+      
+      // 将新消息添加到现有消息列表的开头
+      const updatedMessages = [...timeCapsuleMessages, ...existingMessages];
+      
+      // 保存到本地存储 - 使用正确的存储键
+      wx.setStorageSync('messengerStationMessages', updatedMessages);
+      
+      console.log('时光宝盒内容已保存到驿站:', timeCapsuleMessages);
+    } catch (error) {
+      console.error('保存时光宝盒到驿站失败:', error);
     }
   },
-  
+
+
   // 标记时光宝盒为已提醒
   markCapsulesAsNotified: function(expiredCapsules) {
     const allCapsules = wx.getStorageSync('timeCapsules') || [];
@@ -1308,7 +1613,7 @@ Page({
     }
     
     // 计算时间差
-    const createdDate = new Date(capsule.createdAt);
+    const createdDate = new Date(capsule.create_time);
     const now = new Date();
     const diffTime = Math.abs(now - createdDate);
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
@@ -1359,36 +1664,10 @@ Page({
     }
   },
 
-  // 格式化日期为显示格式 YYYY.MM.DD
-  formatDateForDisplay: function(date) {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}.${month}.${day}`;
-  },
+
 
   // 页面显示时触发
-  onShow: function() {
-    // 检查是否有从信使驿站页面传递过来的文章信息
-    const app = getApp();
-    if (app.globalData && app.globalData.selectedArticleFromMessenger) {
-      const articleInfo = app.globalData.selectedArticleFromMessenger;
-      
-      // 清除全局变量，防止重复加载
-      app.globalData.selectedArticleFromMessenger = null;
-      
-      if (articleInfo.fromMessenger && articleInfo.id) {
-        // 根据文章ID加载对应词汇
-        this.loadArticleVocabulary(articleInfo.id);
-        
-        wx.showToast({
-          title: '词汇已加载',
-          icon: 'success',
-          duration: 1500
-        });
-      }
-    }
-  },
+
 
   // 获取学习卡片数据，从API获取而不使用模拟数据
   getCardDataForArticle: function(articleId, level) {
@@ -1428,4 +1707,175 @@ Page({
         });
       });
   },
-}); 
+
+  onUnload: function() {
+    // 结束写作计时
+    this.stopWritingTimer();
+    
+    // 计算总写作时间（分钟）
+    const totalMinutes = Math.floor(accumulatedWritingTime / 60);
+    console.log('写一写页面卸载，累计写作时间:', accumulatedWritingTime, '秒，折合', totalMinutes, '分钟');
+    
+    // 更新学习统计数据
+    if (totalMinutes > 0) {
+      // 检查是否有未同步的时间
+      const lastSyncedMinutes = wx.getStorageSync('lastSyncedWriteMinutes') || 0;
+      const unsyncedMinutes = totalMinutes - lastSyncedMinutes;
+      
+      console.log('上次同步的分钟数:', lastSyncedMinutes, '未同步的分钟数:', unsyncedMinutes);
+      
+      if (unsyncedMinutes > 0) {
+        // 优先使用本地存储方式更新未同步的时间，确保数据可靠保存
+        this.updateStudyStatsLocal('write', unsyncedMinutes, 0);
+      }
+      
+      // 如果是第一次同步（没有实时同步过），则增加文章写作数量
+      if (lastSyncedMinutes === 0) {
+        this.updateStudyStatsLocal('write', 0, 1);
+      }
+      
+      // 同时尝试更新profile页面实例（如果存在）
+      const pages = getCurrentPages();
+      const profilePage = pages.find(page => page.route === 'pages/profile/profile');
+      
+      if (profilePage) {
+        // 重新加载profile页面的统计数据
+        profilePage.loadStudyStats();
+        console.log('已通知profile页面重新加载学习统计数据');
+      }
+    }
+    
+    // 清除同步记录
+    wx.removeStorageSync('lastSyncedWriteMinutes');
+  },
+
+  onHide: function() {
+    // 暂停计时
+    this.pauseWritingTimer();
+  },
+
+  onShow: function() {
+    // 恢复计时
+    this.resumeWritingTimer();
+    
+    // 检查是否有到期的时光宝盒
+    this.checkExpiredTimeCapsules();
+  },
+
+  startWritingTimer: function() {
+    writingStartTime = new Date();
+    
+    // 每秒更新一次计时
+    writingTimer = setInterval(() => {
+      const now = new Date();
+      const seconds = Math.floor((now - writingStartTime) / 1000);
+      accumulatedWritingTime += 1;
+      
+      // 每分钟更新一次统计数据
+      if (accumulatedWritingTime % 60 === 0) {
+        console.log('写作时间累计:', Math.floor(accumulatedWritingTime / 60), '分钟');
+        
+        // 每分钟实时同步一次数据到本地存储
+        const currentMinutes = Math.floor(accumulatedWritingTime / 60);
+        if (currentMinutes > 0) {
+          // 获取上次同步的分钟数
+          const lastSyncedMinutes = wx.getStorageSync('lastSyncedWriteMinutes') || 0;
+          const newMinutes = currentMinutes - lastSyncedMinutes;
+          
+          if (newMinutes > 0) {
+            this.updateStudyStatsLocal('write', newMinutes, 0);
+            wx.setStorageSync('lastSyncedWriteMinutes', currentMinutes);
+            console.log('实时同步写作时长:', newMinutes, '分钟');
+          }
+        }
+      }
+    }, 1000);
+  },
+
+  pauseWritingTimer: function() {
+    if (writingTimer) {
+      clearInterval(writingTimer);
+      writingTimer = null;
+      
+      // 计算已经写作的时间
+      const now = new Date();
+      const seconds = Math.floor((now - writingStartTime) / 1000);
+      accumulatedWritingTime += seconds;
+    }
+  },
+
+  resumeWritingTimer: function() {
+    if (!writingTimer) {
+      writingStartTime = new Date();
+      this.startWritingTimer();
+    }
+  },
+
+  stopWritingTimer: function() {
+    if (writingTimer) {
+      clearInterval(writingTimer);
+      writingTimer = null;
+      
+      // 计算已经写作的时间
+      const now = new Date();
+      const seconds = Math.floor((now - writingStartTime) / 1000);
+      accumulatedWritingTime += seconds;
+    }
+  },
+
+  updateStudyStatsLocal: function(type, duration, count = 0) {
+    // 获取当前日期
+    const today = new Date();
+    const dateStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+    
+    console.log('开始更新本地学习统计数据:', { type, duration, count, dateStr });
+    
+    // 从本地存储获取学习统计数据
+    let studyStats = wx.getStorageSync('studyStats') || {};
+    console.log('当前本地存储的学习统计数据:', studyStats);
+    
+    // 确保当天数据和总数据存在
+    if (!studyStats[dateStr]) {
+      studyStats[dateStr] = {
+        read: 0,
+        write: 0,
+        listen: 0,
+        speak: 0,
+        readArticles: 0,
+        writeArticles: 0,
+        listenAudios: 0,
+        speakExercises: 0
+      };
+    }
+    
+    if (!studyStats.total) {
+      studyStats.total = {
+        readArticles: 0,
+        writeArticles: 0,
+        listenAudios: 0,
+        speakExercises: 0
+      };
+    }
+    
+    // 更新当天数据
+    if (duration > 0) {
+      studyStats[dateStr][type] += duration;
+      console.log(`更新${type}时长: +${duration}分钟，当前总计: ${studyStats[dateStr][type]}分钟`);
+    }
+    
+    if (count > 0) {
+      const countKey = type + 'Articles';
+      studyStats[dateStr][countKey] += count;
+      studyStats.total[countKey] += count;
+      console.log(`更新${type}数量: +${count}，当天总计: ${studyStats[dateStr][countKey]}，总计: ${studyStats.total[countKey]}`);
+    }
+    
+    // 保存到本地存储
+    try {
+      wx.setStorageSync('studyStats', studyStats);
+      console.log('学习统计数据保存成功:', studyStats[dateStr]);
+    } catch (error) {
+      console.error('保存学习统计数据失败:', error);
+    }
+  }
+});

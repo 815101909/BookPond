@@ -86,7 +86,7 @@ page {
 
 .news-info {
   padding: 5rpx;
-  margin-bottom: 0;
+  margin-bottom: 30rpx;
   width: 100%;
   box-sizing: border-box;
   text-align: center;
@@ -255,7 +255,7 @@ page {
   box-shadow: 
     0 4rpx 12rpx rgba(255, 182, 193, 0.08),
     inset 0 0 0 1rpx rgba(255, 255, 255, 0.8);
-  margin-top: 8rpx;
+  margin-top: 16rpx;
   width: 100%;
   box-sizing: border-box;
 }

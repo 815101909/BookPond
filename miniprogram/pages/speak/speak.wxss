@@ -70,6 +70,14 @@ page {
   margin-right: 8rpx;
 }
 
+/* SVG图标样式 */
+.mode-icon-svg {
+  width: 36rpx;
+  height: 36rpx;
+  margin-right: 8rpx;
+  flex-shrink: 0;
+}
+
 .mode-text {
   color: #FFFFFF;
   font-size: 28rpx;
@@ -216,12 +224,23 @@ page {
 
 .rule-item {
   margin-bottom: 24rpx;
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+}
+
+/* 规则SVG图标样式 */
+.rule-icon-svg {
+  width: 28rpx;
+  height: 28rpx;
+  flex-shrink: 0;
 }
 
 .rule-title {
   font-size: 28rpx;
   color: #333;
   line-height: 1.5;
+  flex: 1;
 }
 
 /* 花园状态样式 */
@@ -274,7 +293,9 @@ page {
 .content-section {
   width: 100%;
   flex: 1;
-  overflow-y: auto;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 /* 书签式抽拉按钮和设置部分 */
@@ -316,6 +337,19 @@ page {
 .bookmark-icon {
   font-size: 32rpx;
   margin-right: 8rpx;
+}
+
+/* SVG书签图标样式 */
+.bookmark-icon-svg {
+  width: 32rpx;
+  height: 32rpx;
+  margin-right: 8rpx;
+  flex-shrink: 0;
+}
+
+/* 麦克风图标单独下移 */
+.microphone-icon {
+  margin-top: 8rpx;
 }
 
 .bookmark-text {
@@ -384,12 +418,13 @@ page {
 
 /* 内容区域样式 */
 .section-title {
-  margin-bottom: 18rpx;
+  margin-bottom: 15rpx;
   display: flex;
   flex-direction: row;
   align-items: baseline;
-  padding: 8rpx 0;
+  padding: 6rpx 0;
   position: relative;
+  flex-shrink: 0;
 }
 
 .section-title::after {
@@ -440,12 +475,17 @@ page {
 .hotspot-content, .classic-content {
   background: linear-gradient(to bottom, #FFFEF0, #FFF8F8);
   border-radius: 16rpx;
-  padding: 24rpx;
+  padding: 30rpx;
   margin-bottom: 20rpx;
   box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.08);
   border: 1rpx solid rgba(255, 91, 158, 0.1);
   transition: all 0.3s ease;
-  position: relative; /* 添加相对定位以支持内部菜单的绝对定位 */
+  position: relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .hotspot-content:hover, .classic-content:hover {
@@ -558,19 +598,24 @@ page {
 /* 电影屏幕样式 */
 .video-screen {
   width: 100%;
-  height: 405rpx;
+  flex: 1;
+  min-height: 450rpx;
+  max-height: 550rpx;
   background: #000;
   border-radius: 20rpx;
   overflow: hidden;
   position: relative;
-  margin-top: 35rpx;  /* 从15rpx增加到35rpx */
+  margin-top: 20rpx;
   box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
 }
 
 .screen-header {
   display: flex;
   flex-direction: column;
   padding: 10rpx 14rpx;
+  flex-shrink: 0;
   background-color: #333;
 }
 
@@ -600,8 +645,12 @@ page {
 .screen-content {
   position: relative;
   width: 100%;
-  height: 330rpx;
+  flex: 1;
+  min-height: 0;
   background-color: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .content-image {
@@ -685,12 +734,12 @@ page {
   flex-direction: row;
   justify-content: space-evenly;
   align-items: center;
-  margin: 16rpx 0;
+  margin: 20rpx 0 0;
   padding: 16rpx;
   background-color: #FFFEF0;
   border-radius: 16rpx;
   box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
-  margin-top: 30rpx;  /* 从10rpx增加到30rpx */
+  flex-shrink: 0;
   flex-wrap: wrap;
   gap: 8rpx;
 }
@@ -938,15 +987,19 @@ page {
 }
 
 .garden-wall {
-  background: linear-gradient(to bottom, #FFFEF0, #FFF8F8);
+  background: linear-gradient(135deg, #FFF9E6 0%, #FFFEF0 30%, #FFF8F8 70%, #FFE8F0 100%);
   border-radius: 16rpx;
-  padding: 30rpx;
+  padding: 40rpx;
   margin-top: 30rpx;
   box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.08);
   border: 1rpx solid rgba(255, 91, 158, 0.1);
   position: relative;
   overflow: hidden;
   animation: fade-in 0.8s ease-out;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
 }
 
 .garden-wall::before {
@@ -962,8 +1015,10 @@ page {
 
 .garden-wall-header {
   text-align: center;
-  margin-bottom: 30rpx;
+  margin-bottom: 20rpx;
+  margin-top: 10rpx;
   position: relative;
+  flex-shrink: 0;
 }
 
 .garden-wall-header::after {
@@ -977,12 +1032,29 @@ page {
   background: rgba(255, 135, 181, 0.5);
 }
 
+/* 花园标题包装器 */
+.garden-title-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12rpx;
+  margin-bottom: 8rpx;
+}
+
+/* 花园标题SVG图标 */
+.garden-title-icon {
+  width: 40rpx;
+  height: 40rpx;
+  flex-shrink: 0;
+  animation: gentle-sway 3s ease-in-out infinite;
+}
+
 .garden-title {
   font-size: 36rpx;
   font-weight: bold;
   color: #FF5B9E;
-  display: block;
-  margin-bottom: 8rpx;
+  display: inline-block;
+  margin-bottom: 0;
   text-shadow: 0 1rpx 3rpx rgba(255, 91, 158, 0.15);
   letter-spacing: 2rpx;
 }
@@ -992,6 +1064,7 @@ page {
   color: #888;
   display: block;
   letter-spacing: 1rpx;
+  margin-top: 28rpx;
 }
 
 /* 空花园样式 */
@@ -1000,9 +1073,11 @@ page {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 40rpx 0;
+  padding: 50rpx 0;
   opacity: 0.8;
   animation: fade-in 1s ease-out;
+  flex: 1;
+  min-height: 0;
 }
 
 .empty-garden-image {
@@ -1015,7 +1090,7 @@ page {
 .empty-garden-text {
   font-size: 28rpx;
   color: #666;
-  margin-bottom: 10rpx;
+  margin-bottom: 20rpx;
 }
 
 .empty-garden-tip {
@@ -1041,21 +1116,35 @@ page {
   animation: bloom 3s infinite alternate ease-in-out;
 }
 
+/* 空花园SVG图标样式 */
+.fallback-icon-svg {
+  width: 200rpx;
+  height: 200rpx;
+  animation: bloom 3s infinite alternate ease-in-out;
+  filter: drop-shadow(0 4rpx 12rpx rgba(0, 0, 0, 0.15));
+}
+
 /* 花朵墙样式 - 轮播版 */
 .flowers-wall {
-  padding: 20rpx 0 40rpx 0; /* 增加底部空间放置指示点 */
+  padding: 20rpx 0 30rpx 0;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 .flowers-swiper {
   width: 100%;
-  height: 400rpx; /* 增加高度适应花语显示 */
+  flex: 1;
+  min-height: 350rpx;
+  max-height: 500rpx;
   padding: 10rpx 0;
 }
 
 /* 轮播中的花朵项样式 */
 .flowers-swiper .flower-item {
   width: 90%;
-  height: 320rpx;
+  height: 360rpx;
   margin: 0 auto;
   background-color: rgba(255, 255, 255, 0.9);
   border-radius: 20rpx;
@@ -1073,7 +1162,7 @@ page {
 }
 
 .flowers-swiper .flower-icon {
-  font-size: 100rpx; /* 更大的花朵图标 */
+  font-size: 140rpx; /* 更大的花朵图标 */
   margin-bottom: 20rpx;
   animation: gentle-sway 5s infinite ease-in-out;
 }
@@ -1228,4 +1317,63 @@ page {
   background-color: #FF87B5 !important;
   transform: scale(0.95);
   box-shadow: 0 1rpx 4rpx rgba(0, 0, 0, 0.1);
+}
+
+/* 花园小贴士卡片 */
+.garden-tips-card {
+  margin: 16rpx 20rpx 20rpx;
+  background: linear-gradient(135deg, #FFF9E6 0%, #FFFEF0 100%);
+  border-radius: 16rpx;
+  padding: 12rpx 16rpx;
+  box-shadow: 0 2rpx 8rpx rgba(255, 135, 181, 0.12);
+  border: 2rpx solid rgba(255, 215, 0, 0.2);
+  flex-shrink: 0;
+}
+
+.tip-header {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  margin-bottom: 8rpx;
+  padding-bottom: 8rpx;
+  border-bottom: 2rpx dashed rgba(255, 135, 181, 0.3);
+}
+
+.tip-icon-img {
+  width: 24rpx;
+  height: 24rpx;
+  flex-shrink: 0;
+}
+
+.tip-title {
+  font-size: 26rpx;
+  font-weight: bold;
+  color: #FF5B9E;
+  letter-spacing: 0.5rpx;
+}
+
+.tip-content {
+  display: flex;
+  flex-direction: column;
+  gap: 6rpx;
+}
+
+.tip-text {
+  font-size: 22rpx;
+  color: #666;
+  line-height: 1.5;
+  padding-left: 8rpx;
+  position: relative;
+}
+
+.tip-text::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3rpx;
+  height: 3rpx;
+  background: #FF87B5;
+  border-radius: 50%;
 }

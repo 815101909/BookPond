@@ -3,11 +3,11 @@
   <!-- 花园模式顶部导航栏 -->
   <view class="garden-navbar">
     <view class="garden-mode">
-      <text class="mode-icon">🌸</text>
+      <image class="mode-icon-svg" src="/images/icons/flower-pot.svg" mode="aspectFit"></image>
       <text class="mode-text">花园模式</text>
     </view>
     <view class="flowers-display">
-      <text class="flowers-icon">🌷</text>
+      <text class="flowers-icon">🌺</text>
       <view class="flowers-info">
         <text class="flowers-label">今日花朵</text>
         <text class="flowers-value">{{todayFlowers || 0}}</text>
@@ -28,7 +28,7 @@
     <view class="bookmark-row">
       <!-- 热点主持书签按钮 -->
       <view class="bookmark-tab {{hotspotExpanded ? 'expanded' : ''}}" bindtap="toggleHotspot">
-        <text class="bookmark-icon">📢</text>
+        <image class="bookmark-icon-svg microphone-icon" src="/images/icons/microphone.svg" mode="aspectFit"></image>
         <text class="bookmark-text">萌芽主持</text>
       </view>
 
@@ -47,7 +47,7 @@
     <view class="bookmark-row">
       <!-- 森林朗读书签按钮 -->
       <view class="bookmark-tab {{classicExpanded ? 'expanded' : ''}}" bindtap="toggleClassic">
-        <text class="bookmark-icon">📖</text>
+        <image class="bookmark-icon-svg" src="/images/icons/reading.svg" mode="aspectFit"></image>
         <text class="bookmark-text">森林朗读</text>
       </view>
 
@@ -100,7 +100,7 @@
       <!-- 控制区域 -->
       <view class="control-area">
         <view class="record-control {{isHotspotRecording ? 'recording' : ''}}" bindtap="toggleHotspotRecording">
-          <text class="control-icon">🎙</text>
+          <text class="control-icon">🎧</text>
           <text class="control-text">{{isHotspotRecording ? '停止录音' : '开始录音'}}</text>
         </view>
         
@@ -110,7 +110,7 @@
         </view>
         
         <view class="save-button" bindtap="saveHotspotRecording">
-          <text class="control-icon">💾</text>
+          <text class="control-icon">📥</text>
           <text class="control-text">存至仓库</text>
         </view>
       </view>
@@ -151,7 +151,7 @@
       <!-- 控制区域 -->
       <view class="control-area">
         <view class="record-control {{isClassicRecording ? 'recording' : ''}}" bindtap="toggleClassicRecording">
-          <text class="control-icon">🎙</text>
+          <text class="control-icon">🎧</text>
           <text class="control-text">{{isClassicRecording ? '停止录音' : '开始录音'}}</text>
         </view>
         
@@ -161,7 +161,7 @@
         </view>
         
         <view class="save-button" bindtap="saveClassicRecording">
-          <text class="control-icon">💾</text>
+          <text class="control-icon">📥</text>
           <text class="control-text">存至仓库</text>
         </view>
       </view>
@@ -187,7 +187,7 @@
         </block>
         <block wx:else>
           <view class="empty-garden-fallback">
-            <text class="fallback-icon">🌱</text>
+            <image class="fallback-icon-svg" src="/images/icons/flower-bouquet.svg" mode="aspectFit"></image>
           </view>
         </block>
         <text class="empty-garden-text">用您的声音装点这片花园</text>
@@ -214,22 +214,6 @@
   </view>
 </view>
 
-<!-- 音频类型选择 -->
-<view class="audio-type-section">
-  <view class="audio-type-btn {{currentAudioType === 'podcast' ? 'active' : ''}}" 
-        bindtap="selectAudioType" 
-        data-type="podcast">
-    <text class="type-icon">📢</text>
-    <text class="type-text">萌芽主持</text>
-  </view>
-  <view class="audio-type-btn {{currentAudioType === 'forest' ? 'active' : ''}}" 
-        bindtap="selectAudioType"
-        data-type="forest">
-    <text class="type-icon">📖</text>
-    <text class="type-text">森林朗读</text>
-  </view>
-</view>
-
 <!-- 花园规则弹窗 -->
 <view class="garden-rules-popup" wx:if="{{showGardenRulesPopup}}">
   <view class="rules-content">
@@ -239,18 +223,20 @@
     </view>
     <view class="rules-body">
       <view class="rule-item">
-        <text class="rule-title">📢 用声音滋育花朵，装点生活</text>
+        <image class="rule-icon-svg" src="/images/icons/microphone.svg" mode="aspectFit"></image>
+        <text class="rule-title">用声音滋育花朵，装点生活</text>
       </view>
       <view class="rule-item">
-        <text class="rule-title">🎙️ 每完成一次45秒以上的录音会获得一朵惊喜花束</text>
+        <text class="rule-title">🎧 每完成一次45秒以上的录音会获得一朵惊喜花束</text>
       </view>
       <view class="rule-item">
-        <text class="rule-title">🌸 这些惊喜花束会绽放在我的花园中</text>
+        <image class="rule-icon-svg" src="/images/icons/flower-bouquet.svg" mode="aspectFit"></image>
+        <text class="rule-title">这些惊喜花束会绽放在我的花园中</text>
       </view>
       <!-- 花朵状态展示 -->
       <view class="rule-item garden-status">
         <block wx:if="{{hasReachedGoal}}">
-          <text class="garden-text">🎉 恭喜您！今日花园已达成目标</text>
+          <text class="garden-text">🎊 恭喜您！今日花园已达成目标</text>
         </block>
       </view>
     </view>

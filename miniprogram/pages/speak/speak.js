@@ -800,7 +800,7 @@ Page({
             const randomIndex = Math.floor(Math.random() * flowers.length);
             const flower = flowers[randomIndex];
             resolve({
-              icon: flower.icon || '🌸',
+              icon: flower.icon || '🏵️',
               name: flower.name || '未知花朵',
               meaning: flower.meaning || '暂无花语'
             });
@@ -808,7 +808,7 @@ Page({
             // 如果云函数返回失败或没有数据，使用备用花朵
             console.log('云函数获取花朵数据失败或无数据，使用备用花朵');
             const fallbackFlower = {
-              icon: '🌸',
+              icon: '🏵️',
               name: '樱花',
               meaning: '生命短暂而美丽，象征着纯洁与高尚的情操'
             };
@@ -818,7 +818,7 @@ Page({
           console.error('调用云函数获取花朵数据失败:', err);
           // 失败时使用备用花朵
           const fallbackFlower = {
-            icon: '🌸',
+            icon: '🏵️',
             name: '樱花',
             meaning: '生命短暂而美丽，象征着纯洁与高尚的情操'
           };

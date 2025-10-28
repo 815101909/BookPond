@@ -2,11 +2,11 @@
   <!-- 积分顶部导航栏 -->
   <view class="points-navbar">
     <view class="points-mode">
-      <text class="mode-icon">🎯</text>
+      <text class="mode-icon">🏅</text>
       <text class="mode-text">擂台模式</text>
     </view>
     <view class="points-display">
-      <text class="points-icon">🏆</text>
+      <text class="points-icon">🥇</text>
       <view class="points-info">
         <text class="points-label">今日积分</text>
         <text class="points-value">{{todayPoints}}</text>
@@ -115,13 +115,13 @@
   <!-- 习题训练营版块 -->
   <view class="exercise-camp">
     <view class="camp-header">
-      <text class="camp-icon">📝</text>
+      <text class="camp-icon">✏️</text>
       <text class="camp-text">习题训练营</text>
     </view>
     
     <!-- 没有对应语言习题时显示提示 -->
     <view class="no-content-tip" wx:if="{{noContentForLanguage}}">
-      <view class="no-content-icon">🔍</view>
+      <view class="no-content-icon">🔎</view>
       <view class="no-content-text">暂时没有{{currentLanguage}}语言的习题内容</view>
       <view class="no-content-subtext">请尝试切换其他语言</view>
     </view>
@@ -211,7 +211,7 @@
       <view class="result-actions">
         <view class="action-btn" bindtap="closeResultModal">返回</view>
         <view class="action-btn favorite" bindtap="favoriteExercise">
-          <text class="favorite-icon">♥</text>
+          <text class="favorite-icon">❤️</text>
           <text>收藏</text>
         </view>
       </view>
@@ -229,14 +229,14 @@
       
       <view class="rules-body">
         <view class="rule-item">
-          <view class="rule-icon">1️⃣</view>
+          <view class="rule-icon">①</view>
           <view class="rule-text">
             <view class="rule-desc">听力习题只有第一次作答时积分，重复作答不计分数</view>
           </view>
         </view>
         
         <view class="rule-item">
-          <view class="rule-icon">2️⃣</view>
+          <view class="rule-icon">②</view>
           <view class="rule-text">
             <view class="rule-desc">每月1号更新排行榜，第一名用户会被赠予1个月的会员</view>
   </view>

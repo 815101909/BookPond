@@ -28,13 +28,46 @@ Page({
     isPrivacyChecked: false,
     
     // 登录状态
-    isLoggingIn: false
+    isLoggingIn: false,
+    
+    // Logo图片临时链接
+    logoUrl: ''
   },
   
   onLoad: function() {
     // 初始化页面，检查登录状态
     console.log('登录页面加载');
     this.checkLoginStatus();
+    this.getLogoUrl();
+  },
+  
+  // 获取Logo图片临时链接
+  async getLogoUrl() {
+    const cloudUrl = 'cloud://cloud1-1gsyt78b92c539ef.636c-cloud1-1gsyt78b92c539ef-1370520707/icon/书池.png';
+    try {
+      // 跨环境创建 Cloud 实例
+      const cloudInstance = new wx.cloud.Cloud({
+        identityless: true,
+        resourceAppid: 'wx85d92d28575a70f4',
+        resourceEnv: 'cloud1-1gsyt78b92c539ef',
+      });
+      await cloudInstance.init();
+
+      const result = await cloudInstance.getTempFileURL({
+        fileList: [cloudUrl],
+      });
+
+      if (result.fileList?.[0]?.tempFileURL) {
+        console.log('Logo云存储URL转换成功:', cloudUrl, '->', result.fileList[0].tempFileURL);
+        this.setData({
+          logoUrl: result.fileList[0].tempFileURL
+        });
+      } else {
+        console.error('Logo云链接转换失败:', result);
+      }
+    } catch (err) {
+      console.error('Logo云链接转换异常:', err);
+    }
   },
 
   // 检查登录状态

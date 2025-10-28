@@ -43,7 +43,7 @@
         <text class="menu-text">我的排行</text>
       </view>
       <view class="menu-item" bindtap="navigateToMessages">
-        <view class="menu-icon">📨</view>
+        <view class="menu-icon">✉️</view>
         <text class="menu-text">系统消息</text>
         <view class="message-badge" wx:if="{{unreadMessages > 0}}">{{unreadMessages}}</view>
       </view>
